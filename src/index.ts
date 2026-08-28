@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import "dotenv/config";
 import { GroqJobEvaluator } from "./JobEvaluators/Groq/GroqJobEvaluator";
 import { profiles } from "./JobCandidateProfile/candidateProfiles";
 import { WorkdayJobsGateway } from "./APIs/JobSources/Workday/WorkdayJobsGateway";
