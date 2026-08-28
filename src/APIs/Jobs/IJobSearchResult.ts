@@ -21,18 +21,11 @@ export interface IJobSearchResult {
     company: string;
 
     /**
-     * Which integration produced this result.
-     *
-     * Keeping this generic allows additional job sources later.
-     */
-    source: JobSource;
-
-    /**
-     * URL of the actual job detail page.
+     * Path of the actual job detail page.
      *
      * This will normally be what getDetail() uses.
      */
-    url: string;
+    detailPath: string;
 
     /**
      * Optional requisition ID when distinct from id.
@@ -51,15 +44,4 @@ export interface IJobSearchResult {
      * Date from the search result if available.
      */
     postedDate?: string;
-
-    /**
-     * Useful for deduplication/debugging without polluting
-     * the normalized domain contract.
-     */
-    metadata?: Record<string, unknown>;
 }
-
-export type JobSource =
-    | "workday"
-    | "travelers"
-    | "crowdstrike";

@@ -1,8 +1,8 @@
 import { IJobSearchResult } from "./IJobSearchResult";
-import { JobPostingDetail } from "./types/JobPostingDetail";
+import { IJobsRequest } from "./IJobsRequest";
+import { IJobPostingDetail } from "./IJobPostingDetail";
 
 export interface IJobSource {
-    search(): Promise<IJobSearchResult[]>;
-
-    getDetail(job: IJobSearchResult): Promise<JobPostingDetail>;
+    search(request: IJobsRequest): Promise<IJobSearchResult[]>;
+    getDetail(url: string): Promise<IJobPostingDetail>;
 }
