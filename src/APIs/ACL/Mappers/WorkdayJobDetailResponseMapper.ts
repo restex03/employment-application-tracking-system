@@ -1,5 +1,5 @@
 import { IWorkdayJobDetailResponse } from "../Contracts/IWorkdayJobDetailResponse";
-import { IJobPostingDetail, IJobLocation } from "../../Jobs/IJobPostingDetail";
+import { IJobPostingDetail, IJobLocation } from "../../JobSources/IJobPostingDetail";
 
 export class WorkdayJobDetailResponseMapper {
     public map(response: IWorkdayJobDetailResponse): IJobPostingDetail {
