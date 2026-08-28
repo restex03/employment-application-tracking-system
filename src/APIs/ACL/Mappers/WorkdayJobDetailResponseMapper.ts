@@ -4,9 +4,22 @@ import { IJobPostingDetail, IJobLocation } from "../../JobSources/IJobPostingDet
 export class WorkdayJobDetailResponseMapper {
     public map(response: IWorkdayJobDetailResponse): IJobPostingDetail {
         const { jobPostingInfo, hiringOrganization } = response;
-        const locations = [jobPostingInfo.location, ...(jobPostingInfo.additionalLocations ?? [])]
-            .filter(Boolean)
-            .map(location => this.mapLocation(location, jobPostingInfo.country.descriptor));
+
+        const locations: IJobLocation[] = [
+            ...(jobPostingInfo.location
+                ? [this.mapLocation(jobPostingInfo.location, jobPostingInfo.country?.descriptor)]
+                : []),
+            ...(jobPostingInfo.additionalLocations ?? []).filter(Boolean).map(location => this.mapLocation(location)),
+        ];
+
+        const uniqueLocations = [
+            ...new Map(
+                locations.map(location => [
+                    `${location.city ?? ""}|${location.state ?? ""}|${location.country ?? ""}`,
+                    location,
+                ])
+            ).values(),
+        ];
 
         return {
             id: jobPostingInfo.id,
@@ -16,14 +29,14 @@ export class WorkdayJobDetailResponseMapper {
             company: hiringOrganization.name,
             datePosted: jobPostingInfo.postedOn,
             employmentType: jobPostingInfo.timeType,
-            locations: new Array(...new Set(locations)),
+            locations: uniqueLocations,
         };
     }
 
-    private mapLocation(location: string, country: string): IJobLocation {
+    private mapLocation(location: string, country?: string): IJobLocation {
         return {
             city: location,
-            country,
+            ...(country ? { country } : {}),
         };
     }
 }

@@ -1,14 +1,16 @@
 import OpenAI from "openai";
 
 import { IJobEvaluator } from "../IJobEvaluator";
-import {
-    type ICandidateProfile,
-    type IJobEvaluation,
-    type IJobPosting,
-} from "./types";
+
+import { type ICandidateProfile, type IJobEvaluation } from "./types";
 
 import { JOB_EVALUATION_SCHEMA } from "./GroqJobEvaluationSchema";
-import { GroqEvaluationResponseSchema } from "../GroqEvaluationResponseSchema";
+
+import { GroqJobEvaluationSchema } from "../GroqEvaluationResponseSchema";
+
+import { IJobPostingDetail } from "../../APIs/JobSources/IJobPostingDetail";
+import { IJobCompatibilityScoreCalculator } from "../../JobCompatibilityCalculators/IJobCompatibilityScoreCalculator";
+import { JobCompatibilityScoreCalculator } from "../../JobCompatibilityCalculators/JobCompatibilityScoreCalculator";
 
 export class GroqJobEvaluator implements IJobEvaluator {
     private readonly client: OpenAI;
@@ -16,6 +18,7 @@ export class GroqJobEvaluator implements IJobEvaluator {
     constructor(
         apiKey: string = process.env.GROQ_API_KEY ?? "",
         private readonly model: string = "openai/gpt-oss-120b",
+        private readonly scoreCalculator: IJobCompatibilityScoreCalculator = new JobCompatibilityScoreCalculator()
     ) {
         if (!apiKey) {
             throw new Error("GROQ_API_KEY is not configured.");
@@ -27,16 +30,10 @@ export class GroqJobEvaluator implements IJobEvaluator {
         });
     }
 
-    async evaluate(
-        profile: ICandidateProfile,
-        jobs: IJobPosting[],
-    ): Promise<IJobEvaluation[]> {
-        if (jobs.length === 0) {
-            return [];
-        }
-
+    async evaluate(profile: ICandidateProfile, job: IJobPostingDetail): Promise<IJobEvaluation> {
         const response = await this.client.chat.completions.create({
             model: this.model,
+
             temperature: 0.1,
 
             messages: [
@@ -48,28 +45,26 @@ export class GroqJobEvaluator implements IJobEvaluator {
                     role: "user",
                     content: JSON.stringify({
                         candidate: profile,
-                        jobs,
+                        job,
                     }),
                 },
             ],
 
             response_format: {
                 type: "json_schema",
+
                 json_schema: {
-                    name: "job_evaluations",
+                    name: "job_evaluation",
                     strict: true,
                     schema: JOB_EVALUATION_SCHEMA,
                 },
             },
         });
 
-        const content =
-            response.choices[0]?.message?.content;
+        const content = response.choices[0]?.message?.content;
 
         if (!content) {
-            throw new Error(
-                "Groq returned no evaluation content.",
-            );
+            throw new Error(`Groq returned no evaluation content for job ${job.id}.`);
         }
 
         let json: unknown;
@@ -78,91 +73,48 @@ export class GroqJobEvaluator implements IJobEvaluator {
             json = JSON.parse(content);
         } catch (error) {
             throw new Error(
-                `Groq returned invalid JSON: ${
-                    error instanceof Error
-                        ? error.message
-                        : String(error)
-                }`,
+                `Groq returned invalid JSON for job ${job.id}: ${
+                    error instanceof Error ? error.message : String(error)
+                }`
             );
         }
 
-        const validationResult =
-            GroqEvaluationResponseSchema.safeParse(json);
+        const validationResult = GroqJobEvaluationSchema.safeParse(json);
 
         if (!validationResult.success) {
-            const validationErrors =
-                validationResult.error.issues
-                    .map(issue => {
-                        const path =
-                            issue.path.length > 0
-                                ? issue.path.join(".")
-                                : "<root>";
+            const validationErrors = validationResult.error.issues
+                .map(issue => {
+                    const path = issue.path.length > 0 ? issue.path.join(".") : "<root>";
 
-                        return `${path}: ${issue.message}`;
-                    })
-                    .join("; ");
+                    return `${path}: ${issue.message}`;
+                })
+                .join("; ");
 
-            throw new Error(
-                `Groq returned an invalid evaluation response: ${validationErrors}`,
-            );
+            throw new Error(`Groq returned an invalid evaluation for job ${job.id}: ${validationErrors}`);
         }
 
-        const parsed = validationResult.data;
+        const { primaryConcern, ...raw } = validationResult.data;
 
-return parsed.rankings.map(raw => {
-    const {
-        primaryConcern,
-        ...rest
-    } = raw;
+        const evaluationWithoutScore: Omit<IJobEvaluation, "overallScore"> = {
+            ...raw,
 
-    const evaluation: IJobEvaluation = {
-        ...rest,
+            ...(primaryConcern !== null ? { primaryConcern } : {}),
+        };
 
-        ...(primaryConcern !== null
-            ? { primaryConcern }
-            : {}),
+        const overallScore = this.scoreCalculator.calculate(evaluationWithoutScore);
 
-        // The application owns this calculation.
-        overallScore: 0,
-    };
-
-    evaluation.overallScore =
-        this.calculateOverallScore(evaluation);
-
-    return evaluation;
-});
-    }
-
-    private calculateOverallScore(
-        evaluation: IJobEvaluation,
-    ): number {
-        if (
-            !evaluation.eligibility
-                .passesHardConstraints
-        ) {
-            return 0;
-        }
-
-        const s = evaluation.scores;
-
-        const score =
-            s.currentSkillFit * 0.25 +
-            s.experienceFit * 0.15 +
-            s.workFit * 0.20 +
-            s.skillPortability * 0.15 +
-            s.careerGrowth * 0.15 +
-            s.compensationFit * 0.05 +
-            s.locationFit * 0.05;
-
-        return Math.round(score);
+        return {
+            ...evaluationWithoutScore,
+            overallScore,
+        };
     }
 
     private readonly systemPrompt = `
 You are a software engineering job-matching system.
 
-Your job is to evaluate how well each job fits the supplied candidate.
+Your job is to evaluate how well the supplied job fits the supplied candidate.
 
-Evaluate each position independently.
+Evaluate only the supplied position.
 
 Pay particular attention to:
 
@@ -244,6 +196,8 @@ Do not invent candidate experience.
 Candidate evidence must be supported by the supplied candidate profile.
 
 A missing technology must not be described as candidate experience.
+
+The returned jobId MUST exactly match the supplied job.id.
 
 Keep summaries and reasons concise and useful.
 `;

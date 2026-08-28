@@ -1,12 +1,6 @@
-import {
-    type ICandidateProfile,
-    type IJobEvaluation,
-    type IJobPosting,
-} from "./Groq/types";
+import { IJobPostingDetail } from "../APIs/JobSources/IJobPostingDetail";
+import { type ICandidateProfile, type IJobEvaluation } from "./Groq/types";
 
 export interface IJobEvaluator {
-    evaluate(
-        profile: ICandidateProfile,
-        jobs: IJobPosting[],
-    ): Promise<IJobEvaluation[]>;
+    evaluate(profile: ICandidateProfile, job: IJobPostingDetail): Promise<IJobEvaluation>;
 }

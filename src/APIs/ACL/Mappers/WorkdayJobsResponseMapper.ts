@@ -25,6 +25,14 @@ export class WorkdayJobsResponseMapper {
     }
 
     private getRequisitionId(externalPath: string): string | undefined {
-        return externalPath.match(/(?:JR|R)-?\d+/i)?.[0];
+        const tail = externalPath.split("_").at(-1);
+
+        if (!tail) {
+            return undefined;
+        }
+
+        const match = tail.match(/^(R-\d+|JR\d+|R\d+|J\d+|P\d+|\d{2}WD\d+|\d+)(?:-\d+)?$/i);
+
+        return match?.[1];
     }
 }
