@@ -1,13 +1,14 @@
-import "dotenv/config";
 import { JobEvaluator } from "./Evaluators/ShortlistEvaluator/JobEvaluator";
 import { profiles } from "./JobCandidateProfile/candidateProfiles";
-import { WorkdayJobsGateway } from "./APIs/JobSources/Workday/WorkdayJobsGateway";
+import { WorkdayJobsGateway } from "./Infrastructure/APIs/JobSources/Workday/WorkdayJobsGateway";
 import { ConsoleLogger } from "./Application/Common/Logger/Console/ConsoleLogger";
 import { workdaySources } from "./Application/WorkdaySources/workdaySources";
 import { JobScoringService } from "./Application/Services/JobScoringService";
 import { OllamaClientConnection } from "./ModelConnections/Ollama/OllamaClientConnection";
 import { JobScreener } from "./Evaluators/InitialJobScreener/JobScreener";
 import { IJobScreener } from "./Evaluators/InitialJobScreener/IJobScreener";
+import { SqliteJobRepository } from "./Infrastructure/Persistence/Sqlite/Repositories/SqliteJobRepository";
+import { SqliteDatabase } from "./Infrastructure/Persistence/Sqlite/SqliteDatabase";
 
 const logger = new ConsoleLogger();
 
@@ -15,7 +16,9 @@ logger.info("Starting application...");
 
 const client = new OllamaClientConnection();
 const screener: IJobScreener = new JobScreener(client, logger);
+const sqlite = new SqliteDatabase("./data/job-app.db");
 
+const jobRepository = new SqliteJobRepository(sqlite.connection);
 const request = {
     appliedFacets: {},
     limit: 20,

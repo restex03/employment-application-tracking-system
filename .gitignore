@@ -59,3 +59,7 @@ temp/
 
 # Local runtime / generated data
 *.local
+
+# Database files
+*.sqlite
+data/
