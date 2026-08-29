@@ -76,5 +76,3 @@ export const JobEvaluationSchema = z.strictObject({
 
     interviewQuestions: z.array(z.string()),
 });
-
-export type JobEvaluation = z.infer<typeof JobEvaluationSchema>;

@@ -84,8 +84,6 @@ export type WorkArrangement = "remote" | "hybrid" | "onsite" | "unknown";
 
 export type EmploymentType = "full_time" | "part_time" | "contract" | "temporary" | "internship" | "unknown";
 
-export type Seniority = "entry" | "junior" | "mid" | "senior" | "staff" | "principal" | "lead" | "manager" | "unknown";
-
 export type SkillLevel = "expert" | "strong" | "working" | "exposure" | "learning";
 
 export type SkillCategory =
@@ -280,50 +278,4 @@ export interface ICandidateProfile {
          */
         hardConstraints?: string[];
     };
-}
-
-export interface ISalaryRange {
-    min?: number;
-    max?: number;
-    currency?: string;
-
-    /**
-     * Normally "year" for salaried positions.
-     */
-    period?: "hour" | "month" | "year";
-
-    bonusEligible?: boolean;
-
-    equityEligible?: boolean;
-}
-
-export interface IJobLocation {
-    city?: string;
-    state?: string;
-    country?: string;
-
-    arrangement: WorkArrangement;
-
-    /**
-     * Example:
-     * "50% of time per quarter"
-     * "2 days/week"
-     */
-    hybridDetails?: string;
-}
-
-export interface IJobRequirement {
-    name: string;
-
-    /**
-     * This distinction matters enormously.
-     *
-     * "Python required" is different from
-     * "LangGraph nice to have".
-     */
-    importance: "required" | "preferred" | "nice_to_have";
-
-    years?: number;
-
-    context?: string;
 }
