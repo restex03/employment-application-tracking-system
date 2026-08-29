@@ -1,78 +1,221 @@
-import { z } from "zod";
+const scoreSchema = {
+    type: "integer",
+    minimum: 0,
+    maximum: 100,
+} as const;
 
-const ScoreSchema = z.number().int().min(0).max(100);
+/**
+ * JSON Schema describing the exact shape OpenAI should return for a job evaluation.
+ * This is used as the response_format schema sent to the model.
+ */
+export const JobEvaluationResponseSchema = {
+    type: "object",
 
-const MatchEvidenceSchema = z.strictObject({
-    requirement: z.string(),
-    candidateEvidence: z.string(),
+    properties: {
+        jobId: {
+            type: "string",
+        },
 
-    strength: z.enum(["strong", "moderate", "weak"]),
-});
+        recommendation: {
+            type: "string",
 
-const SkillGapSchema = z.strictObject({
-    skill: z.string(),
+            enum: ["strong_apply", "apply", "maybe", "skip"],
+        },
 
-    severity: z.enum(["minor", "moderate", "major", "disqualifying"]),
+        confidence: {
+            type: "number",
+            minimum: 0,
+            maximum: 1,
+        },
 
-    type: z.enum(["learnable", "transferable", "experience", "domain", "structural", "career_risk"]),
+        scores: {
+            type: "object",
 
-    reason: z.string(),
+            properties: {
+                currentSkillFit: scoreSchema,
 
-    reasonablyLearnable: z.boolean(),
-});
+                experienceFit: scoreSchema,
 
-const JobEvaluationScoresSchema = z.strictObject({
-    currentSkillFit: ScoreSchema,
+                workFit: scoreSchema,
 
-    experienceFit: ScoreSchema,
+                skillPortability: scoreSchema,
 
-    workFit: ScoreSchema,
+                careerGrowth: scoreSchema,
 
-    skillPortability: ScoreSchema,
+                compensationFit: scoreSchema,
 
-    careerGrowth: ScoreSchema,
+                locationFit: scoreSchema,
+            },
 
-    compensationFit: ScoreSchema,
+            required: [
+                "currentSkillFit",
+                "experienceFit",
+                "workFit",
+                "skillPortability",
+                "careerGrowth",
+                "compensationFit",
+                "locationFit",
+            ],
 
-    locationFit: ScoreSchema,
-});
+            additionalProperties: false,
+        },
 
-const EligibilitySchema = z.strictObject({
-    passesHardConstraints: z.boolean(),
+        eligibility: {
+            type: "object",
 
-    reasons: z.array(z.string()),
-});
+            properties: {
+                passesHardConstraints: {
+                    type: "boolean",
+                },
 
-const ProprietaryTechnologyRiskSchema = z.strictObject({
-    level: z.enum(["low", "moderate", "high", "unknown"]),
+                reasons: {
+                    type: "array",
 
-    reason: z.string(),
-});
+                    items: {
+                        type: "string",
+                    },
+                },
+            },
 
-export const JobEvaluationSchema = z.strictObject({
-    jobId: z.string(),
+            required: ["passesHardConstraints", "reasons"],
 
-    recommendation: z.enum(["strong_apply", "apply", "maybe", "skip"]),
+            additionalProperties: false,
+        },
 
-    confidence: z.number().min(0).max(1),
+        strongMatches: {
+            type: "array",
 
-    scores: JobEvaluationScoresSchema,
+            items: {
+                type: "object",
 
-    eligibility: EligibilitySchema,
+                properties: {
+                    requirement: {
+                        type: "string",
+                    },
 
-    strongMatches: z.array(MatchEvidenceSchema),
+                    candidateEvidence: {
+                        type: "string",
+                    },
 
-    gaps: z.array(SkillGapSchema),
+                    strength: {
+                        type: "string",
 
-    transferableSkills: z.array(z.string()),
+                        enum: ["strong", "moderate", "weak"],
+                    },
+                },
 
-    careerRisks: z.array(z.string()),
+                required: ["requirement", "candidateEvidence", "strength"],
 
-    proprietaryTechnologyRisk: ProprietaryTechnologyRiskSchema,
+                additionalProperties: false,
+            },
+        },
 
-    summary: z.string(),
+        gaps: {
+            type: "array",
 
-    primaryConcern: z.string().nullable(),
+            items: {
+                type: "object",
 
-    interviewQuestions: z.array(z.string()),
-});
+                properties: {
+                    skill: {
+                        type: "string",
+                    },
+
+                    severity: {
+                        type: "string",
+
+                        enum: ["minor", "moderate", "major", "disqualifying"],
+                    },
+
+                    type: {
+                        type: "string",
+
+                        enum: ["learnable", "transferable", "experience", "domain", "structural", "career_risk"],
+                    },
+
+                    reason: {
+                        type: "string",
+                    },
+
+                    reasonablyLearnable: {
+                        type: "boolean",
+                    },
+                },
+
+                required: ["skill", "severity", "type", "reason", "reasonablyLearnable"],
+
+                additionalProperties: false,
+            },
+        },
+
+        transferableSkills: {
+            type: "array",
+
+            items: {
+                type: "string",
+            },
+        },
+
+        careerRisks: {
+            type: "array",
+
+            items: {
+                type: "string",
+            },
+        },
+
+        proprietaryTechnologyRisk: {
+            type: "object",
+
+            properties: {
+                level: {
+                    type: "string",
+
+                    enum: ["low", "moderate", "high", "unknown"],
+                },
+
+                reason: {
+                    type: "string",
+                },
+            },
+
+            required: ["level", "reason"],
+
+            additionalProperties: false,
+        },
+
+        summary: {
+            type: "string",
+        },
+
+        primaryConcern: {
+            type: ["string", "null"],
+        },
+
+        interviewQuestions: {
+            type: "array",
+
+            items: {
+                type: "string",
+            },
+        },
+    },
+
+    required: [
+        "jobId",
+        "recommendation",
+        "confidence",
+        "scores",
+        "eligibility",
+        "strongMatches",
+        "gaps",
+        "transferableSkills",
+        "careerRisks",
+        "proprietaryTechnologyRisk",
+        "summary",
+        "primaryConcern",
+        "interviewQuestions",
+    ],
+
+    additionalProperties: false,
+} as const;

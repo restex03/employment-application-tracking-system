@@ -2,9 +2,9 @@ import { IJobEvaluator } from "./IJobEvaluator";
 
 import { type ICandidateProfile, type IJobEvaluation } from "./types";
 
-import { JOB_EVALUATION_SCHEMA } from "./JobEvaluationSchema";
+import { JobEvaluationResponseSchema } from "./JobEvaluationResponseSchema";
 
-import { JobEvaluationSchema } from "./JobEvaluationResponseSchema";
+import { JobEvaluationResponseValidationSchema } from "./JobEvaluationResponseValidationSchema";
 
 import { IJobPostingDetail } from "../APIs/JobSources/IJobPostingDetail";
 import { IJobCompatibilityScoreCalculator } from "../JobCompatibilityCalculators/IJobCompatibilityScoreCalculator";
@@ -49,7 +49,7 @@ export class JobEvaluator implements IJobEvaluator {
                 json_schema: {
                     name: "job_evaluation",
                     strict: true,
-                    schema: JOB_EVALUATION_SCHEMA,
+                    schema: JobEvaluationResponseSchema,
                 },
             },
         });
@@ -85,7 +85,7 @@ export class JobEvaluator implements IJobEvaluator {
             );
         }
 
-        const validationResult = JobEvaluationSchema.safeParse(json);
+        const validationResult = JobEvaluationResponseValidationSchema.safeParse(json);
 
         if (!validationResult.success) {
             const validationErrors = validationResult.error.issues
