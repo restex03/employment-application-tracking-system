@@ -1,4 +1,4 @@
-import { IJobEvaluation } from "../JobEvaluators/Groq/types";
+import { IJobEvaluation } from "../JobEvaluators/types";
 import { IJobCompatibilityScoreCalculator } from "./IJobCompatibilityScoreCalculator";
 
 export class JobCompatibilityScoreCalculator implements IJobCompatibilityScoreCalculator {

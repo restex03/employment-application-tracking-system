@@ -49,7 +49,7 @@ const ProprietaryTechnologyRiskSchema = z.strictObject({
     reason: z.string(),
 });
 
-export const GroqJobEvaluationSchema = z.strictObject({
+export const JobEvaluationSchema = z.strictObject({
     jobId: z.string(),
 
     recommendation: z.enum(["strong_apply", "apply", "maybe", "skip"]),
@@ -77,4 +77,4 @@ export const GroqJobEvaluationSchema = z.strictObject({
     interviewQuestions: z.array(z.string()),
 });
 
-export type GroqJobEvaluation = z.infer<typeof GroqJobEvaluationSchema>;
+export type JobEvaluation = z.infer<typeof JobEvaluationSchema>;

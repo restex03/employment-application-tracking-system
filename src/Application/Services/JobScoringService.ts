@@ -1,5 +1,5 @@
 import { IJobPostingDetail } from "../../APIs/JobSources/IJobPostingDetail";
-import { ICandidateProfile, IJobEvaluation } from "../../JobEvaluators/Groq/types";
+import { ICandidateProfile, IJobEvaluation } from "../../JobEvaluators/types";
 import { IJobEvaluator } from "../../JobEvaluators/IJobEvaluator";
 export class JobScoringService {
     constructor(private readonly evaluator: IJobEvaluator) {}

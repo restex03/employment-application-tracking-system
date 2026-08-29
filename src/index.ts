@@ -1,14 +1,17 @@
 import "dotenv/config";
-import { GroqJobEvaluator } from "./JobEvaluators/Groq/GroqJobEvaluator";
+import { JobEvaluator } from "./JobEvaluators/JobEvaluator";
 import { profiles } from "./JobCandidateProfile/candidateProfiles";
 import { WorkdayJobsGateway } from "./APIs/JobSources/Workday/WorkdayJobsGateway";
 import { ConsoleLogger } from "./Application/Common/Logger/Console/ConsoleLogger";
 import { workdaySources } from "./Application/WorkdaySources/workdaySources";
 import { JobScoringService } from "./Application/Services/JobScoringService";
+import { OllamaClientConnection } from "./JobEvaluators/Ollama/OllamaClientConnection";
 
 const logger = new ConsoleLogger();
 
 logger.info("Starting application...");
+
+const client = new OllamaClientConnection();
 
 const request = {
     appliedFacets: {},
@@ -42,7 +45,7 @@ for (const source of jobSources) {
 
         const detail = await gateway.getDetail(firstJob.detailPath);
 
-        const evaluator = new GroqJobEvaluator();
+        const evaluator = new JobEvaluator(client, logger);
 
         const scoringService = new JobScoringService(evaluator);
 

@@ -1,37 +1,30 @@
-import OpenAI from "openai";
-
-import { IJobEvaluator } from "../IJobEvaluator";
+import { IJobEvaluator } from "./IJobEvaluator";
 
 import { type ICandidateProfile, type IJobEvaluation } from "./types";
 
-import { JOB_EVALUATION_SCHEMA } from "./GroqJobEvaluationSchema";
+import { JOB_EVALUATION_SCHEMA } from "./JobEvaluationSchema";
 
-import { GroqJobEvaluationSchema } from "../GroqEvaluationResponseSchema";
+import { JobEvaluationSchema } from "./JobEvaluationResponseSchema";
 
-import { IJobPostingDetail } from "../../APIs/JobSources/IJobPostingDetail";
-import { IJobCompatibilityScoreCalculator } from "../../JobCompatibilityCalculators/IJobCompatibilityScoreCalculator";
-import { JobCompatibilityScoreCalculator } from "../../JobCompatibilityCalculators/JobCompatibilityScoreCalculator";
+import { IJobPostingDetail } from "../APIs/JobSources/IJobPostingDetail";
+import { IJobCompatibilityScoreCalculator } from "../JobCompatibilityCalculators/IJobCompatibilityScoreCalculator";
+import { JobCompatibilityScoreCalculator } from "../JobCompatibilityCalculators/JobCompatibilityScoreCalculator";
+import { OpenAiConnection } from "./Ollama/OllamaClientConnection";
+import { ILogger } from "../Application/Common/Logger/ILogger";
 
-export class GroqJobEvaluator implements IJobEvaluator {
-    private readonly client: OpenAI;
-
+export class JobEvaluator implements IJobEvaluator {
     constructor(
-        apiKey: string = process.env.GROQ_API_KEY ?? "",
-        private readonly model: string = "openai/gpt-oss-120b",
+        private readonly openAi: OpenAiConnection,
+        private readonly logger: ILogger,
+        // private readonly model: string = "openai/gpt-oss-120b",
+        private readonly model: string = "qwen3:4b-instruct-8k",
+        // private readonly model: string = "qwen3:8b",
         private readonly scoreCalculator: IJobCompatibilityScoreCalculator = new JobCompatibilityScoreCalculator()
-    ) {
-        if (!apiKey) {
-            throw new Error("GROQ_API_KEY is not configured.");
-        }
-
-        this.client = new OpenAI({
-            apiKey,
-            baseURL: "https://api.groq.com/openai/v1",
-        });
-    }
+    ) {}
 
     async evaluate(profile: ICandidateProfile, job: IJobPostingDetail): Promise<IJobEvaluation> {
-        const response = await this.client.chat.completions.create({
+        const start = performance.now();
+        const response = await this.openAi.client.chat.completions.create({
             model: this.model,
 
             temperature: 0.1,
@@ -61,11 +54,24 @@ export class GroqJobEvaluator implements IJobEvaluator {
             },
         });
 
-        const content = response.choices[0]?.message?.content;
+        const elapsed = performance.now() - start;
 
+        const content = response.choices[0]?.message?.content;
         if (!content) {
-            throw new Error(`Groq returned no evaluation content for job ${job.id}.`);
+            throw new Error(`Model returned no evaluation content for job ${job.id}.`);
         }
+
+        this.logger.debug("********************************************************");
+        this.logger.debug("*************** Model Response Analysis ****************");
+        this.logger.debug("********************************************************");
+        this.logger.debug(`Evaluation time (s): ${(elapsed / 1000).toFixed(1)}`);
+        this.logger.debug(`Prompt tokens: ${response.usage?.prompt_tokens}`);
+        this.logger.debug(`Completion tokens: ${response.usage?.completion_tokens}`);
+        this.logger.debug(`Content returned from model: \n${content}`);
+        this.logger.debug(`Completion chars: ${content!.length}`);
+        this.logger.debug(`Finish reason: ${response.choices[0]?.finish_reason}`);
+        this.logger.debug("********************************************************");
+        this.logger.debug("********************************************************");
 
         let json: unknown;
 
@@ -73,13 +79,13 @@ export class GroqJobEvaluator implements IJobEvaluator {
             json = JSON.parse(content);
         } catch (error) {
             throw new Error(
-                `Groq returned invalid JSON for job ${job.id}: ${
+                `Model returned invalid JSON for job ${job.id}: ${
                     error instanceof Error ? error.message : String(error)
                 }`
             );
         }
 
-        const validationResult = GroqJobEvaluationSchema.safeParse(json);
+        const validationResult = JobEvaluationSchema.safeParse(json);
 
         if (!validationResult.success) {
             const validationErrors = validationResult.error.issues
@@ -90,7 +96,7 @@ export class GroqJobEvaluator implements IJobEvaluator {
                 })
                 .join("; ");
 
-            throw new Error(`Groq returned an invalid evaluation for job ${job.id}: ${validationErrors}`);
+            throw new Error(`Model returned an invalid evaluation for job ${job.id}: ${validationErrors}`);
         }
 
         const { primaryConcern, ...raw } = validationResult.data;
