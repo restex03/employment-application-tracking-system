@@ -1,23 +1,25 @@
-import { JobEvaluator } from "./Evaluators/ShortlistEvaluator/JobEvaluator";
+import { OllamaJobMatchEvaluator } from "./Evaluators/ShortlistEvaluator/Ollama/OllamaJobMatchEvaluator";
 import { profiles } from "./JobCandidateProfile/candidateProfiles";
 import { WorkdayJobsGateway } from "./Infrastructure/APIs/JobSources/Workday/WorkdayJobsGateway";
-import { ConsoleLogger } from "./Application/Common/Logger/Console/ConsoleLogger";
+import { ConsoleLogger } from "./Application/Common/Logging/Console/ConsoleLogger";
 import { workdaySources } from "./Application/WorkdaySources/workdaySources";
 import { JobScoringService } from "./Application/Services/JobScoringService";
 import { OllamaClientConnection } from "./ModelConnections/Ollama/OllamaClientConnection";
-import { JobScreener } from "./Evaluators/InitialJobScreener/JobScreener";
-import { IJobScreener } from "./Evaluators/InitialJobScreener/IJobScreener";
+import { OllamaJobScreenEvaluator } from "./Evaluators/JobScreenEvaluator/Ollama/OllamaJobScreenEvaluator";
+import { IJobScreenEvaluator } from "./Evaluators/JobScreenEvaluator/IJobScreenEvaluator";
 import { SqliteJobRepository } from "./Infrastructure/Persistence/Sqlite/Repositories/SqliteJobRepository";
 import { SqliteDatabase } from "./Infrastructure/Persistence/Sqlite/SqliteDatabase";
-import { WorkdayJobFetcher } from "./JobFetchers/WorkdayJobFetcher";
+import { WorkdayJobFetchService } from "./Application/Services/JobFetch/Workday/WorkdayJobFetchService";
 import { WorkdayJobsResponseMapper } from "./Infrastructure/APIs/ACL/Mappers/WorkdayJobsResponseMapper";
+import { LogLevel } from "./Application/Common/Logging/LogLevel";
+import { JobScreeningService } from "./Application/Services/JobScreening/JobScreeningService";
 
-const logger = new ConsoleLogger();
+const logger = new ConsoleLogger(LogLevel.Info);
 
 logger.info("Starting application...");
 
 const client = new OllamaClientConnection();
-const screener: IJobScreener = new JobScreener(client, logger);
+const evaluator: IJobScreenEvaluator = new OllamaJobScreenEvaluator(client, logger);
 const sqlite = new SqliteDatabase("./data/job-app.db");
 
 const jobRepository = new SqliteJobRepository(sqlite.connection);
@@ -26,34 +28,19 @@ const jobSources = workdaySources;
 for (const source of jobSources) {
     try {
         logger.info(`\n========== ${source.companyName} ==========`);
+        logger.info(`[index] Fetching jobs from ${source.companyName} at ${source.baseUrl}...`);
         const gateway = new WorkdayJobsGateway({
             companyName: source.companyName,
             baseUrl: source.baseUrl,
             logger,
         });
         const mapper = new WorkdayJobsResponseMapper(source.companyName);
-        const jobFetcher = new WorkdayJobFetcher(gateway, mapper, logger);
-        const jobsList = await jobFetcher.fetchJobs();
+        const jobFetchSvc = new WorkdayJobFetchService(gateway, mapper, logger);
+        const rawJobsList = await jobFetchSvc.fetchJobs();
 
-        // Job Screening
-        for (const job of jobsList) {
-            if (!job) {
-                throw new Error(`No jobs returned for ${source.companyName}`);
-            }
-            const outcome = await screener.screen([job]);
-            const result = outcome[0];
-            if (!result) {
-                throw new Error(`No screening result returned for job ${job.id}`);
-            }
+        const jobScreeningSvc = new JobScreeningService(evaluator, logger);
 
-            logger.info(`Job Title: ${job.title}`);
-            // logger.info(`Job Id: ${job.id}`);
-            // logger.info(`Detail Path: ${job.detailPath}`);
-            // logger.info(`Locations: ${job.locations?.join(", ") ?? "None"}`);
-
-            logger.info(`Screening Disposition: ${result.disposition}`);
-            logger.info(`Screening Reason: ${result.reason}`);
-        }
+        const screenedJobsList = await jobScreeningSvc.screen(rawJobsList);
 
         // const firstJob = jobsList[0];
 

@@ -2,7 +2,7 @@ import { IJobsRequest } from "../IJobsRequest";
 import { IJobSearchResult } from "../IJobSearchResult";
 import { IJobPostingDetail } from "../IJobPostingDetail";
 import { IJobGateway } from "../IJobSource";
-import { ILogger } from "../../../../Application/Common/Logger/ILogger";
+import { ILogger } from "../../../../Application/Common/Logging/ILogger";
 import { IWorkdayJobDetailResponse } from "../../ACL/ApiContracts/IWorkdayJobDetailResponse";
 import { IWorkdayJobsResponse } from "../../ACL/ApiContracts/IWorkdayJobsResponse";
 import { WorkdayJobDetailResponseMapper } from "../../ACL/Mappers/WorkdayJobDetailResponseMapper";
@@ -21,7 +21,7 @@ export class WorkdayJobsGateway implements IJobGateway {
     async search(request: IJobsRequest): Promise<IWorkdayJobsResponse> {
         const url = new URL("jobs", this.baseUrl).toString();
         const method = "POST";
-        this.logger.debug(`Fetching: ${method} ${url}`);
+        this.logger.trace(`[WorkdayJobsGateway.search] Fetching: ${method} ${url}`);
         const response = await fetch(url, {
             method,
             headers: {
@@ -47,11 +47,11 @@ export class WorkdayJobsGateway implements IJobGateway {
     }
 
     async getDetail(detailPath: string): Promise<IJobPostingDetail> {
-        this.logger.debug(`Retrieving job detail for path: ${detailPath}`);
+        this.logger.trace(`[WorkdayJobsGateway.getDetail] Retrieving job detail for path: ${detailPath}`);
         const path = detailPath.startsWith("/") ? detailPath.slice(1) : detailPath;
         const url = new URL(path, this.baseUrl).toString();
         const method = "GET";
-        this.logger.debug(`Retrieving job detail at ${url}`);
+        this.logger.trace(`[WorkdayJobsGateway.getDetail] Retrieving job detail at ${url}`);
         const response = await fetch(url, {
             method,
             headers: {
@@ -62,7 +62,11 @@ export class WorkdayJobsGateway implements IJobGateway {
 
         if (!response.ok) {
             const errMsg = `Workday-based job page returned HTTP ${response.status} ${response.statusText}`;
-            this.logger.error(errMsg, { url, status: response.status, statusText: response.statusText });
+            this.logger.error(`[WorkdayJobsGateway.getDetail] ${errMsg}`, {
+                url,
+                status: response.status,
+                statusText: response.statusText,
+            });
             throw new Error(errMsg);
         }
 

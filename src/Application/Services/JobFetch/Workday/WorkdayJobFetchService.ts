@@ -1,8 +1,8 @@
-import { ILogger } from "../Application/Common/Logger/ILogger";
-import { IWorkdayJobsApiResponseMapper } from "../Infrastructure/APIs/ACL/Mappers/WorkdayJobsResponseMapper";
-import { IJobSearchResult } from "../Infrastructure/APIs/JobSources/IJobSearchResult";
-import { IJobGateway } from "../Infrastructure/APIs/JobSources/IJobSource";
-import { IJobFetcher } from "./IJobFetcher";
+import { ILogger } from "../../../Common/Logging/ILogger";
+import { IWorkdayJobsApiResponseMapper } from "../../../../Infrastructure/APIs/ACL/Mappers/WorkdayJobsResponseMapper";
+import { IJobSearchResult } from "../../../../Infrastructure/APIs/JobSources/IJobSearchResult";
+import { IJobGateway } from "../../../../Infrastructure/APIs/JobSources/IJobSource";
+import { IJobFetchService } from "../IJobFetchService";
 
 interface IGetJobsBatchOptions {
     limit: number;
@@ -13,7 +13,7 @@ interface IWorkdayJobsBatchResponse {
     total: number;
 }
 
-export class WorkdayJobFetcher implements IJobFetcher {
+export class WorkdayJobFetchService implements IJobFetchService {
     public constructor(
         private readonly jobGateway: IJobGateway,
         private readonly mapper: IWorkdayJobsApiResponseMapper,
@@ -32,7 +32,7 @@ export class WorkdayJobFetcher implements IJobFetcher {
 
             if (total === undefined) {
                 total = response.total;
-                this.logger.debug(`[WorkdayJobFetcher.fetchJobs] Total jobs to fetch: ${total}`);
+                this.logger.info(`[WorkdayJobFetchService.fetchJobs] Total jobs to fetch: ${total}`);
             }
 
             for (const job of response.jobPostings) {
@@ -54,7 +54,7 @@ export class WorkdayJobFetcher implements IJobFetcher {
 
         const batch = await this.jobGateway.search(request);
 
-        this.logger.debug(`[WorkdayJobFetcher.getJobsBatch] Batch retrieved: ${batch.jobPostings.length} jobs`);
+        this.logger.trace(`[WorkdayJobFetchService.getJobsBatch] Batch retrieved: ${batch.jobPostings.length} jobs`);
         const mapped = this.mapper.map(batch);
         return {
             jobPostings: mapped,

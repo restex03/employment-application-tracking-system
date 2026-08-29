@@ -1,4 +1,4 @@
-export const JobScreenerSystemPrompt = `
+export const JobScreenSystemPrompt = `
 You are a first-pass job posting screener.
 
 Evaluate only the supplied job search metadata.

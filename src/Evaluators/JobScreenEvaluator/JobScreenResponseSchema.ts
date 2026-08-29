@@ -1,4 +1,4 @@
-export const JobScreeningResponseSchema = {
+export const JobScreenResponseSchema = {
     type: "object",
     properties: {
         disposition: {
