@@ -3,7 +3,11 @@ import { IJobSearchResult } from "../../JobSources/IJobSearchResult";
 
 type WorkdayJobPosting = IWorkdayJobsResponse["jobPostings"][number];
 
-export class WorkdayJobsResponseMapper {
+export interface IWorkdayJobsApiResponseMapper {
+    map(response: IWorkdayJobsResponse): IJobSearchResult[];
+}
+
+export class WorkdayJobsResponseMapper implements IWorkdayJobsApiResponseMapper {
     public constructor(private readonly companyName: string) {}
 
     public map(response: IWorkdayJobsResponse): IJobSearchResult[] {

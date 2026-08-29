@@ -9,6 +9,8 @@ import { JobScreener } from "./Evaluators/InitialJobScreener/JobScreener";
 import { IJobScreener } from "./Evaluators/InitialJobScreener/IJobScreener";
 import { SqliteJobRepository } from "./Infrastructure/Persistence/Sqlite/Repositories/SqliteJobRepository";
 import { SqliteDatabase } from "./Infrastructure/Persistence/Sqlite/SqliteDatabase";
+import { WorkdayJobFetcher } from "./JobFetchers/WorkdayJobFetcher";
+import { WorkdayJobsResponseMapper } from "./Infrastructure/APIs/ACL/Mappers/WorkdayJobsResponseMapper";
 
 const logger = new ConsoleLogger();
 
@@ -19,26 +21,19 @@ const screener: IJobScreener = new JobScreener(client, logger);
 const sqlite = new SqliteDatabase("./data/job-app.db");
 
 const jobRepository = new SqliteJobRepository(sqlite.connection);
-const request = {
-    appliedFacets: {},
-    limit: 20,
-    offset: 0,
-    searchText: "",
-};
+
 const jobSources = workdaySources;
 for (const source of jobSources) {
-    logger.info(`\n========== ${source.companyName} ==========`);
-
     try {
+        logger.info(`\n========== ${source.companyName} ==========`);
         const gateway = new WorkdayJobsGateway({
             companyName: source.companyName,
             baseUrl: source.baseUrl,
             logger,
         });
-
-        const jobsList = await gateway.search(request);
-
-        logger.info(`Found ${jobsList.length} jobs`);
+        const mapper = new WorkdayJobsResponseMapper(source.companyName);
+        const jobFetcher = new WorkdayJobFetcher(gateway, mapper, logger);
+        const jobsList = await jobFetcher.fetchJobs();
 
         // Job Screening
         for (const job of jobsList) {

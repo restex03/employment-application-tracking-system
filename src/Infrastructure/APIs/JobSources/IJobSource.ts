@@ -1,8 +1,8 @@
-import { IJobSearchResult } from "./IJobSearchResult";
 import { IJobsRequest } from "./IJobsRequest";
 import { IJobPostingDetail } from "./IJobPostingDetail";
+import { IWorkdayJobsResponse } from "../ACL/ApiContracts/IWorkdayJobsResponse";
 
-export interface IJobSource {
-    search(request: IJobsRequest): Promise<IJobSearchResult[]>;
+export interface IJobGateway {
+    search(request: IJobsRequest): Promise<IWorkdayJobsResponse>;
     getDetail(url: string): Promise<IJobPostingDetail>;
 }
