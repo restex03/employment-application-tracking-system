@@ -1,4 +1,4 @@
-import { IJobSearchResult } from "../../APIs/JobSources/IJobSearchResult";
+import { IJobSearchResult } from "../../Infrastructure/APIs/JobSources/IJobSearchResult";
 
 export type JobScreeningDisposition = "advance" | "reject" | "review";
 

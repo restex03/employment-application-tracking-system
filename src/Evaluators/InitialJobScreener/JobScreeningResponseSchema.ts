@@ -1,7 +1,7 @@
 export const JobScreeningResponseSchema = {
     type: "object",
     properties: {
-        decision: {
+        disposition: {
             type: "string",
             enum: ["advance", "reject", "review"],
         },
@@ -10,6 +10,6 @@ export const JobScreeningResponseSchema = {
             maxLength: 100,
         },
     },
-    required: ["decision", "reason"],
+    required: ["disposition", "reason"],
     additionalProperties: false,
 } as const;

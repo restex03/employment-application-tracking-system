@@ -1,4 +1,4 @@
-import { IJobPostingDetail } from "../../APIs/JobSources/IJobPostingDetail";
+import { IJobPostingDetail } from "../../Infrastructure/APIs/JobSources/IJobPostingDetail";
 import { ICandidateProfile, IJobEvaluation } from "../../Evaluators/ShortlistEvaluator/types";
 import { IJobEvaluator } from "../../Evaluators/ShortlistEvaluator/IJobEvaluator";
 export class JobScoringService {

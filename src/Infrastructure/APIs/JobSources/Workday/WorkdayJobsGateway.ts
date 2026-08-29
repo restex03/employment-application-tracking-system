@@ -2,7 +2,7 @@ import { IJobsRequest } from "../IJobsRequest";
 import { IJobSearchResult } from "../IJobSearchResult";
 import { IJobPostingDetail } from "../IJobPostingDetail";
 import { IJobSource } from "../IJobSource";
-import { ILogger } from "../../../Application/Common/Logger/ILogger";
+import { ILogger } from "../../../../Application/Common/Logger/ILogger";
 import { IWorkdayJobDetailResponse } from "../../ACL/Contracts/IWorkdayJobDetailResponse";
 import { WorkdayJobsResponseMapper } from "../../ACL/Mappers/WorkdayJobsResponseMapper";
 import { IWorkdayJobsResponse } from "../../ACL/Contracts/IWorkdayJobsResponse";

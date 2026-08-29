@@ -6,7 +6,7 @@ import { JobEvaluationResponseSchema } from "./JobEvaluationResponseSchema";
 
 import { JobEvaluationResponseValidationSchema } from "./JobEvaluationResponseValidationSchema";
 
-import { IJobPostingDetail } from "../../APIs/JobSources/IJobPostingDetail";
+import { IJobPostingDetail } from "../../Infrastructure/APIs/JobSources/IJobPostingDetail";
 import { IJobCompatibilityScoreCalculator } from "../../JobCompatibilityCalculators/IJobCompatibilityScoreCalculator";
 import { JobCompatibilityScoreCalculator } from "../../JobCompatibilityCalculators/JobCompatibilityScoreCalculator";
 import { OpenAiConnection } from "../../ModelConnections/Ollama/OllamaClientConnection";

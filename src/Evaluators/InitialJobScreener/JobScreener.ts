@@ -1,4 +1,4 @@
-import { IJobSearchResult } from "../../APIs/JobSources/IJobSearchResult";
+import { IJobSearchResult } from "../../Infrastructure/APIs/JobSources/IJobSearchResult";
 import { ILogger } from "../../Application/Common/Logger/ILogger";
 import { OpenAiConnection } from "../../ModelConnections/Ollama/OllamaClientConnection";
 import { IJobScreener } from "./IJobScreener";
@@ -90,6 +90,7 @@ export class JobScreener implements IJobScreener {
         const validationResult = JobScreeningResponseValidationSchema.safeParse(json);
 
         if (!validationResult.success) {
+            this.logger.error(`Job screener returned JSON for ${job.id}: ${JSON.stringify(json)}`);
             const errors = validationResult.error.issues
                 .map(issue => {
                     const path = issue.path.length > 0 ? issue.path.join(".") : "<root>";
