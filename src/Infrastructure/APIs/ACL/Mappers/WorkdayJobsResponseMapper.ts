@@ -1,4 +1,4 @@
-import { IWorkdayJobsResponse } from "../Contracts/IWorkdayJobsResponse";
+import { IWorkdayJobsResponse } from "../ApiContracts/IWorkdayJobsResponse";
 import { IJobSearchResult } from "../../JobSources/IJobSearchResult";
 
 type WorkdayJobPosting = IWorkdayJobsResponse["jobPostings"][number];

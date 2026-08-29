@@ -3,9 +3,9 @@ import { IJobSearchResult } from "../IJobSearchResult";
 import { IJobPostingDetail } from "../IJobPostingDetail";
 import { IJobSource } from "../IJobSource";
 import { ILogger } from "../../../../Application/Common/Logger/ILogger";
-import { IWorkdayJobDetailResponse } from "../../ACL/Contracts/IWorkdayJobDetailResponse";
+import { IWorkdayJobDetailResponse } from "../../ACL/ApiContracts/IWorkdayJobDetailResponse";
 import { WorkdayJobsResponseMapper } from "../../ACL/Mappers/WorkdayJobsResponseMapper";
-import { IWorkdayJobsResponse } from "../../ACL/Contracts/IWorkdayJobsResponse";
+import { IWorkdayJobsResponse } from "../../ACL/ApiContracts/IWorkdayJobsResponse";
 import { WorkdayJobDetailResponseMapper } from "../../ACL/Mappers/WorkdayJobDetailResponseMapper";
 
 export class WorkdayJobsGateway implements IJobSource {

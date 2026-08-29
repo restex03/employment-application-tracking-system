@@ -1,4 +1,4 @@
-import { IWorkdayJobDetailResponse } from "../Contracts/IWorkdayJobDetailResponse";
+import { IWorkdayJobDetailResponse } from "../ApiContracts/IWorkdayJobDetailResponse";
 import { IJobPostingDetail, IJobLocation } from "../../JobSources/IJobPostingDetail";
 
 export class WorkdayJobDetailResponseMapper {
