@@ -16,9 +16,11 @@ export class JobScreeningService implements IJobScreeningService {
         for (const job of jobs) {
             try {
                 const result = await this.evaluator.screenJob(job);
-
-                this.logger.info(`[JobScreeningService.screen] Screening Disposition: ${result.disposition}`);
-                this.logger.info(`[JobScreeningService.screen] Screening Reason: ${result.reason}`);
+                this.logger.info(
+                    `[JobScreeningService.screen] Screening result: ${job.company} - ${job.id} (${job.title})`
+                );
+                this.logger.info(`\t- Disposition: ${result.disposition}`);
+                this.logger.info(`\t- Reason: ${result.reason}`);
                 results.push(result);
             } catch (error) {
                 const errMsg = error instanceof Error ? error.message : String(error);

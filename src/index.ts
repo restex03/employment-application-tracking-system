@@ -24,7 +24,7 @@ const sqlite = new SqliteDatabase("./data/job-app.db");
 
 const jobRepository = new SqliteJobRepository(sqlite.connection);
 
-const jobSources = workdaySources;
+const jobSources = workdaySources.filter(x => x.companyName === "Equifax");
 for (const source of jobSources) {
     try {
         logger.info(`\n========== ${source.companyName} ==========`);
@@ -36,11 +36,11 @@ for (const source of jobSources) {
         });
         const mapper = new WorkdayJobsResponseMapper(source.companyName);
         const jobFetchSvc = new WorkdayJobFetchService(gateway, mapper, logger);
-        const rawJobsList = await jobFetchSvc.fetchJobs();
+        const rawJobsList = await jobFetchSvc.fetchJobs("software engineer");
 
-        const jobScreeningSvc = new JobScreeningService(evaluator, logger);
+        // const jobScreeningSvc = new JobScreeningService(evaluator, logger);
 
-        const screenedJobsList = await jobScreeningSvc.screen(rawJobsList);
+        // const screenedJobsList = await jobScreeningSvc.screen(rawJobsList);
 
         // const firstJob = jobsList[0];
 

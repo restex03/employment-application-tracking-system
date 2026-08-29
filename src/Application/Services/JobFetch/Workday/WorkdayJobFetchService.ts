@@ -5,6 +5,7 @@ import { IJobGateway } from "../../../../Infrastructure/APIs/JobSources/IJobSour
 import { IJobFetchService } from "../IJobFetchService";
 
 interface IGetJobsBatchOptions {
+    searchText?: string;
     limit: number;
     offset: number;
 }
@@ -19,7 +20,7 @@ export class WorkdayJobFetchService implements IJobFetchService {
         private readonly mapper: IWorkdayJobsApiResponseMapper,
         private readonly logger: ILogger
     ) {}
-    async fetchJobs(): Promise<IJobSearchResult[]> {
+    async fetchJobs(searchText?: string): Promise<IJobSearchResult[]> {
         const jobs = new Map<string, IJobSearchResult>();
         let offset = 0;
         const limit = 20;
@@ -28,6 +29,7 @@ export class WorkdayJobFetchService implements IJobFetchService {
             const response = await this.getJobsBatch({
                 limit,
                 offset,
+                searchText,
             });
 
             if (total === undefined) {
@@ -49,7 +51,7 @@ export class WorkdayJobFetchService implements IJobFetchService {
             appliedFacets: {},
             limit: opts.limit,
             offset: opts.offset,
-            searchText: "",
+            searchText: opts.searchText ?? "",
         };
 
         const batch = await this.jobGateway.search(request);
