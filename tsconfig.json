@@ -1,17 +1,17 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
+    "compilerOptions": {
+        "target": "ES2022",
 
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
 
-    "strict": true,
-    "noEmit": true,
+        "strict": true,
+        "noEmit": true,
 
-    "esModuleInterop": true,
-    "skipLibCheck": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
 
-    "types": ["node"]
-  },
-  "include": ["src/**/*.ts"]
+        "types": ["node"]
+    },
+    "include": ["src/**/*.ts"]
 }
