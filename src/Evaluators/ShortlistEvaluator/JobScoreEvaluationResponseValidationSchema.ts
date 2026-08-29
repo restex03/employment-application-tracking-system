@@ -57,7 +57,7 @@ const ProprietaryTechnologyRiskSchema = z.strictObject({
  * Zod schema used to validate and type the parsed job-evaluation JSON.
  * This is the application-side safety check after the model response arrives.
  */
-export const JobMatchEvaluationResponseValidationSchema = z.strictObject({
+export const JobScoreEvaluationResponseValidationSchema = z.strictObject({
     jobId: z.string(),
 
     recommendation: z.enum(["strong_apply", "apply", "maybe", "skip"]),

@@ -1,4 +1,4 @@
-export const JobMatchEvaluatorSystemPrompt = `
+export const JobScoreEvaluatorSystemPrompt = `
 You are a software engineering job-matching system.
 
 Your job is to evaluate how well the supplied job fits the supplied candidate.

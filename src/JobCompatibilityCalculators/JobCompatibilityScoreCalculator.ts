@@ -1,8 +1,8 @@
-import { IJobMatchEvaluation } from "../Evaluators/ShortlistEvaluator/types";
+import { IJobScoreEvaluation } from "../Evaluators/ShortlistEvaluator/types";
 import { IJobCompatibilityScoreCalculator } from "./IJobCompatibilityScoreCalculator";
 
 export class JobCompatibilityScoreCalculator implements IJobCompatibilityScoreCalculator {
-    calculate(evaluation: Pick<IJobMatchEvaluation, "scores" | "eligibility">): number {
+    calculate(evaluation: Pick<IJobScoreEvaluation, "scores" | "eligibility">): number {
         if (!evaluation.eligibility.passesHardConstraints) {
             return 0;
         }

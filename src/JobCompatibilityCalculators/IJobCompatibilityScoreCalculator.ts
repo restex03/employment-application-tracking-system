@@ -1,5 +1,5 @@
-import { IJobMatchEvaluation } from "../Evaluators/ShortlistEvaluator/types";
+import { IJobScoreEvaluation } from "../Evaluators/ShortlistEvaluator/types";
 
 export interface IJobCompatibilityScoreCalculator {
-    calculate(evaluation: Pick<IJobMatchEvaluation, "scores" | "eligibility">): number;
+    calculate(evaluation: Pick<IJobScoreEvaluation, "scores" | "eligibility">): number;
 }

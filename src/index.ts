@@ -1,4 +1,4 @@
-import { OllamaJobMatchEvaluator } from "./Evaluators/ShortlistEvaluator/Ollama/OllamaJobMatchEvaluator";
+import { OllamaJobScoreEvaluator } from "./Evaluators/ShortlistEvaluator/Ollama/OllamaJobScoreEvaluator";
 import { profiles } from "./JobCandidateProfile/candidateProfiles";
 import { WorkdayJobsGateway } from "./Infrastructure/APIs/JobSources/Workday/WorkdayJobsGateway";
 import { ConsoleLogger } from "./Application/Common/Logging/Console/ConsoleLogger";

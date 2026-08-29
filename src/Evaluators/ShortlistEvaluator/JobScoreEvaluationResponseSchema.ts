@@ -8,7 +8,7 @@ const scoreSchema = {
  * JSON Schema describing the exact shape OpenAI should return for a job evaluation.
  * This is used as the response_format schema sent to the model.
  */
-export const JobMatchEvaluationResponseSchema = {
+export const JobScoreEvaluationResponseSchema = {
     type: "object",
 
     properties: {

@@ -24,7 +24,7 @@ export interface IMatchEvidence {
     strength: "strong" | "moderate" | "weak";
 }
 
-export interface IJobMatchEvaluation {
+export interface IJobScoreEvaluation {
     jobId: string;
 
     recommendation: JobRecommendation;

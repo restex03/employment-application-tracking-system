@@ -1,11 +1,7 @@
 import { IJobScoreEvaluator } from "../IJobScoreEvaluator";
-
 import { type ICandidateProfile, type IJobScoreEvaluation } from "../types";
-
 import { JobScoreEvaluationResponseSchema } from "../JobScoreEvaluationResponseSchema";
-
 import { JobScoreEvaluationResponseValidationSchema } from "../JobScoreEvaluationResponseValidationSchema";
-
 import { IJobPostingDetail } from "../../../Infrastructure/APIs/JobSources/IJobPostingDetail";
 import { IJobCompatibilityScoreCalculator } from "../../../JobCompatibilityCalculators/IJobCompatibilityScoreCalculator";
 import { JobCompatibilityScoreCalculator } from "../../../JobCompatibilityCalculators/JobCompatibilityScoreCalculator";
