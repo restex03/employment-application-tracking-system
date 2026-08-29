@@ -34,7 +34,9 @@ export class WorkdayJobsGateway implements IJobSource {
         });
 
         if (!response.ok) {
-            throw new Error(`Workday-based jobs search API returned HTTP ${response.status} ${response.statusText}`);
+            const responseText = await response.text();
+            const errMsg = `Workday-based jobs search API returned HTTP ${response.status} ${response.statusText}: ${responseText}`;
+            throw new Error(errMsg);
         }
 
         const responseBody = (await response.json()) as IWorkdayJobsResponse | undefined;

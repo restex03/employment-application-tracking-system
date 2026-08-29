@@ -1,6 +1,6 @@
 import { IJobPostingDetail } from "../../APIs/JobSources/IJobPostingDetail";
-import { ICandidateProfile, IJobEvaluation } from "../../JobEvaluators/types";
-import { IJobEvaluator } from "../../JobEvaluators/IJobEvaluator";
+import { ICandidateProfile, IJobEvaluation } from "../../Evaluators/ShortlistEvaluator/types";
+import { IJobEvaluator } from "../../Evaluators/ShortlistEvaluator/IJobEvaluator";
 export class JobScoringService {
     constructor(private readonly evaluator: IJobEvaluator) {}
 

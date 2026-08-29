@@ -1,23 +1,26 @@
 import "dotenv/config";
-import { JobEvaluator } from "./JobEvaluators/JobEvaluator";
+import { JobEvaluator } from "./Evaluators/ShortlistEvaluator/JobEvaluator";
 import { profiles } from "./JobCandidateProfile/candidateProfiles";
 import { WorkdayJobsGateway } from "./APIs/JobSources/Workday/WorkdayJobsGateway";
 import { ConsoleLogger } from "./Application/Common/Logger/Console/ConsoleLogger";
 import { workdaySources } from "./Application/WorkdaySources/workdaySources";
 import { JobScoringService } from "./Application/Services/JobScoringService";
-import { OllamaClientConnection } from "./JobEvaluators/Ollama/OllamaClientConnection";
+import { OllamaClientConnection } from "./ModelConnections/Ollama/OllamaClientConnection";
+import { JobScreener } from "./Evaluators/InitialJobScreener/JobScreener";
+import { IJobScreener } from "./Evaluators/InitialJobScreener/IJobScreener";
 
 const logger = new ConsoleLogger();
 
 logger.info("Starting application...");
 
 const client = new OllamaClientConnection();
+const screener: IJobScreener = new JobScreener(client, logger);
 
 const request = {
     appliedFacets: {},
-    limit: 1,
+    limit: 20,
     offset: 0,
-    searchText: "software engineer",
+    searchText: "",
 };
 const jobSources = workdaySources;
 for (const source of jobSources) {
@@ -34,36 +37,51 @@ for (const source of jobSources) {
 
         logger.info(`Found ${jobsList.length} jobs`);
 
-        const firstJob = jobsList[0];
+        // Job Screening
+        for (const job of jobsList) {
+            if (!job) {
+                throw new Error(`No jobs returned for ${source.companyName}`);
+            }
+            const outcome = await screener.screen([job]);
+            const result = outcome[0];
+            if (!result) {
+                throw new Error(`No screening result returned for job ${job.id}`);
+            }
 
-        if (!firstJob) {
-            logger.info(`No jobs returned for ${source.companyName}`);
-            continue;
+            logger.info(`Job Title: ${job.title}`);
+            // logger.info(`Job Id: ${job.id}`);
+            // logger.info(`Detail Path: ${job.detailPath}`);
+            // logger.info(`Locations: ${job.locations?.join(", ") ?? "None"}`);
+
+            logger.info(`Screening Disposition: ${result.disposition}`);
+            logger.info(`Screening Reason: ${result.reason}`);
         }
 
-        logger.info(`Detail Path: ${firstJob.detailPath}`);
+        // const firstJob = jobsList[0];
 
-        const detail = await gateway.getDetail(firstJob.detailPath);
+        // logger.info(`Detail Path: ${firstJob.detailPath}`);
 
-        const evaluator = new JobEvaluator(client, logger);
+        // const detail = await gateway.getDetail(firstJob.detailPath);
 
-        const scoringService = new JobScoringService(evaluator);
+        // const evaluator = new JobEvaluator(client, logger);
 
-        const [evaluation] = await scoringService.evaluate(profiles.profile_08_23_2026, [detail]);
+        // const scoringService = new JobScoringService(evaluator);
 
-        const locations =
-            detail.locations
-                ?.map(location => `\t- ${location.city ?? "Unknown"}, ${location.country ?? "Unknown"}`)
-                .join("\n") ?? "\t- None";
+        // const [evaluation] = await scoringService.evaluate(profiles.profile_08_23_2026, [detail]);
 
-        const locationsCount = detail.locations?.length ?? 0;
+        // const locations =
+        //     detail.locations
+        //         ?.map(location => `\t- ${location.city ?? "Unknown"}, ${location.country ?? "Unknown"}`)
+        //         .join("\n") ?? "\t- None";
 
-        logger.info(`${detail.id ?? "Unknown"}: ${evaluation.overallScore} - ${evaluation.recommendation}`);
-        logger.info(`Job Title: ${detail.title}`);
+        // const locationsCount = detail.locations?.length ?? 0;
 
-        logger.info(`Requisition ID: ${detail.requisitionId ?? "Unknown"}`);
-        logger.info(`Job Locations (${locationsCount}):\n${locations}`);
-        logger.info(`Job Description: ${detail.description.slice(0, 150)}...`);
+        // logger.info(`${detail.id ?? "Unknown"}: ${evaluation.overallScore} - ${evaluation.recommendation}`);
+        // logger.info(`Job Title: ${detail.title}`);
+
+        // logger.info(`Requisition ID: ${detail.requisitionId ?? "Unknown"}`);
+        // logger.info(`Job Locations (${locationsCount}):\n${locations}`);
+        // logger.info(`Job Description: ${detail.description.slice(0, 150)}...`);
     } catch (error) {
         logger.error(
             `Failed to retrieve jobs for ${source.companyName}`,

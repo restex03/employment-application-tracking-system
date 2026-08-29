@@ -6,11 +6,11 @@ import { JobEvaluationResponseSchema } from "./JobEvaluationResponseSchema";
 
 import { JobEvaluationResponseValidationSchema } from "./JobEvaluationResponseValidationSchema";
 
-import { IJobPostingDetail } from "../APIs/JobSources/IJobPostingDetail";
-import { IJobCompatibilityScoreCalculator } from "../JobCompatibilityCalculators/IJobCompatibilityScoreCalculator";
-import { JobCompatibilityScoreCalculator } from "../JobCompatibilityCalculators/JobCompatibilityScoreCalculator";
-import { OpenAiConnection } from "./Ollama/OllamaClientConnection";
-import { ILogger } from "../Application/Common/Logger/ILogger";
+import { IJobPostingDetail } from "../../APIs/JobSources/IJobPostingDetail";
+import { IJobCompatibilityScoreCalculator } from "../../JobCompatibilityCalculators/IJobCompatibilityScoreCalculator";
+import { JobCompatibilityScoreCalculator } from "../../JobCompatibilityCalculators/JobCompatibilityScoreCalculator";
+import { OpenAiConnection } from "../../ModelConnections/Ollama/OllamaClientConnection";
+import { ILogger } from "../../Application/Common/Logger/ILogger";
 
 export class JobEvaluator implements IJobEvaluator {
     constructor(
