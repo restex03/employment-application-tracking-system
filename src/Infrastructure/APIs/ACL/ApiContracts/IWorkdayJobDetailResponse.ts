@@ -1,4 +1,4 @@
-export interface IWorkdayJobDetailResponse {
+export interface IWorkdayJobDetailsApiResponse {
     jobPostingInfo: IWorkdayJobPostingInfo;
     hiringOrganization: IWorkdayHiringOrganization;
 }

@@ -1,4 +1,8 @@
-import { IWorkdayJobDetailsApiResponseMapper } from "../../../../Infrastructure/APIs/ACL/Mappers/WorkdayJobDetailsApiResponseMapper";
+import { IWorkdayJobDetailsApiResponse } from "../../../../Infrastructure/APIs/ACL/ApiContracts/IWorkdayJobDetailResponse";
+import {
+    IWorkdayJobDetailsApiResponseMapper,
+    WorkdayJobDetailsApiResponseMapper,
+} from "../../../../Infrastructure/APIs/ACL/Mappers/WorkdayJobDetailsApiResponseMapper";
 import { IJobPostingDetail } from "../../../../Infrastructure/APIs/JobSources/IJobPostingDetail";
 import { IJobSearchResult } from "../../../../Infrastructure/APIs/JobSources/IJobSearchResult";
 import { IJobGateway } from "../../../../Infrastructure/APIs/JobSources/IJobSource";
@@ -20,7 +24,8 @@ export class WorkdayJobDetailFetchService implements IJobDetailFetchService {
             this.logger.info(
                 `[WorkdayJobDetailFetchService.fetchJobDetails] Fetching details: ${result.company} - ${result.id} (${result.title})`
             );
-            const jobDetail: IJobPostingDetail = await this.jobGateway.getDetail(result.detailPath);
+            const apiResult = await this.jobGateway.getDetail(result.detailPath);
+            const jobDetail = new WorkdayJobDetailsApiResponseMapper().map(apiResult);
             const locations =
                 jobDetail.locations
                     ?.map(location => `\t- ${location.city ?? "Unknown"}, ${location.country ?? "Unknown"}`)
