@@ -29,7 +29,7 @@ export class WorkdayJobsResponseMapper implements IWorkdayJobsApiResponseMapper 
     }
 
     private getRequisitionId(externalPath: string): string | undefined {
-        const tail = externalPath.split("_").at(-1);
+        const tail = externalPath?.split("_").at(-1);
 
         if (!tail) {
             return undefined;

@@ -58,7 +58,7 @@ const ProprietaryTechnologyRiskSchema = z.strictObject({
  * This is the application-side safety check after the model response arrives.
  */
 export const JobScoreEvaluationResponseValidationSchema = z.strictObject({
-    jobId: z.string(),
+    requisitionId: z.string(),
 
     recommendation: z.enum(["strong_apply", "apply", "maybe", "skip"]),
 

@@ -63,3 +63,5 @@ temp/
 # Database files
 *.sqlite
 data/
+
+output.txt

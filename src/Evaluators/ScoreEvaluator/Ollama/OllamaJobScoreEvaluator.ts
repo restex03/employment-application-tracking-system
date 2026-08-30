@@ -19,8 +19,8 @@ export class OllamaJobScoreEvaluator implements IJobScoreEvaluator {
     ) {}
 
     async evaluate(profile: ICandidateProfile, job: IJobPostingDetail): Promise<IJobScoreEvaluation> {
-        const jobInfo = `${job.company} - ${job.id} (${job.title})`;
-        this.logger.info(`[OllamaJobScoreEvaluator.evaluate] Evaluating job: ${jobInfo}`);
+        const jobInfo = `${job.company} - ${job.requisitionId} (${job.title})`;
+        this.logger.debug(`[OllamaJobScoreEvaluator.evaluate] Evaluating job: ${jobInfo}`);
         const start = performance.now();
         const response = await this.openAi.client.chat.completions.create({
             model: this.model,

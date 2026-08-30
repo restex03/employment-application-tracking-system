@@ -86,7 +86,7 @@ Candidate evidence must be supported by the supplied candidate profile.
 
 A missing technology must not be described as candidate experience.
 
-The returned jobId MUST exactly match the supplied job.id.
+The returned requisitionId MUST exactly match the supplied job.requisitionId.
 
 Keep summaries and reasons concise and useful.
 `;

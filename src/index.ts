@@ -15,25 +15,31 @@ for (const source of jobSources) {
         logger.info(`[index] Fetching jobs from ${source.companyName} at ${source.baseUrl}...`);
 
         const rawJobsList = await jobFetchService.fetchJobs("software engineer");
+        if (rawJobsList.length === 0) {
+            logger.info(`[index] Skipping ${source.companyName} - no jobs available`);
+            continue;
+        }
 
-        const screenedJobsList = await jobScreeningSvc.screen(rawJobsList.slice(0, 8));
+        const screenedJobsList = await jobScreeningSvc.screen(rawJobsList);
 
         // todo: distill to approve/reject?
         const proceedList = screenedJobsList
             .filter(x => x.disposition === "advance" || x.disposition === "review")
-            .map(x => x.job)
-            .slice(0, 3);
+            .map(x => x.job);
 
         const jobDetailsList = await jobDetailFetchService.fetchJobDetails(proceedList);
         const evaluations = await jobScoringService.score(profiles.profile_08_23_2026, jobDetailsList);
 
         for (const evaluation of evaluations) {
-            logger.info("======================================================================");
-            logger.info("======================================================================");
-            logger.info(`${evaluation.jobId ?? "Unknown"}: ${evaluation.overallScore} - ${evaluation.recommendation}`);
+            logger.info("");
+            logger.info("**********************************************************************");
+            logger.info("**********************************************************************");
+            logger.info(
+                `${evaluation.requisitionId ?? "Unknown"}: ${evaluation.overallScore} - ${evaluation.recommendation}`
+            );
             logger.info("----------------------------------------------------------------------");
             logger.info(`Summary: ${evaluation.summary}`);
-            logger.info("======================================================================\n");
+            logger.info("**********************************************************************\n");
         }
     } catch (error) {
         console.error(

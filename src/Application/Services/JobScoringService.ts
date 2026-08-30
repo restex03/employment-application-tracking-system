@@ -14,11 +14,12 @@ export class JobScoringService implements IJobScoringService {
     ) {}
 
     async score(profile: ICandidateProfile, jobs: IJobPostingDetail[]): Promise<IJobScoreEvaluation[]> {
-        this.logger.info(`[JobScoringService.score] Scoring ${jobs.length} jobs`);
+        this.logger.info(`[JobScoringService.score] Scoring ${jobs.length} jobs...`);
         const evaluations: IJobScoreEvaluation[] = [];
 
         for (const job of jobs) {
-            this.logger.info(`[JobScoringService.score] Scoring job: ${job.company} - ${job.id} (${job.title})`);
+            const jobInfo = `${job.company} - ${job.requisitionId} (${job.title})`;
+            this.logger.info(`[JobScoringService.score] Scoring job: ${jobInfo}`);
             const evaluation = await this.evaluator.evaluate(profile, job);
             this.logger.info(`\t- Overall Score: ${evaluation.overallScore}`);
             this.logger.info(`\t\t- Career Growth: ${evaluation.scores.careerGrowth}`);

@@ -26,10 +26,10 @@ export class WorkdayJobDetailFetchService implements IJobDetailFetchService {
                     ?.map(location => `\t- ${location.city ?? "Unknown"}, ${location.country ?? "Unknown"}`)
                     .join("\n") ?? "\t- None";
 
-            this.logger.info(`Job Title: ${jobDetail.title}`);
-            this.logger.info(`Requisition ID: ${jobDetail.requisitionId ?? "Unknown"}`);
-            this.logger.info(`Job Locations (${jobDetail.locations?.length ?? 0}):\n${locations}`);
-            this.logger.info(`Job Description: ${jobDetail.description.slice(0, 150)}...\n`);
+            this.logger.info(`\t- Title: ${jobDetail.title}`);
+            this.logger.info(`\t- Requisition ID: ${jobDetail.requisitionId ?? "Unknown"}`);
+            this.logger.info(`\t- Locations (${jobDetail.locations?.length ?? 0}):\n${locations}`);
+            this.logger.info(`\t- Description: ${jobDetail.description.slice(0, 150)}...\n`);
             jobDetailsList.push(jobDetail);
         }
 

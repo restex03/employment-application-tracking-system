@@ -2,5 +2,5 @@ import { IJobSearchResult } from "../../Infrastructure/APIs/JobSources/IJobSearc
 import { IJobScreenResult } from "./IJobScreenResult";
 
 export interface IJobScreenEvaluator {
-    screenJob(job: IJobSearchResult): Promise<IJobScreenResult>;
+    evaluate(job: IJobSearchResult): Promise<IJobScreenResult>;
 }

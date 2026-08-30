@@ -25,7 +25,7 @@ export interface IMatchEvidence {
 }
 
 export interface IJobScoreEvaluation {
-    jobId: string;
+    requisitionId?: string;
 
     recommendation: JobRecommendation;
 

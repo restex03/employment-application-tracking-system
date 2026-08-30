@@ -14,9 +14,9 @@ export class OllamaJobScreenEvaluator implements IJobScreenEvaluator {
         private readonly model: string = "qwen3:4b-instruct-8k"
     ) {}
 
-    public async screenJob(job: IJobSearchResult): Promise<IJobScreenResult> {
-        const jobInfo = `${job.company} - ${job.id} (${job.title})`;
-        this.logger.info(`[OllamaJobScreenEvaluator.screenJob] Screening job: ${jobInfo}`);
+    public async evaluate(job: IJobSearchResult): Promise<IJobScreenResult> {
+        const jobInfo = `${job.company} - ${job.requisitionId} (${job.title})`;
+        this.logger.debug(`[OllamaJobScreenEvaluator.evaluate] Evaluating job: ${jobInfo}`);
         const start = performance.now();
         const response = await this.openAi.client.chat.completions.create({
             model: this.model,
@@ -51,7 +51,7 @@ export class OllamaJobScreenEvaluator implements IJobScreenEvaluator {
         const content = response.choices[0]?.message?.content;
 
         if (!content) {
-            throw new Error(`[OllamaJobScreenEvaluator.screenJob] Model returned no content for ${jobInfo}.`);
+            throw new Error(`[OllamaJobScreenEvaluator.evaluate] Model returned no content for ${jobInfo}.`);
         }
 
         this.logger.debug("********************************************************");
@@ -70,7 +70,7 @@ export class OllamaJobScreenEvaluator implements IJobScreenEvaluator {
             json = JSON.parse(content);
         } catch (error) {
             throw new Error(
-                `[OllamaJobScreenEvaluator.screenJob] Model returned invalid JSON for ${jobInfo}: ${
+                `[OllamaJobScreenEvaluator.evaluate] Model returned invalid JSON for ${jobInfo}: ${
                     error instanceof Error ? error.message : String(error)
                 }`
             );
@@ -80,7 +80,7 @@ export class OllamaJobScreenEvaluator implements IJobScreenEvaluator {
 
         if (!validationResult.success) {
             this.logger.debug(
-                `[OllamaJobScreenEvaluator.screenJob] Model returned invalid JSON for ${jobInfo}: ${JSON.stringify(json, null, 2)}`
+                `[OllamaJobScreenEvaluator.evaluate] Model returned invalid JSON for ${jobInfo}: ${JSON.stringify(json, null, 2)}`
             );
             const errors = validationResult.error.issues
                 .map(issue => {
@@ -91,7 +91,7 @@ export class OllamaJobScreenEvaluator implements IJobScreenEvaluator {
                 .join("; ");
 
             throw new Error(
-                `[OllamaJobScreenEvaluator.screenJob] Model returned invalid screening data for ${jobInfo}: ${errors}`
+                `[OllamaJobScreenEvaluator.evaluate] Model returned invalid screening data for ${jobInfo}: ${errors}`
             );
         }
 

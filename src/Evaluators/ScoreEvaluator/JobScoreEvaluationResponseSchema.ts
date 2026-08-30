@@ -12,7 +12,7 @@ export const JobScoreEvaluationResponseSchema = {
     type: "object",
 
     properties: {
-        jobId: {
+        requisitionId: {
             type: "string",
         },
 
@@ -202,7 +202,7 @@ export const JobScoreEvaluationResponseSchema = {
     },
 
     required: [
-        "jobId",
+        "requisitionId",
         "recommendation",
         "confidence",
         "scores",
