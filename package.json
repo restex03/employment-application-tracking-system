@@ -1,7 +1,7 @@
 {
-    "name": "job-app-helper",
+    "name": "employment-application-tracking-system",
     "version": "1.0.0",
-    "description": "simple app to assist job searchers applying for jobs",
+    "description": "AI-powered employment application tracking system that automates job screening, evaluation, and compatibility scoring for job seekers",
     "license": "ISC",
     "author": "",
     "type": "module",
