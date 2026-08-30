@@ -17,10 +17,11 @@ export class JobScreeningService implements IJobScreeningService {
             try {
                 const result = await this.evaluator.screenJob(job);
                 this.logger.info(
-                    `[JobScreeningService.screen] Screening result: ${job.company} - ${job.id} (${job.title})`
+                    `[JobScreeningService.screen] Screening job: ${job.company} - ${job.id} (${job.title})`
                 );
                 this.logger.info(`\t- Disposition: ${result.disposition}`);
                 this.logger.info(`\t- Reason: ${result.reason}`);
+                this.logger.info(`\n`);
                 results.push(result);
             } catch (error) {
                 const errMsg = error instanceof Error ? error.message : String(error);

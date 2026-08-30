@@ -20,7 +20,7 @@ export class OllamaJobScoreEvaluator implements IJobScoreEvaluator {
 
     async evaluate(profile: ICandidateProfile, job: IJobPostingDetail): Promise<IJobScoreEvaluation> {
         const jobInfo = `${job.company} - ${job.id} (${job.title})`;
-        this.logger.debug(`[OllamaJobScoreEvaluator.evaluate] Evaluating job: ${jobInfo}`);
+        this.logger.info(`[OllamaJobScoreEvaluator.evaluate] Evaluating job: ${jobInfo}`);
         const start = performance.now();
         const response = await this.openAi.client.chat.completions.create({
             model: this.model,
@@ -67,7 +67,7 @@ export class OllamaJobScoreEvaluator implements IJobScoreEvaluator {
         this.logger.debug(`\tCompletion tokens: ${response.usage?.completion_tokens}`);
         this.logger.debug(`\tCompletion chars: ${content!.length}`);
         this.logger.debug(`\tFinish reason: ${response.choices[0]?.finish_reason}`);
-        this.logger.debug("********************************************************\n");
+        this.logger.debug("********************************************************");
 
         let json: unknown;
 

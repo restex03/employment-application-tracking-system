@@ -1,7 +1,7 @@
 import { IJobScreenEvaluator } from "../../Evaluators/JobScreenEvaluator/IJobScreenEvaluator";
 import { OllamaJobScreenEvaluator } from "../../Evaluators/JobScreenEvaluator/Ollama/OllamaJobScreenEvaluator";
-import { IJobScoreEvaluator } from "../../Evaluators/ShortlistEvaluator/IJobScoreEvaluator";
-import { OllamaJobScoreEvaluator } from "../../Evaluators/ShortlistEvaluator/Ollama/OllamaJobScoreEvaluator";
+import { IJobScoreEvaluator } from "../../Evaluators/ScoreEvaluator/IJobScoreEvaluator";
+import { OllamaJobScoreEvaluator } from "../../Evaluators/ScoreEvaluator/Ollama/OllamaJobScoreEvaluator";
 import {
     IWorkdayJobDetailsApiResponseMapper,
     WorkdayJobDetailsApiResponseMapper,
@@ -44,7 +44,7 @@ export function buildDependencies(source: IWorkdayJobSource, logLevel: LogLevel)
     const sqlite = new SqliteDatabase("./data/job-app.db");
 
     const scoreEvaluator: IJobScoreEvaluator = new OllamaJobScoreEvaluator(client, logger);
-    const jobScoringService: IJobScoringService = new JobScoringService(scoreEvaluator);
+    const jobScoringService: IJobScoringService = new JobScoringService(scoreEvaluator, logger);
 
     const workdayJobMapper: IWorkdayJobsApiResponseMapper = new WorkdayJobsResponseMapper(source.companyName);
     const workdayJobDetailMapper: IWorkdayJobDetailsApiResponseMapper = new WorkdayJobDetailsApiResponseMapper();

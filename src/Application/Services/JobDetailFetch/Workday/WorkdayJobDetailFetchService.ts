@@ -29,7 +29,7 @@ export class WorkdayJobDetailFetchService implements IJobDetailFetchService {
             this.logger.info(`Job Title: ${jobDetail.title}`);
             this.logger.info(`Requisition ID: ${jobDetail.requisitionId ?? "Unknown"}`);
             this.logger.info(`Job Locations (${jobDetail.locations?.length ?? 0}):\n${locations}`);
-            this.logger.info(`Job Description: ${jobDetail.description.slice(0, 150)}...`);
+            this.logger.info(`Job Description: ${jobDetail.description.slice(0, 150)}...\n`);
             jobDetailsList.push(jobDetail);
         }
 

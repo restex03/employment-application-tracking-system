@@ -9,21 +9,23 @@ const jobSources = WorkdaySources.filter(x => x.companyName === "Equifax");
 for (const source of jobSources) {
     try {
         const { logger, jobScreeningSvc, jobScoringService, jobFetchService, jobDetailFetchService } =
-            buildDependencies(source, LogLevel.Info);
+            buildDependencies(source, LogLevel.Debug);
 
         logger.info(`\n========== ${source.companyName} ==========`);
         logger.info(`[index] Fetching jobs from ${source.companyName} at ${source.baseUrl}...`);
 
         const rawJobsList = await jobFetchService.fetchJobs("software engineer");
 
-        const screenedJobsList = await jobScreeningSvc.screen(rawJobsList);
+        const screenedJobsList = await jobScreeningSvc.screen(rawJobsList.slice(0, 8));
 
+        // todo: distill to approve/reject?
         const proceedList = screenedJobsList
             .filter(x => x.disposition === "advance" || x.disposition === "review")
-            .map(x => x.job);
+            .map(x => x.job)
+            .slice(0, 3);
 
         const jobDetailsList = await jobDetailFetchService.fetchJobDetails(proceedList);
-        const evaluations = await jobScoringService.evaluate(profiles.profile_08_23_2026, jobDetailsList);
+        const evaluations = await jobScoringService.score(profiles.profile_08_23_2026, jobDetailsList);
 
         for (const evaluation of evaluations) {
             logger.info("======================================================================");

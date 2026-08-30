@@ -16,7 +16,7 @@ export class OllamaJobScreenEvaluator implements IJobScreenEvaluator {
 
     public async screenJob(job: IJobSearchResult): Promise<IJobScreenResult> {
         const jobInfo = `${job.company} - ${job.id} (${job.title})`;
-        this.logger.debug(`[OllamaJobScreenEvaluator.screenJob] Screening job: ${jobInfo}`);
+        this.logger.info(`[OllamaJobScreenEvaluator.screenJob] Screening job: ${jobInfo}`);
         const start = performance.now();
         const response = await this.openAi.client.chat.completions.create({
             model: this.model,
@@ -62,7 +62,7 @@ export class OllamaJobScreenEvaluator implements IJobScreenEvaluator {
         this.logger.debug(`\tCompletion tokens: ${response.usage?.completion_tokens}`);
         this.logger.debug(`\tCompletion chars: ${content!.length}`);
         this.logger.debug(`\tFinish reason: ${response.choices[0]?.finish_reason}`);
-        this.logger.debug("********************************************************\n");
+        this.logger.debug("********************************************************");
 
         let json: unknown;
 
