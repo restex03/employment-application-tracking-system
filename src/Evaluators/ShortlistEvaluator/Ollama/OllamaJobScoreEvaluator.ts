@@ -59,16 +59,16 @@ export class OllamaJobScoreEvaluator implements IJobScoreEvaluator {
             throw new Error(`[OllamaJobScoreEvaluator.evaluate] Model returned no content for ${jobInfo}.`);
         }
 
-        this.logger.debug("********************************************************");
-        this.logger.debug("*************** Model Response Analysis ****************");
-        this.logger.debug("********************************************************");
-        this.logger.debug(`\tEvaluation time (s): ${(elapsed / 1000).toFixed(1)}`);
-        this.logger.debug(`\tPrompt tokens: ${response.usage?.prompt_tokens}`);
-        this.logger.debug(`\tCompletion tokens: ${response.usage?.completion_tokens}`);
-        this.logger.debug(`\tCompletion chars: ${content!.length}`);
-        this.logger.debug(`\tFinish reason: ${response.choices[0]?.finish_reason}`);
-        this.logger.debug("********************************************************");
-        this.logger.debug("********************************************************");
+        this.logger.info("********************************************************");
+        this.logger.info("*************** Model Response Analysis ****************");
+        this.logger.info("********************************************************");
+        this.logger.info(`\tEvaluation time (s): ${(elapsed / 1000).toFixed(1)}`);
+        this.logger.info(`\tPrompt tokens: ${response.usage?.prompt_tokens}`);
+        this.logger.info(`\tCompletion tokens: ${response.usage?.completion_tokens}`);
+        this.logger.info(`\tCompletion chars: ${content!.length}`);
+        this.logger.info(`\tFinish reason: ${response.choices[0]?.finish_reason}`);
+        this.logger.info("********************************************************");
+        this.logger.info("********************************************************");
 
         let json: unknown;
 
