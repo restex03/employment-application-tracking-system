@@ -10,16 +10,28 @@ import { IJobScreenEvaluator } from "./Evaluators/JobScreenEvaluator/IJobScreenE
 import { SqliteJobRepository } from "./Infrastructure/Persistence/Sqlite/Repositories/SqliteJobRepository";
 import { SqliteDatabase } from "./Infrastructure/Persistence/Sqlite/SqliteDatabase";
 import { WorkdayJobFetchService } from "./Application/Services/JobFetch/Workday/WorkdayJobFetchService";
-import { WorkdayJobsResponseMapper } from "./Infrastructure/APIs/ACL/Mappers/WorkdayJobsResponseMapper";
+import {
+    IWorkdayJobsApiResponseMapper,
+    WorkdayJobsResponseMapper,
+} from "./Infrastructure/APIs/ACL/Mappers/WorkdayJobsResponseMapper";
 import { LogLevel } from "./Application/Common/Logging/LogLevel";
 import { JobScreeningService } from "./Application/Services/JobScreening/JobScreeningService";
+import { IJobScoreEvaluator } from "./Evaluators/ShortlistEvaluator/IJobScoreEvaluator";
+import { IJobSearchResult } from "./Infrastructure/APIs/JobSources/IJobSearchResult";
+import { IJobPostingDetail } from "./Infrastructure/APIs/JobSources/IJobPostingDetail";
+import {
+    IWorkdayJobDetailsApiResponseMapper,
+    WorkdayJobDetailApiResponseMapper as WorkdayJobDetailsApiResponseMapper,
+} from "./Infrastructure/APIs/ACL/Mappers/WorkdayJobDetailResponseMapper";
+import { WorkdayJobDetailFetchService } from "./Application/Services/JobDetailFetch/Workday/WorkdayJobDetailFetchService";
+import { IJobDetailFetchService } from "./Application/Services/JobDetailFetch/IJobDetailFetchService";
 
 const logger = new ConsoleLogger(LogLevel.Info);
 
 logger.info("Starting application...");
 
 const client = new OllamaClientConnection();
-const evaluator: IJobScreenEvaluator = new OllamaJobScreenEvaluator(client, logger);
+const screenEvaluator: IJobScreenEvaluator = new OllamaJobScreenEvaluator(client, logger);
 const sqlite = new SqliteDatabase("./data/job-app.db");
 
 const jobRepository = new SqliteJobRepository(sqlite.connection);
@@ -34,39 +46,38 @@ for (const source of jobSources) {
             baseUrl: source.baseUrl,
             logger,
         });
-        const mapper = new WorkdayJobsResponseMapper(source.companyName);
+        const mapper: IWorkdayJobsApiResponseMapper = new WorkdayJobsResponseMapper(source.companyName);
+        const detailMapper = new WorkdayJobDetailsApiResponseMapper();
         const jobFetchSvc = new WorkdayJobFetchService(gateway, mapper, logger);
+        const jobDetailFetchSv: IJobDetailFetchService = new WorkdayJobDetailFetchService(
+            gateway,
+            detailMapper,
+            logger
+        );
+
         const rawJobsList = await jobFetchSvc.fetchJobs("software engineer");
 
-        // const jobScreeningSvc = new JobScreeningService(evaluator, logger);
+        const jobScreeningSvc = new JobScreeningService(screenEvaluator, logger);
+        const screenedJobsList = await jobScreeningSvc.screen(rawJobsList);
 
-        // const screenedJobsList = await jobScreeningSvc.screen(rawJobsList);
+        const scoreEvaluator: IJobScoreEvaluator = new OllamaJobScoreEvaluator(client, logger);
+        const scoringService = new JobScoringService(scoreEvaluator);
 
-        // const firstJob = jobsList[0];
+        const proceedList = screenedJobsList
+            .filter(x => x.disposition === "advance" || x.disposition === "review")
+            .map(x => x.job);
 
-        // logger.info(`Detail Path: ${firstJob.detailPath}`);
+        const jobDetailsList: IJobPostingDetail[] = await jobDetailFetchSv.fetchJobDetails(proceedList);
+        const evaluations = await scoringService.evaluate(profiles.profile_08_23_2026, jobDetailsList);
 
-        // const detail = await gateway.getDetail(firstJob.detailPath);
-
-        // const evaluator = new JobEvaluator(client, logger);
-
-        // const scoringService = new JobScoringService(evaluator);
-
-        // const [evaluation] = await scoringService.evaluate(profiles.profile_08_23_2026, [detail]);
-
-        // const locations =
-        //     detail.locations
-        //         ?.map(location => `\t- ${location.city ?? "Unknown"}, ${location.country ?? "Unknown"}`)
-        //         .join("\n") ?? "\t- None";
-
-        // const locationsCount = detail.locations?.length ?? 0;
-
-        // logger.info(`${detail.id ?? "Unknown"}: ${evaluation.overallScore} - ${evaluation.recommendation}`);
-        // logger.info(`Job Title: ${detail.title}`);
-
-        // logger.info(`Requisition ID: ${detail.requisitionId ?? "Unknown"}`);
-        // logger.info(`Job Locations (${locationsCount}):\n${locations}`);
-        // logger.info(`Job Description: ${detail.description.slice(0, 150)}...`);
+        for (const evaluation of evaluations) {
+            logger.info("======================================================================");
+            logger.info("======================================================================");
+            logger.info(`${evaluation.jobId ?? "Unknown"}: ${evaluation.overallScore} - ${evaluation.recommendation}`);
+            logger.info("----------------------------------------------------------------------");
+            logger.info(`Summary: ${evaluation.summary}`);
+            logger.info("======================================================================\n");
+        }
     } catch (error) {
         logger.error(
             `Failed to retrieve jobs for ${source.companyName}`,

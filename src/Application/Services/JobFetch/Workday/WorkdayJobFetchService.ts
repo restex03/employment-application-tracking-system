@@ -21,6 +21,7 @@ export class WorkdayJobFetchService implements IJobFetchService {
         private readonly logger: ILogger
     ) {}
     async fetchJobs(searchText?: string): Promise<IJobSearchResult[]> {
+        this.logger.info(`[WorkdayJobFetchService.fetchJobs] Fetching jobs...`);
         const jobs = new Map<string, IJobSearchResult>();
         let offset = 0;
         const limit = 20;

@@ -1,7 +1,10 @@
 import { IWorkdayJobDetailResponse } from "../ApiContracts/IWorkdayJobDetailResponse";
 import { IJobPostingDetail, IJobLocation } from "../../JobSources/IJobPostingDetail";
 
-export class WorkdayJobDetailResponseMapper {
+export interface IWorkdayJobDetailsApiResponseMapper {
+    map(response: IWorkdayJobDetailResponse): IJobPostingDetail;
+}
+export class WorkdayJobDetailApiResponseMapper implements IWorkdayJobDetailsApiResponseMapper {
     public map(response: IWorkdayJobDetailResponse): IJobPostingDetail {
         const { jobPostingInfo, hiringOrganization } = response;
 

@@ -5,7 +5,7 @@ import { IJobGateway } from "../IJobSource";
 import { ILogger } from "../../../../Application/Common/Logging/ILogger";
 import { IWorkdayJobDetailResponse } from "../../ACL/ApiContracts/IWorkdayJobDetailResponse";
 import { IWorkdayJobsResponse } from "../../ACL/ApiContracts/IWorkdayJobsResponse";
-import { WorkdayJobDetailResponseMapper } from "../../ACL/Mappers/WorkdayJobDetailResponseMapper";
+import { WorkdayJobDetailApiResponseMapper } from "../../ACL/Mappers/WorkdayJobDetailResponseMapper";
 
 export class WorkdayJobsGateway implements IJobGateway {
     private readonly companyName: string;
@@ -76,6 +76,6 @@ export class WorkdayJobsGateway implements IJobGateway {
             throw new Error("Workday-based job detail API returned an empty body");
         }
 
-        return new WorkdayJobDetailResponseMapper().map(responseBody);
+        return new WorkdayJobDetailApiResponseMapper().map(responseBody);
     }
 }
