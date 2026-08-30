@@ -1,23 +1,6 @@
-import { OllamaJobScoreEvaluator } from "./Evaluators/ShortlistEvaluator/Ollama/OllamaJobScoreEvaluator";
 import { profiles } from "./JobCandidateProfile/candidateProfiles";
 import { WorkdaySources } from "./Application/WorkdaySources/workdaySources";
-import { JobScoringService } from "./Application/Services/JobScoringService";
-import { OllamaClientConnection } from "./ModelConnections/Ollama/OllamaClientConnection";
-import { OllamaJobScreenEvaluator } from "./Evaluators/JobScreenEvaluator/Ollama/OllamaJobScreenEvaluator";
-import { IJobScreenEvaluator } from "./Evaluators/JobScreenEvaluator/IJobScreenEvaluator";
-import { SqliteJobRepository } from "./Infrastructure/Persistence/Sqlite/Repositories/SqliteJobRepository";
-import { SqliteDatabase } from "./Infrastructure/Persistence/Sqlite/SqliteDatabase";
-import { WorkdayJobFetchService } from "./Application/Services/JobFetch/Workday/WorkdayJobFetchService";
-import {
-    IWorkdayJobsApiResponseMapper,
-    WorkdayJobsResponseMapper,
-} from "./Infrastructure/APIs/ACL/Mappers/WorkdayJobsResponseMapper";
 import { LogLevel } from "./Application/Common/Logging/LogLevel";
-import { JobScreeningService } from "./Application/Services/JobScreening/JobScreeningService";
-
-import { WorkdayJobDetailsApiResponseMapper } from "./Infrastructure/APIs/ACL/Mappers/WorkdayJobDetailResponseMapper";
-import { WorkdayJobDetailFetchService } from "./Application/Services/JobDetailFetch/Workday/WorkdayJobDetailFetchService";
-import { IJobDetailFetchService } from "./Application/Services/JobDetailFetch/IJobDetailFetchService";
 import { buildDependencies } from "./Application/DependencyInjection/buildDependencies";
 
 console.log("Starting application...");
