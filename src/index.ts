@@ -5,6 +5,7 @@ import { buildDependencies } from "./Application/DependencyInjection/buildDepend
 
 console.log("Starting application...");
 
+// Equifax has only a few software engineer jobs at the moment. using for testing.
 const jobSources = WorkdaySources.filter(x => x.companyName === "Equifax");
 for (const source of jobSources) {
     try {
