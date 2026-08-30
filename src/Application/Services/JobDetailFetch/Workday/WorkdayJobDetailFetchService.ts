@@ -17,6 +17,9 @@ export class WorkdayJobDetailFetchService implements IJobDetailFetchService {
         const jobDetailsList: IJobPostingDetail[] = [];
 
         for (const result of lookups) {
+            this.logger.info(
+                `[WorkdayJobDetailFetchService.fetchJobDetails] Fetching details: ${result.company} - ${result.id} (${result.title})`
+            );
             const jobDetail: IJobPostingDetail = await this.jobGateway.getDetail(result.detailPath);
             const locations =
                 jobDetail.locations
