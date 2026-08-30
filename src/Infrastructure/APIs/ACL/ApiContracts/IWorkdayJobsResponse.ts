@@ -4,10 +4,10 @@ export interface IWorkdayJobsResponse {
     jobPostings: Array<{
         title: string;
         externalPath: string;
-        locationsText: string;
-        postedOn: string;
+        locationsText?: string;
+        postedOn?: string;
+        bulletFields?: string[];
         remoteType?: string;
-        bulletFields: string[];
     }>;
 
     facets: Array<{

@@ -5,11 +5,11 @@ import { OllamaJobScoreEvaluator } from "../../Evaluators/ScoreEvaluator/Ollama/
 import {
     IWorkdayJobDetailsApiResponseMapper,
     WorkdayJobDetailsApiResponseMapper,
-} from "../../Infrastructure/APIs/ACL/Mappers/WorkdayJobDetailResponseMapper";
+} from "../../Infrastructure/APIs/ACL/Mappers/WorkdayJobDetailsApiResponseMapper";
 import {
     IWorkdayJobsApiResponseMapper,
     WorkdayJobsResponseMapper,
-} from "../../Infrastructure/APIs/ACL/Mappers/WorkdayJobsResponseMapper";
+} from "../../Infrastructure/APIs/ACL/Mappers/WorkdayJobsApiResponseMapper";
 import { IJobGateway } from "../../Infrastructure/APIs/JobSources/IJobSource";
 import { WorkdayJobsGateway } from "../../Infrastructure/APIs/JobSources/Workday/WorkdayJobsGateway";
 import { IJobRepository } from "../../Infrastructure/Persistence/IJobRepository";

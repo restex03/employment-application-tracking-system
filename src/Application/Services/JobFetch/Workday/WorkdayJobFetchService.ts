@@ -1,5 +1,5 @@
 import { ILogger } from "../../../Common/Logging/ILogger";
-import { IWorkdayJobsApiResponseMapper } from "../../../../Infrastructure/APIs/ACL/Mappers/WorkdayJobsResponseMapper";
+import { IWorkdayJobsApiResponseMapper } from "../../../../Infrastructure/APIs/ACL/Mappers/WorkdayJobsApiResponseMapper";
 import { IJobSearchResult } from "../../../../Infrastructure/APIs/JobSources/IJobSearchResult";
 import { IJobGateway } from "../../../../Infrastructure/APIs/JobSources/IJobSource";
 import { IJobFetchService } from "../IJobFetchService";

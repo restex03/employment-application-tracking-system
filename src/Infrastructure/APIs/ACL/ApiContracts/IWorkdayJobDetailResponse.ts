@@ -7,8 +7,6 @@ export interface IWorkdayJobPostingInfo {
     id: string;
     title: string;
     jobDescription: string;
-
-    location: string;
     additionalLocations?: string[];
 
     postedOn: string;
@@ -19,7 +17,8 @@ export interface IWorkdayJobPostingInfo {
     jobPostingId: string;
     jobPostingSiteId: string;
 
-    country: IWorkdayCountry;
+    location?: string;
+    country?: IWorkdayCountry;
 
     externalUrl: string;
 }

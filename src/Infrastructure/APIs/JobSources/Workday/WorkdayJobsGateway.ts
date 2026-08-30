@@ -5,7 +5,7 @@ import { IJobGateway } from "../IJobSource";
 import { ILogger } from "../../../../Application/Common/Logging/ILogger";
 import { IWorkdayJobDetailResponse } from "../../ACL/ApiContracts/IWorkdayJobDetailResponse";
 import { IWorkdayJobsResponse } from "../../ACL/ApiContracts/IWorkdayJobsResponse";
-import { WorkdayJobDetailsApiResponseMapper } from "../../ACL/Mappers/WorkdayJobDetailResponseMapper";
+import { WorkdayJobDetailsApiResponseMapper } from "../../ACL/Mappers/WorkdayJobDetailsApiResponseMapper";
 
 export class WorkdayJobsGateway implements IJobGateway {
     private readonly companyName: string;

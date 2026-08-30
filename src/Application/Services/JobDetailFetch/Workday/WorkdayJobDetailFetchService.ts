@@ -1,4 +1,4 @@
-import { IWorkdayJobDetailsApiResponseMapper } from "../../../../Infrastructure/APIs/ACL/Mappers/WorkdayJobDetailResponseMapper";
+import { IWorkdayJobDetailsApiResponseMapper } from "../../../../Infrastructure/APIs/ACL/Mappers/WorkdayJobDetailsApiResponseMapper";
 import { IJobPostingDetail } from "../../../../Infrastructure/APIs/JobSources/IJobPostingDetail";
 import { IJobSearchResult } from "../../../../Infrastructure/APIs/JobSources/IJobSearchResult";
 import { IJobGateway } from "../../../../Infrastructure/APIs/JobSources/IJobSource";
