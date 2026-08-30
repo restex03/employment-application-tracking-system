@@ -2,7 +2,7 @@ export interface IWorkdayJobSource {
     companyName: string;
     baseUrl: string;
 }
-export const workdaySources: IWorkdayJobSource[] = [
+export const WorkdaySources: IWorkdayJobSource[] = [
     {
         companyName: "Workday",
         baseUrl: "https://workday.wd5.myworkdayjobs.com/wday/cxs/workday/Workday",

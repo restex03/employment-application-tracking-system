@@ -62,8 +62,7 @@ export class OllamaJobScreenEvaluator implements IJobScreenEvaluator {
         this.logger.debug(`\tCompletion tokens: ${response.usage?.completion_tokens}`);
         this.logger.debug(`\tCompletion chars: ${content!.length}`);
         this.logger.debug(`\tFinish reason: ${response.choices[0]?.finish_reason}`);
-        this.logger.debug("********************************************************");
-        this.logger.debug("********************************************************");
+        this.logger.debug("********************************************************\n");
 
         let json: unknown;
 
