@@ -290,7 +290,7 @@ export const WorkdaySources: IWorkdayJobSource[] = [
     },
     {
         companyName: "Netflix",
-        baseUrl: "https://netflix.wd1.myworkdayjobs.com/wday/cxs/netflix/Netflix",
+        baseUrl: "https://netflix.wd108.myworkdayjobs.com/wday/cxs/netflix/Netflix",
     },
     {
         companyName: "Unity",
