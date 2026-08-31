@@ -1,4 +1,4 @@
-import { ILogger } from "../../../Application/Ports/Logging/ILogger";
+import { ILogger } from "../ILogger";
 import { LogLevel } from "../LogLevel";
 
 export class ConsoleLogger implements ILogger {

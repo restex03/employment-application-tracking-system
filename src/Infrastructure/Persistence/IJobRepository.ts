@@ -1,4 +1,4 @@
-import { IJobPostLookup } from "../../../Domain/JobPosts/IJobPostLookup";
+import { IJobPostLookup } from "../../Domain/JobPosts/IJobPostLookup";
 
 export interface IJobRepository {
     exists(source: string, sourceJobId: string): Promise<boolean>;

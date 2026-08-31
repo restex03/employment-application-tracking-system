@@ -9,13 +9,15 @@ console.log("Starting application...");
 const jobSources = WorkdaySources.filter(x => x.companyName === "Equifax");
 for (const source of jobSources) {
     try {
-        const { logger, jobScreeningSvc, jobScoringService, jobFetchService, jobDetailFetchService } =
-            buildDependencies(source, LogLevel.Debug);
+        const { logger, jobScreeningSvc, jobScoringService, jobFetchService } = buildDependencies(
+            source,
+            LogLevel.Debug
+        );
 
         logger.info(`\n========== ${source.companyName} ==========`);
         logger.info(`[index] Fetching jobs from ${source.companyName} at ${source.baseUrl}...`);
 
-        const rawJobsList = await jobFetchService.fetchJobs("software engineer");
+        const rawJobsList = await jobFetchService.fetchLookups("software engineer");
         if (rawJobsList.length === 0) {
             logger.info(`[index] Skipping ${source.companyName} - no jobs available`);
             continue;
@@ -28,7 +30,7 @@ for (const source of jobSources) {
             .filter(x => x.disposition === "advance" || x.disposition === "review")
             .map(x => x.job);
 
-        const jobDetailsList = await jobDetailFetchService.fetchJobDetails(proceedList);
+        const jobDetailsList = await jobFetchService.fetchDetails(proceedList);
         const evaluations = await jobScoringService.score(profiles.profile_08_23_2026, jobDetailsList);
 
         for (const evaluation of evaluations) {

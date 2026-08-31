@@ -1,16 +1,16 @@
 import { IJobMatchEvidenceEvaluator } from "../IJobMatchEvidenceEvaluator";
 import { JobScoreEvaluationResponseSchema } from "../JobScoreEvaluationResponseSchema";
 import { JobScoreEvaluationResponseValidationSchema } from "../JobScoreEvaluationResponseValidationSchema";
-import { OpenAiConnection } from "../../../Infrastructure/Inference/Ollama/OllamaClientConnection";
-import { ILogger } from "../../../Application/Ports/Logging/ILogger";
+import { ILogger } from "../../../Infrastructure/Logging/ILogger";
 import { JobMatchEvidenceExtractorSystemPrompt } from "../JobScoreEvaluatorSystemPrompt";
 import { IJobMatchEvidence, JobMatchEvidence } from "../IJobMatchEvidence";
 import { ICandidateProfile } from "../../../Domain/Candidates/ICandidateProfile";
 import { IJobPostDetail } from "../../../Domain/JobPosts/IJobPostDetail";
+import { ILlmInferenceProvider } from "../../../Infrastructure/Inference/ILlmInferenceProvider";
 
 export class OllamaJobMatchEvidenceEvaluator implements IJobMatchEvidenceEvaluator {
     constructor(
-        private readonly openAi: OpenAiConnection,
+        private readonly llm: ILlmInferenceProvider,
         private readonly logger: ILogger,
         private readonly model: string = "qwen3:4b-instruct-8k"
     ) {}
@@ -19,7 +19,7 @@ export class OllamaJobMatchEvidenceEvaluator implements IJobMatchEvidenceEvaluat
         const jobInfo = `${job.company} - ${job.requisitionId} (${job.title})`;
         this.logger.debug(`[OllamaJobScoreEvaluator.evaluate] Evaluating job: ${jobInfo}`);
         const start = performance.now();
-        const response = await this.openAi.client.chat.completions.create({
+        const response = await this.llm.client.chat.completions.create({
             model: this.model,
 
             temperature: 0.1,

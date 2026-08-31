@@ -2,7 +2,7 @@ import { ICandidateProfile } from "../../../Domain/Candidates/ICandidateProfile"
 import { IJobPostDetail } from "../../../Domain/JobPosts/IJobPostDetail";
 import { IJobMatchEvidence } from "../../../Evaluators/ScoreEvaluator/IJobMatchEvidence";
 import { IJobMatchEvidenceEvaluator } from "../../../Evaluators/ScoreEvaluator/IJobMatchEvidenceEvaluator";
-import { ILogger } from "../../Ports/Logging/ILogger";
+import { ILogger } from "../../../Infrastructure/Logging/ILogger";
 import { IJobScoringService } from "./IJobScoringService";
 
 export class JobScoringService implements IJobScoringService {

@@ -1,6 +1,6 @@
-import { ILogger } from "../../../Application/Ports/Logging/ILogger";
+import { ILlmInferenceProvider } from "../../../Infrastructure/Inference/ILlmInferenceProvider";
+import { ILogger } from "../../../Infrastructure/Logging/ILogger";
 import { IJobPostLookup } from "../../../Domain/JobPosts/IJobPostLookup";
-import { OpenAiConnection } from "../../../Infrastructure/Inference/Ollama/OllamaClientConnection";
 import { IJobScreenEvaluator } from "../IJobScreenEvaluator";
 import { IJobScreenResult } from "../IJobScreenResult";
 import { JobScreenResponseSchema } from "../JobScreenResponseSchema";
@@ -9,7 +9,7 @@ import { JobScreenSystemPrompt } from "../JobScreenSystemPrompt";
 
 export class OllamaJobScreenEvaluator implements IJobScreenEvaluator {
     constructor(
-        private readonly openAi: OpenAiConnection,
+        private readonly llm: ILlmInferenceProvider,
         private readonly logger: ILogger,
         private readonly model: string = "qwen3:4b-instruct-8k"
     ) {}
@@ -18,7 +18,7 @@ export class OllamaJobScreenEvaluator implements IJobScreenEvaluator {
         const jobInfo = `${job.company} - ${job.requisitionId} (${job.title})`;
         this.logger.debug(`[OllamaJobScreenEvaluator.evaluate] Evaluating job: ${jobInfo}`);
         const start = performance.now();
-        const response = await this.openAi.client.chat.completions.create({
+        const response = await this.llm.client.chat.completions.create({
             model: this.model,
 
             temperature: 0.2,

@@ -1,4 +1,4 @@
-import { ILogger } from "../../../Application/Ports/Logging/ILogger";
+import { ILogger } from "../../Logging/ILogger";
 import { IJobsLookupRequest } from "../../../Domain/JobPosts/IJobsLookupRequest";
 import { IJobGateway } from "../../../Domain/JobPosts/IJobSource";
 import { IWorkdayJobDetailsApiResponse } from "./Contracts/IWorkdayJobDetailsApiResponse";

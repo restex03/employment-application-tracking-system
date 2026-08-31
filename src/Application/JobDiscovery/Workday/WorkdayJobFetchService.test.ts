@@ -1,14 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ILogger } from "../../../Ports/Logging/ILogger";
-import { IWorkdayJobsApiResponseMapper } from "../../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobsApiResponseMapper";
+import { ILogger } from "../../../Infrastructure/Logging/ILogger";
+import { IWorkdayJobsApiResponseMapper } from "../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobsApiResponseMapper";
 
 import { WorkdayJobFetchService } from "./WorkdayJobFetchService";
-import { IJobGateway } from "../../../../Domain/JobPosts/IJobSource";
-import { IJobPostLookup } from "../../../../Domain/JobPosts/IJobPostLookup";
+import { IJobGateway } from "../../../Domain/JobPosts/IJobSource";
+import { IJobPostLookup } from "../../../Domain/JobPosts/IJobPostLookup";
+import { IWorkdayJobDetailsApiResponseMapper } from "../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobDetailsApiResponseMapper";
 
 describe("WorkdayJobFetchService", () => {
     let jobGateway: IJobGateway;
-    let mapper: IWorkdayJobsApiResponseMapper;
+    let lookupMapper: IWorkdayJobsApiResponseMapper;
+    let detailMapper: IWorkdayJobDetailsApiResponseMapper;
     let logger: ILogger;
 
     let searchMock: ReturnType<typeof vi.fn>;
@@ -22,9 +24,13 @@ describe("WorkdayJobFetchService", () => {
             search: searchMock,
         } as unknown as IJobGateway;
 
-        mapper = {
+        lookupMapper = {
             map: mapMock,
         } as unknown as IWorkdayJobsApiResponseMapper;
+
+        detailMapper = {
+            map: mapMock,
+        } as unknown as IWorkdayJobDetailsApiResponseMapper;
 
         logger = {
             trace: vi.fn(),
@@ -35,7 +41,7 @@ describe("WorkdayJobFetchService", () => {
         } as unknown as ILogger;
     });
 
-    const createService = () => new WorkdayJobFetchService(jobGateway, mapper, logger);
+    const createService = () => new WorkdayJobFetchService({ jobGateway, lookupMapper, detailMapper, logger });
 
     const createJob = (overrides: Partial<IJobPostLookup> = {}): IJobPostLookup => ({
         jobSourceId: crypto.randomUUID(),
@@ -156,7 +162,7 @@ describe("WorkdayJobFetchService", () => {
 
             mapMock.mockReturnValue(mappedJob);
 
-            const result = await service.fetchJobs("software");
+            const result = await service.fetchLookups("software");
 
             expect(result).toEqual([mappedJob]);
 
@@ -223,7 +229,7 @@ describe("WorkdayJobFetchService", () => {
                     })
                 );
 
-            const result = await service.fetchJobs();
+            const result = await service.fetchLookups();
 
             expect(searchMock).toHaveBeenCalledTimes(3);
 
@@ -264,7 +270,7 @@ describe("WorkdayJobFetchService", () => {
                     jobPostings: [],
                 });
 
-            const result = await service.fetchJobs();
+            const result = await service.fetchLookups();
 
             expect(searchMock).toHaveBeenCalledTimes(2);
             expect(result).toEqual([]);
@@ -297,7 +303,7 @@ describe("WorkdayJobFetchService", () => {
 
             mapMock.mockReturnValueOnce(firstVersion).mockReturnValueOnce(duplicateVersion);
 
-            const result = await service.fetchJobs();
+            const result = await service.fetchLookups();
 
             expect(result).toEqual([duplicateVersion]);
         });
@@ -310,7 +316,7 @@ describe("WorkdayJobFetchService", () => {
                 jobPostings: [],
             });
 
-            const result = await service.fetchJobs();
+            const result = await service.fetchLookups();
 
             expect(result).toEqual([]);
             expect(searchMock).toHaveBeenCalledOnce();
@@ -325,7 +331,7 @@ describe("WorkdayJobFetchService", () => {
                 jobPostings: [],
             });
 
-            await service.fetchJobs();
+            await service.fetchLookups();
 
             expect(logger.info).toHaveBeenCalledWith("[WorkdayJobFetchService.fetchJobs] Total jobs to fetch: 37");
         });
