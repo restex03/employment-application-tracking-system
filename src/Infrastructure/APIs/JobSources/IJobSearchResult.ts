@@ -1,14 +1,22 @@
 // types/IJobSearchResult.ts
 
 export interface IJobSearchResult {
+    // /**
+    //  * Stable application-owned identifier for this job posting.
+    //  *
+    //  * Remains the same as the posting moves through screening,
+    //  * detail retrieval, scoring, shortlisting, and application tracking.
+    //  */
+    // jobPostingId: string;
+
     /**
-     * Stable identifier from the source when available.
+     * Stable identifier supplied by the external job source.
      *
      * Examples:
      * "JR-0109507"
      * "R-51887"
      */
-    id: string;
+    jobSourceId: string;
 
     /**
      * Human-readable job title.
@@ -28,15 +36,12 @@ export interface IJobSearchResult {
     detailPath: string;
 
     /**
-     * Optional requisition ID when distinct from id.
+     * Optional employer requisition ID when distinct from sourceJobId.
      */
     requisitionId?: string;
 
     /**
      * Lightweight location information from search results.
-     *
-     * Don't require this because some search APIs return poor
-     * location metadata until the detail request.
      */
     locations?: string[];
 

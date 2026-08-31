@@ -1,5 +1,5 @@
-import { IJobScoreEvaluation } from "../Evaluators/ScoreEvaluator/types";
+import { IJobScore } from "../Evaluators/ScoreEvaluator/IJobScoreEvaluation";
 
 export interface IJobCompatibilityScoreCalculator {
-    calculate(evaluation: Pick<IJobScoreEvaluation, "scores" | "eligibility">): number;
+    calculate(scores: IJobScore): number;
 }

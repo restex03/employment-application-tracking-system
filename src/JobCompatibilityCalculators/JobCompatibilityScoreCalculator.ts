@@ -1,23 +1,24 @@
-import { IJobScoreEvaluation } from "../Evaluators/ScoreEvaluator/types";
+import { IJobScore } from "../Evaluators/ScoreEvaluator/IJobScoreEvaluation";
 import { IJobCompatibilityScoreCalculator } from "./IJobCompatibilityScoreCalculator";
 
+const SCORE_WEIGHTS = {
+    currentSkillFit: 0.3,
+    experienceFit: 0.25,
+    workFit: 0.2,
+    skillPortability: 0.1,
+    careerGrowth: 0.1,
+} as const satisfies Record<keyof IJobScore, number>;
+
+const TOTAL_WEIGHT = Object.values(SCORE_WEIGHTS).reduce((total, weight) => total + weight, 0);
+
 export class JobCompatibilityScoreCalculator implements IJobCompatibilityScoreCalculator {
-    calculate(evaluation: Pick<IJobScoreEvaluation, "scores" | "eligibility">): number {
-        if (!evaluation.eligibility.passesHardConstraints) {
-            return 0;
+    public calculate(scores: IJobScore): number {
+        let weightedScore = 0;
+
+        for (const key of Object.keys(SCORE_WEIGHTS) as Array<keyof IJobScore>) {
+            weightedScore += scores[key] * SCORE_WEIGHTS[key];
         }
 
-        const scores = evaluation.scores;
-
-        const overallScore =
-            scores.currentSkillFit * 0.25 +
-            scores.experienceFit * 0.15 +
-            scores.workFit * 0.2 +
-            scores.skillPortability * 0.15 +
-            scores.careerGrowth * 0.15 +
-            scores.compensationFit * 0.05 +
-            scores.locationFit * 0.05;
-
-        return Math.round(overallScore);
+        return Math.round(weightedScore / TOTAL_WEIGHT);
     }
 }

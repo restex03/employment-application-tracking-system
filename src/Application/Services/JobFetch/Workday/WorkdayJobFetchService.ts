@@ -58,7 +58,7 @@ export class WorkdayJobFetchService implements IJobFetchService {
         const batch = await this.jobGateway.search(request);
 
         this.logger.trace(`[WorkdayJobFetchService.getJobsBatch] Batch retrieved: ${batch.jobPostings.length} jobs`);
-        const mapped = this.mapper.map(batch);
+        const mapped = batch.jobPostings.map(x => this.mapper.map(x));
         return {
             jobPostings: mapped,
             total: batch.total,

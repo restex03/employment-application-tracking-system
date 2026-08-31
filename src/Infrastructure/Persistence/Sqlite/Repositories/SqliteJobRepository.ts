@@ -76,7 +76,7 @@ export class SqliteJobRepository implements IJobRepository {
     private mapInsertParameters(source: string, job: IJobSearchResult): JobInsertParameters {
         return {
             source,
-            sourceJobId: job.id,
+            sourceJobId: job.jobSourceId,
             requisitionId: job.requisitionId ?? null,
             company: job.company,
             title: job.title,

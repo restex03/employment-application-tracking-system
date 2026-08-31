@@ -1,5 +1,6 @@
 import { IJobPostingDetail } from "../../Infrastructure/APIs/JobSources/IJobPostingDetail";
-import { ICandidateProfile, IJobScoreEvaluation } from "../../Evaluators/ScoreEvaluator/types";
+import { ICandidateProfile } from "../../Evaluators/ScoreEvaluator/types";
+import { type IJobScoreEvaluation } from "../../Evaluators/ScoreEvaluator/IJobScoreEvaluation";
 import { IJobScoreEvaluator } from "../../Evaluators/ScoreEvaluator/IJobScoreEvaluator";
 import { ILogger } from "../Common/Logging/ILogger";
 
@@ -21,16 +22,6 @@ export class JobScoringService implements IJobScoringService {
             const jobInfo = `${job.company} - ${job.requisitionId} (${job.title})`;
             this.logger.info(`[JobScoringService.score] Scoring job: ${jobInfo}`);
             const evaluation = await this.evaluator.evaluate(profile, job);
-            this.logger.info(`\t- Overall Score: ${evaluation.overallScore}`);
-            this.logger.info(`\t\t- Career Growth: ${evaluation.scores.careerGrowth}`);
-            this.logger.info(`\t\t- Compensation Fit: ${evaluation.scores.compensationFit}`);
-            this.logger.info(`\t\t- Skill Fit: ${evaluation.scores.currentSkillFit}`);
-            this.logger.info(`\t\t- Experience Fit: ${evaluation.scores.experienceFit}`);
-            this.logger.info(`\t\t- Location Fit: ${evaluation.scores.locationFit}`);
-            this.logger.info(`\t\t- Skill Portability: ${evaluation.scores.skillPortability}`);
-            this.logger.info(`\t\t- Work Fit: ${evaluation.scores.workFit}`);
-            this.logger.info(`\t- Confidence: ${evaluation.confidence}`);
-            this.logger.info(` \n`);
             evaluations.push(evaluation);
         }
 

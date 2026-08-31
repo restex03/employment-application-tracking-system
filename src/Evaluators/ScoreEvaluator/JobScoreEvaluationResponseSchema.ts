@@ -5,217 +5,86 @@ const scoreSchema = {
 } as const;
 
 /**
- * JSON Schema describing the exact shape OpenAI should return for a job evaluation.
+ * JSON Schema describing the expected model response for a job score evaluation.
  * This is used as the response_format schema sent to the model.
  */
 export const JobScoreEvaluationResponseSchema = {
     type: "object",
 
     properties: {
-        requisitionId: {
-            type: "string",
-        },
-
-        recommendation: {
-            type: "string",
-
-            enum: ["strong_apply", "apply", "maybe", "skip"],
-        },
-
-        confidence: {
-            type: "number",
-            minimum: 0,
-            maximum: 1,
-        },
-
         scores: {
             type: "object",
-
             properties: {
                 currentSkillFit: scoreSchema,
-
                 experienceFit: scoreSchema,
-
                 workFit: scoreSchema,
-
                 skillPortability: scoreSchema,
-
                 careerGrowth: scoreSchema,
-
-                compensationFit: scoreSchema,
-
-                locationFit: scoreSchema,
             },
-
-            required: [
-                "currentSkillFit",
-                "experienceFit",
-                "workFit",
-                "skillPortability",
-                "careerGrowth",
-                "compensationFit",
-                "locationFit",
-            ],
-
+            required: ["currentSkillFit", "experienceFit", "workFit", "skillPortability", "careerGrowth"],
             additionalProperties: false,
         },
 
-        eligibility: {
-            type: "object",
-
-            properties: {
-                passesHardConstraints: {
-                    type: "boolean",
-                },
-
-                reasons: {
-                    type: "array",
-
-                    items: {
-                        type: "string",
-                    },
-                },
-            },
-
-            required: ["passesHardConstraints", "reasons"],
-
-            additionalProperties: false,
-        },
-
-        strongMatches: {
+        strengths: {
             type: "array",
-
+            maxItems: 3,
             items: {
                 type: "object",
-
                 properties: {
-                    requirement: {
+                    area: {
                         type: "string",
+                        maxLength: 80,
                     },
-
-                    candidateEvidence: {
+                    type: {
                         type: "string",
+                        enum: ["direct", "transferable"],
                     },
-
-                    strength: {
+                    reason: {
                         type: "string",
-
-                        enum: ["strong", "moderate", "weak"],
+                        maxLength: 250,
                     },
                 },
-
-                required: ["requirement", "candidateEvidence", "strength"],
-
+                required: ["area", "type", "reason"],
                 additionalProperties: false,
             },
         },
 
         gaps: {
             type: "array",
-
+            maxItems: 3,
             items: {
                 type: "object",
-
                 properties: {
-                    skill: {
+                    area: {
                         type: "string",
+                        maxLength: 80,
                     },
-
                     severity: {
                         type: "string",
-
-                        enum: ["minor", "moderate", "major", "disqualifying"],
+                        enum: ["minor", "moderate", "major"],
                     },
-
-                    type: {
+                    category: {
                         type: "string",
-
-                        enum: ["learnable", "transferable", "experience", "domain", "structural", "career_risk"],
+                        enum: [
+                            "technical_skill",
+                            "technical_skill_depth",
+                            "domain_experience",
+                            "role_scope",
+                            "career_alignment",
+                        ],
                     },
-
                     reason: {
                         type: "string",
-                    },
-
-                    reasonablyLearnable: {
-                        type: "boolean",
+                        maxLength: 250,
                     },
                 },
-
-                required: ["skill", "severity", "type", "reason", "reasonablyLearnable"],
-
+                required: ["area", "severity", "category", "reason"],
                 additionalProperties: false,
-            },
-        },
-
-        transferableSkills: {
-            type: "array",
-
-            items: {
-                type: "string",
-            },
-        },
-
-        careerRisks: {
-            type: "array",
-
-            items: {
-                type: "string",
-            },
-        },
-
-        proprietaryTechnologyRisk: {
-            type: "object",
-
-            properties: {
-                level: {
-                    type: "string",
-
-                    enum: ["low", "moderate", "high", "unknown"],
-                },
-
-                reason: {
-                    type: "string",
-                },
-            },
-
-            required: ["level", "reason"],
-
-            additionalProperties: false,
-        },
-
-        summary: {
-            type: "string",
-        },
-
-        primaryConcern: {
-            type: ["string", "null"],
-        },
-
-        interviewQuestions: {
-            type: "array",
-
-            items: {
-                type: "string",
             },
         },
     },
 
-    required: [
-        "requisitionId",
-        "recommendation",
-        "confidence",
-        "scores",
-        "eligibility",
-        "strongMatches",
-        "gaps",
-        "transferableSkills",
-        "careerRisks",
-        "proprietaryTechnologyRisk",
-        "summary",
-        "primaryConcern",
-        "interviewQuestions",
-    ],
+    required: ["scores", "strengths", "gaps"],
 
     additionalProperties: false,
 } as const;

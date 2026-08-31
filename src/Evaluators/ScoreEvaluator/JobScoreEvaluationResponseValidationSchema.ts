@@ -2,27 +2,30 @@ import { z } from "zod";
 
 /**
  * Runtime validator for the model response after it has been parsed from JSON.
- * This ensures the OpenAI output matches the application’s expected evaluation shape.
+ * This ensures the model output matches the application's expected evaluation shape.
  */
 const ScoreSchema = z.number().int().min(0).max(100);
 
-const MatchEvidenceSchema = z.strictObject({
-    requirement: z.string(),
-    candidateEvidence: z.string(),
-
-    strength: z.enum(["strong", "moderate", "weak"]),
+const JobStrengthSchema = z.strictObject({
+    area: z.string().min(1),
+    type: z.enum(["direct", "transferable"]),
+    reason: z.string().min(1),
 });
 
-const SkillGapSchema = z.strictObject({
-    skill: z.string(),
+const JobScoreGapSchema = z.strictObject({
+    area: z.string().min(1),
 
-    severity: z.enum(["minor", "moderate", "major", "disqualifying"]),
+    severity: z.enum(["minor", "moderate", "major"]),
 
-    type: z.enum(["learnable", "transferable", "experience", "domain", "structural", "career_risk"]),
+    category: z.enum([
+        "technical_skill",
+        "technical_skill_depth",
+        "domain_experience",
+        "role_scope",
+        "career_alignment",
+    ]),
 
-    reason: z.string(),
-
-    reasonablyLearnable: z.boolean(),
+    reason: z.string().min(1),
 });
 
 const JobEvaluationScoresSchema = z.strictObject({
@@ -35,22 +38,6 @@ const JobEvaluationScoresSchema = z.strictObject({
     skillPortability: ScoreSchema,
 
     careerGrowth: ScoreSchema,
-
-    compensationFit: ScoreSchema,
-
-    locationFit: ScoreSchema,
-});
-
-const EligibilitySchema = z.strictObject({
-    passesHardConstraints: z.boolean(),
-
-    reasons: z.array(z.string()),
-});
-
-const ProprietaryTechnologyRiskSchema = z.strictObject({
-    level: z.enum(["low", "moderate", "high", "unknown"]),
-
-    reason: z.string(),
 });
 
 /**
@@ -58,29 +45,9 @@ const ProprietaryTechnologyRiskSchema = z.strictObject({
  * This is the application-side safety check after the model response arrives.
  */
 export const JobScoreEvaluationResponseValidationSchema = z.strictObject({
-    requisitionId: z.string(),
-
-    recommendation: z.enum(["strong_apply", "apply", "maybe", "skip"]),
-
-    confidence: z.number().min(0).max(1),
-
     scores: JobEvaluationScoresSchema,
 
-    eligibility: EligibilitySchema,
+    gaps: z.array(JobScoreGapSchema).max(3),
 
-    strongMatches: z.array(MatchEvidenceSchema),
-
-    gaps: z.array(SkillGapSchema),
-
-    transferableSkills: z.array(z.string()),
-
-    careerRisks: z.array(z.string()),
-
-    proprietaryTechnologyRisk: ProprietaryTechnologyRiskSchema,
-
-    summary: z.string(),
-
-    primaryConcern: z.string().nullable(),
-
-    interviewQuestions: z.array(z.string()),
+    strengths: z.array(JobStrengthSchema).max(3),
 });

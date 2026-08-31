@@ -1,5 +1,6 @@
 import { IJobScoreEvaluator } from "../IJobScoreEvaluator";
-import { type ICandidateProfile, type IJobScoreEvaluation } from "../types";
+import { type ICandidateProfile } from "../types";
+import { JobScoreEvaluation, type IJobScoreEvaluation } from "../IJobScoreEvaluation";
 import { JobScoreEvaluationResponseSchema } from "../JobScoreEvaluationResponseSchema";
 import { JobScoreEvaluationResponseValidationSchema } from "../JobScoreEvaluationResponseValidationSchema";
 import { IJobPostingDetail } from "../../../Infrastructure/APIs/JobSources/IJobPostingDetail";
@@ -13,9 +14,7 @@ export class OllamaJobScoreEvaluator implements IJobScoreEvaluator {
     constructor(
         private readonly openAi: OpenAiConnection,
         private readonly logger: ILogger,
-        private readonly model: string = "qwen3:4b-instruct-8k",
-        // private readonly model: string = "qwen3:8b",
-        private readonly scoreCalculator: IJobCompatibilityScoreCalculator = new JobCompatibilityScoreCalculator()
+        private readonly model: string = "qwen3:4b-instruct-8k"
     ) {}
 
     async evaluate(profile: ICandidateProfile, job: IJobPostingDetail): Promise<IJobScoreEvaluation> {
@@ -97,20 +96,10 @@ export class OllamaJobScoreEvaluator implements IJobScoreEvaluator {
             );
         }
 
-        const { primaryConcern, ...raw } = validationResult.data;
+        const { ...raw } = validationResult.data;
 
-        const evaluationWithoutScore: Omit<IJobScoreEvaluation, "overallScore"> = {
-            ...raw,
-
-            ...(primaryConcern !== null ? { primaryConcern } : {}),
-        };
-
-        const overallScore = this.scoreCalculator.calculate(evaluationWithoutScore);
-
-        return {
-            ...evaluationWithoutScore,
-            overallScore,
-        };
+        const result = new JobScoreEvaluation(job.title, raw.scores, raw.strengths, raw.gaps);
+        return result;
     }
 
     private readonly systemPrompt = JobScoreEvaluatorSystemPrompt;

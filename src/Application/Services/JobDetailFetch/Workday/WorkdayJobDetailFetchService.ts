@@ -22,7 +22,7 @@ export class WorkdayJobDetailFetchService implements IJobDetailFetchService {
 
         for (const result of lookups) {
             this.logger.info(
-                `[WorkdayJobDetailFetchService.fetchJobDetails] Fetching details: ${result.company} - ${result.id} (${result.title})`
+                `[WorkdayJobDetailFetchService.fetchJobDetails] Fetching details: ${result.company} - ${result.jobSourceId} (${result.title})`
             );
             const apiResult = await this.jobGateway.getDetail(result.detailPath);
             const jobDetail = new WorkdayJobDetailsApiResponseMapper().map(apiResult);
