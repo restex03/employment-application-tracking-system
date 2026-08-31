@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ILogger } from "../../../Common/Logging/ILogger";
+import { ILogger } from "../../../Ports/Logging/ILogger";
 import { IWorkdayJobsApiResponseMapper } from "../../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobsApiResponseMapper";
 
 import { WorkdayJobFetchService } from "./WorkdayJobFetchService";

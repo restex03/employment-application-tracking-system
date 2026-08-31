@@ -2,20 +2,17 @@ import { IJobScreenEvaluator } from "../../Evaluators/JobScreenEvaluator/IJobScr
 import { OllamaJobScreenEvaluator } from "../../Evaluators/JobScreenEvaluator/Ollama/OllamaJobScreenEvaluator";
 import { IJobMatchEvidenceEvaluator } from "../../Evaluators/ScoreEvaluator/IJobMatchEvidenceEvaluator";
 import { OllamaJobMatchEvidenceEvaluator } from "../../Evaluators/ScoreEvaluator/Ollama/OllamaJobScoreEvaluator";
-import { IJobRepository } from "../../Infrastructure/Persistence/IJobRepository";
+import { IJobRepository } from "../Ports/Persistence/IJobRepository";
 import { SqliteJobRepository } from "../../Infrastructure/Persistence/Sqlite/Repositories/SqliteJobRepository";
 import { SqliteDatabase } from "../../Infrastructure/Persistence/Sqlite/SqliteDatabase";
-import { OllamaClientConnection, OpenAiConnection } from "../../ModelConnections/Ollama/OllamaClientConnection";
-import { ConsoleLogger } from "../Common/Logging/Console/ConsoleLogger";
-import { ILogger } from "../Common/Logging/ILogger";
-import { LogLevel } from "../Common/Logging/LogLevel";
-import { IJobDetailFetchService } from "../Services/JobDetailFetch/IJobDetailFetchService";
-import { WorkdayJobDetailFetchService } from "../Services/JobDetailFetch/Workday/WorkdayJobDetailFetchService";
-import { IJobFetchService } from "../Services/JobFetch/IJobFetchService";
-import { WorkdayJobFetchService } from "../Services/JobFetch/Workday/WorkdayJobFetchService";
-import { IJobScoringService, JobScoringService } from "../Services/JobScoringService";
-import { IJobScreeningService } from "../Services/JobScreening/IJobScreeningService";
-import { JobScreeningService } from "../Services/JobScreening/JobScreeningService";
+import { OllamaClientConnection, OpenAiConnection } from "../../Infrastructure/Inference/Ollama/OllamaClientConnection";
+import { ConsoleLogger } from "../../Infrastructure/Logging/Console/ConsoleLogger";
+import { ILogger } from "../Ports/Logging/ILogger";
+import { LogLevel } from "../../Infrastructure/Logging/LogLevel";
+import { IJobDetailFetchService } from "../JobDiscovery/JobDetailFetch/IJobDetailFetchService";
+import { WorkdayJobDetailFetchService } from "../JobDiscovery/JobDetailFetch/Workday/WorkdayJobDetailFetchService";
+import { IJobFetchService } from "../JobDiscovery/JobFetch/IJobFetchService";
+import { WorkdayJobFetchService } from "../JobDiscovery/JobFetch/Workday/WorkdayJobFetchService";
 import { IWorkdayJobSource } from "../../Infrastructure/JobSources/Workday/workdaySources";
 import { IJobGateway } from "../../Domain/JobPosts/IJobSource";
 import {
@@ -27,6 +24,10 @@ import {
     WorkdayJobsResponseMapper,
 } from "../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobsApiResponseMapper";
 import { WorkdayJobsGateway } from "../../Infrastructure/JobSources/Workday/WorkdayJobsGateway";
+import { IJobScoringService } from "../JobAssessment/Scoring/IJobScoringService";
+import { JobScoringService } from "../JobAssessment/Scoring/JobScoringService";
+import { IJobScreeningService } from "../JobAssessment/Screening/IJobScreeningService";
+import { JobScreeningService } from "../JobAssessment/Screening/JobScreeningService";
 
 export function buildDependencies(source: IWorkdayJobSource, logLevel: LogLevel) {
     const logger: ILogger = new ConsoleLogger(logLevel);

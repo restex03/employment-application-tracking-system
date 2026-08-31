@@ -1,5 +1,5 @@
-import { IJobCompatibilityScoreCalculator } from "../../JobCompatibilityCalculators/IJobCompatibilityScoreCalculator";
-import { JobCompatibilityScoreCalculator } from "../../JobCompatibilityCalculators/JobCompatibilityScoreCalculator";
+import { IJobCompatibilityScoreCalculator } from "../../Domain/JobAssessment/Scoring/IJobCompatibilityScoreCalculator";
+import { JobCompatibilityScoreCalculator } from "../../Domain/JobAssessment/Scoring/JobCompatibilityScoreCalculator";
 
 export type GapSeverity = "minor" | "moderate" | "major";
 

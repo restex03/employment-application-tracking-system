@@ -1,7 +1,7 @@
 import { IJobPostLookup } from "../../../../Domain/JobPosts/IJobPostLookup";
 import { IJobGateway } from "../../../../Domain/JobPosts/IJobSource";
 import { IWorkdayJobsApiResponseMapper } from "../../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobsApiResponseMapper";
-import { ILogger } from "../../../Common/Logging/ILogger";
+import { ILogger } from "../../../Ports/Logging/ILogger";
 import { IJobFetchService } from "../IJobFetchService";
 
 interface IGetJobsBatchOptions {

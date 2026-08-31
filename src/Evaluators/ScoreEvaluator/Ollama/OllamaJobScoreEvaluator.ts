@@ -1,8 +1,8 @@
 import { IJobMatchEvidenceEvaluator } from "../IJobMatchEvidenceEvaluator";
 import { JobScoreEvaluationResponseSchema } from "../JobScoreEvaluationResponseSchema";
 import { JobScoreEvaluationResponseValidationSchema } from "../JobScoreEvaluationResponseValidationSchema";
-import { OpenAiConnection } from "../../../ModelConnections/Ollama/OllamaClientConnection";
-import { ILogger } from "../../../Application/Common/Logging/ILogger";
+import { OpenAiConnection } from "../../../Infrastructure/Inference/Ollama/OllamaClientConnection";
+import { ILogger } from "../../../Application/Ports/Logging/ILogger";
 import { JobMatchEvidenceExtractorSystemPrompt } from "../JobScoreEvaluatorSystemPrompt";
 import { IJobMatchEvidence, JobMatchEvidence } from "../IJobMatchEvidence";
 import { ICandidateProfile } from "../../../Domain/Candidates/ICandidateProfile";

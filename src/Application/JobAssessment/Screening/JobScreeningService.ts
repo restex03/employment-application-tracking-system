@@ -1,7 +1,7 @@
 import { IJobPostLookup } from "../../../Domain/JobPosts/IJobPostLookup";
 import { IJobScreenEvaluator } from "../../../Evaluators/JobScreenEvaluator/IJobScreenEvaluator";
 import { IJobScreenResult } from "../../../Evaluators/JobScreenEvaluator/IJobScreenResult";
-import { ILogger } from "../../Common/Logging/ILogger";
+import { ILogger } from "../../Ports/Logging/ILogger";
 import { IJobScreeningService } from "./IJobScreeningService";
 
 export class JobScreeningService implements IJobScreeningService {

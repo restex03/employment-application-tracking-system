@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { IJobScore } from "../Evaluators/ScoreEvaluator/IJobMatchEvidence";
+import { IJobScore } from "../../../Evaluators/ScoreEvaluator/IJobMatchEvidence";
 import { JobCompatibilityScoreCalculator } from "./JobCompatibilityScoreCalculator";
 
 describe("JobCompatibilityScoreCalculator", () => {

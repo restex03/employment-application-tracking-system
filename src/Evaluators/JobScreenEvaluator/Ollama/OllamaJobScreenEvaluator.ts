@@ -1,6 +1,6 @@
-import { ILogger } from "../../../Application/Common/Logging/ILogger";
+import { ILogger } from "../../../Application/Ports/Logging/ILogger";
 import { IJobPostLookup } from "../../../Domain/JobPosts/IJobPostLookup";
-import { OpenAiConnection } from "../../../ModelConnections/Ollama/OllamaClientConnection";
+import { OpenAiConnection } from "../../../Infrastructure/Inference/Ollama/OllamaClientConnection";
 import { IJobScreenEvaluator } from "../IJobScreenEvaluator";
 import { IJobScreenResult } from "../IJobScreenResult";
 import { JobScreenResponseSchema } from "../JobScreenResponseSchema";

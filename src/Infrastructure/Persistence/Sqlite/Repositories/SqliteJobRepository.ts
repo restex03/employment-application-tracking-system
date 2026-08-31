@@ -1,6 +1,6 @@
 import Database from "better-sqlite3";
 import { IJobPostLookup } from "../../../../Domain/JobPosts/IJobPostLookup";
-import { IJobRepository } from "../../IJobRepository";
+import { IJobRepository } from "../../../../Application/Ports/Persistence/IJobRepository";
 
 interface JobInsertParameters {
     source: string;

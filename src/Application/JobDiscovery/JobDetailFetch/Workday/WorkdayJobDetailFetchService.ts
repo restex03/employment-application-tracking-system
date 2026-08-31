@@ -5,7 +5,7 @@ import {
     IWorkdayJobDetailsApiResponseMapper,
     WorkdayJobDetailsApiResponseMapper,
 } from "../../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobDetailsApiResponseMapper";
-import { ILogger } from "../../../Common/Logging/ILogger";
+import { ILogger } from "../../../Ports/Logging/ILogger";
 import { IJobDetailFetchService } from "../IJobDetailFetchService";
 
 export class WorkdayJobDetailFetchService implements IJobDetailFetchService {

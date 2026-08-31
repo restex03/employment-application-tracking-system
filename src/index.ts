@@ -1,6 +1,6 @@
 import { profiles } from "./data/candidateProfiles";
 import { WorkdaySources } from "./Infrastructure/JobSources/Workday/workdaySources";
-import { LogLevel } from "./Application/Common/Logging/LogLevel";
+import { LogLevel } from "./Infrastructure/Logging/LogLevel";
 import { buildDependencies } from "./Application/DependencyInjection/buildDependencies";
 
 console.log("Starting application...");
