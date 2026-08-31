@@ -1,16 +1,16 @@
-import { IWorkdayJobsResponse } from "../ApiContracts/IWorkdayJobsResponse";
-import { IJobSearchResult } from "../../JobSources/IJobSearchResult";
+import { IWorkdayJobsApiResponse } from "../Contracts/IWorkdayJobsApiResponse";
+import { IJobPostLookup } from "../../../../Domain/JobPosts/IJobPostLookup";
 
-type WorkdayJobPosting = IWorkdayJobsResponse["jobPostings"][number];
+type WorkdayJobPosting = IWorkdayJobsApiResponse["jobPostings"][number];
 
 export interface IWorkdayJobsApiResponseMapper {
-    map(posting: WorkdayJobPosting): IJobSearchResult;
+    map(posting: WorkdayJobPosting): IJobPostLookup;
 }
 
 export class WorkdayJobsResponseMapper implements IWorkdayJobsApiResponseMapper {
     public constructor(private readonly companyName: string) {}
 
-    public map(posting: WorkdayJobPosting): IJobSearchResult {
+    public map(posting: WorkdayJobPosting): IJobPostLookup {
         const requisitionId = this.getRequisitionId(posting.externalPath);
 
         return {

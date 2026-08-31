@@ -1,12 +1,12 @@
 import { IJobMatchEvidenceEvaluator } from "../IJobMatchEvidenceEvaluator";
-import { type ICandidateProfile } from "../types";
 import { JobScoreEvaluationResponseSchema } from "../JobScoreEvaluationResponseSchema";
 import { JobScoreEvaluationResponseValidationSchema } from "../JobScoreEvaluationResponseValidationSchema";
-import { IJobPostingDetail } from "../../../Infrastructure/APIs/JobSources/IJobPostingDetail";
 import { OpenAiConnection } from "../../../ModelConnections/Ollama/OllamaClientConnection";
 import { ILogger } from "../../../Application/Common/Logging/ILogger";
 import { JobMatchEvidenceExtractorSystemPrompt } from "../JobScoreEvaluatorSystemPrompt";
 import { IJobMatchEvidence, JobMatchEvidence } from "../IJobMatchEvidence";
+import { ICandidateProfile } from "../../../Domain/Candidates/ICandidateProfile";
+import { IJobPostDetail } from "../../../Domain/JobPosts/IJobPostDetail";
 
 export class OllamaJobMatchEvidenceEvaluator implements IJobMatchEvidenceEvaluator {
     constructor(
@@ -15,7 +15,7 @@ export class OllamaJobMatchEvidenceEvaluator implements IJobMatchEvidenceEvaluat
         private readonly model: string = "qwen3:4b-instruct-8k"
     ) {}
 
-    async evaluate(profile: ICandidateProfile, job: IJobPostingDetail): Promise<IJobMatchEvidence> {
+    async evaluate(profile: ICandidateProfile, job: IJobPostDetail): Promise<IJobMatchEvidence> {
         const jobInfo = `${job.company} - ${job.requisitionId} (${job.title})`;
         this.logger.debug(`[OllamaJobScoreEvaluator.evaluate] Evaluating job: ${jobInfo}`);
         const start = performance.now();

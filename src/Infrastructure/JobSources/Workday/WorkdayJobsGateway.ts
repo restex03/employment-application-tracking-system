@@ -1,13 +1,8 @@
-import { IJobsRequest } from "../IJobsRequest";
-import { IJobPostingDetail } from "../IJobPostingDetail";
-import { IJobGateway } from "../IJobSource";
-import { ILogger } from "../../../../Application/Common/Logging/ILogger";
-import { IWorkdayJobDetailsApiResponse } from "../../ACL/ApiContracts/IWorkdayJobDetailResponse";
-import { IWorkdayJobsResponse } from "../../ACL/ApiContracts/IWorkdayJobsResponse";
-import {
-    IWorkdayJobDetailsApiResponseMapper,
-    WorkdayJobDetailsApiResponseMapper,
-} from "../../ACL/Mappers/WorkdayJobDetailsApiResponseMapper";
+import { ILogger } from "../../../Application/Common/Logging/ILogger";
+import { IJobsLookupRequest } from "../../../Domain/JobPosts/IJobsLookupRequest";
+import { IJobGateway } from "../../../Domain/JobPosts/IJobSource";
+import { IWorkdayJobDetailsApiResponse } from "./Contracts/IWorkdayJobDetailsApiResponse";
+import { IWorkdayJobsApiResponse } from "./Contracts/IWorkdayJobsApiResponse";
 
 export class WorkdayJobsGateway implements IJobGateway {
     private readonly companyName: string;
@@ -20,7 +15,7 @@ export class WorkdayJobsGateway implements IJobGateway {
         this.logger = opts.logger;
     }
 
-    async search(request: IJobsRequest): Promise<IWorkdayJobsResponse> {
+    async search(request: IJobsLookupRequest): Promise<IWorkdayJobsApiResponse> {
         const url = new URL("jobs", this.baseUrl).toString();
         const method = "POST";
         this.logger.trace(`[WorkdayJobsGateway.search] Fetching: ${method} ${url}`);
@@ -40,7 +35,7 @@ export class WorkdayJobsGateway implements IJobGateway {
             throw new Error(errMsg);
         }
 
-        const responseBody = (await response.json()) as IWorkdayJobsResponse | undefined;
+        const responseBody = (await response.json()) as IWorkdayJobsApiResponse | undefined;
         if (!responseBody) {
             throw new Error("Workday-based jobs search API returned an empty body");
         }

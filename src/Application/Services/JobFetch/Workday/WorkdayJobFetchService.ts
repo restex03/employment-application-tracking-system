@@ -1,7 +1,7 @@
+import { IJobPostLookup } from "../../../../Domain/JobPosts/IJobPostLookup";
+import { IJobGateway } from "../../../../Domain/JobPosts/IJobSource";
+import { IWorkdayJobsApiResponseMapper } from "../../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobsApiResponseMapper";
 import { ILogger } from "../../../Common/Logging/ILogger";
-import { IWorkdayJobsApiResponseMapper } from "../../../../Infrastructure/APIs/ACL/Mappers/WorkdayJobsApiResponseMapper";
-import { IJobSearchResult } from "../../../../Infrastructure/APIs/JobSources/IJobSearchResult";
-import { IJobGateway } from "../../../../Infrastructure/APIs/JobSources/IJobSource";
 import { IJobFetchService } from "../IJobFetchService";
 
 interface IGetJobsBatchOptions {
@@ -10,7 +10,7 @@ interface IGetJobsBatchOptions {
     offset: number;
 }
 interface IWorkdayJobsBatchResponse {
-    jobPostings: IJobSearchResult[];
+    jobPostings: IJobPostLookup[];
     total: number;
 }
 
@@ -20,9 +20,9 @@ export class WorkdayJobFetchService implements IJobFetchService {
         private readonly mapper: IWorkdayJobsApiResponseMapper,
         private readonly logger: ILogger
     ) {}
-    async fetchJobs(searchText?: string): Promise<IJobSearchResult[]> {
+    async fetchJobs(searchText?: string): Promise<IJobPostLookup[]> {
         this.logger.info(`[WorkdayJobFetchService.fetchJobs] Fetching jobs...`);
-        const jobs = new Map<string, IJobSearchResult>();
+        const jobs = new Map<string, IJobPostLookup>();
         let offset = 0;
         const limit = 20;
         let total: number | undefined = undefined;

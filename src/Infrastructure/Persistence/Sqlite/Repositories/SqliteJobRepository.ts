@@ -1,6 +1,5 @@
 import Database from "better-sqlite3";
-
-import { IJobSearchResult } from "../../../APIs/JobSources/IJobSearchResult";
+import { IJobPostLookup } from "../../../../Domain/JobPosts/IJobPostLookup";
 import { IJobRepository } from "../../IJobRepository";
 
 interface JobInsertParameters {
@@ -59,12 +58,12 @@ export class SqliteJobRepository implements IJobRepository {
         return row !== undefined;
     }
 
-    public async add(source: string, job: IJobSearchResult): Promise<void> {
+    public async add(source: string, job: IJobPostLookup): Promise<void> {
         this.insertStatement.run(this.mapInsertParameters(source, job));
     }
 
-    public async addMany(source: string, jobs: IJobSearchResult[]): Promise<void> {
-        const insertMany = this.connection.transaction((jobs: IJobSearchResult[]) => {
+    public async addMany(source: string, jobs: IJobPostLookup[]): Promise<void> {
+        const insertMany = this.connection.transaction((jobs: IJobPostLookup[]) => {
             for (const job of jobs) {
                 this.insertStatement.run(this.mapInsertParameters(source, job));
             }
@@ -73,7 +72,7 @@ export class SqliteJobRepository implements IJobRepository {
         insertMany(jobs);
     }
 
-    private mapInsertParameters(source: string, job: IJobSearchResult): JobInsertParameters {
+    private mapInsertParameters(source: string, job: IJobPostLookup): JobInsertParameters {
         return {
             source,
             sourceJobId: job.jobSourceId,

@@ -1,6 +1,6 @@
+import { IJobPostLookup } from "../../../Domain/JobPosts/IJobPostLookup";
 import { IJobScreenResult } from "../../../Evaluators/JobScreenEvaluator/IJobScreenResult";
-import { IJobSearchResult } from "../../../Infrastructure/APIs/JobSources/IJobSearchResult";
 
 export interface IJobScreeningService {
-    screen(jobs: IJobSearchResult[]): Promise<IJobScreenResult[]>;
+    screen(jobs: IJobPostLookup[]): Promise<IJobScreenResult[]>;
 }

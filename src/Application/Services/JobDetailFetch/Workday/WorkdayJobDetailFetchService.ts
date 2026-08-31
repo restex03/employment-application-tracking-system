@@ -1,11 +1,10 @@
-import { IWorkdayJobDetailsApiResponse } from "../../../../Infrastructure/APIs/ACL/ApiContracts/IWorkdayJobDetailResponse";
+import { IJobPostDetail } from "../../../../Domain/JobPosts/IJobPostDetail";
+import { IJobPostLookup } from "../../../../Domain/JobPosts/IJobPostLookup";
+import { IJobGateway } from "../../../../Domain/JobPosts/IJobSource";
 import {
     IWorkdayJobDetailsApiResponseMapper,
     WorkdayJobDetailsApiResponseMapper,
-} from "../../../../Infrastructure/APIs/ACL/Mappers/WorkdayJobDetailsApiResponseMapper";
-import { IJobPostingDetail } from "../../../../Infrastructure/APIs/JobSources/IJobPostingDetail";
-import { IJobSearchResult } from "../../../../Infrastructure/APIs/JobSources/IJobSearchResult";
-import { IJobGateway } from "../../../../Infrastructure/APIs/JobSources/IJobSource";
+} from "../../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobDetailsApiResponseMapper";
 import { ILogger } from "../../../Common/Logging/ILogger";
 import { IJobDetailFetchService } from "../IJobDetailFetchService";
 
@@ -16,9 +15,9 @@ export class WorkdayJobDetailFetchService implements IJobDetailFetchService {
         private readonly logger: ILogger
     ) {}
 
-    async fetchJobDetails(lookups: IJobSearchResult[]): Promise<IJobPostingDetail[]> {
+    async fetchJobDetails(lookups: IJobPostLookup[]): Promise<IJobPostDetail[]> {
         this.logger.info(`[WorkdayJobDetailFetchService.fetchJobDetails] Fetching details: ${lookups.length} jobs.`);
-        const jobDetailsList: IJobPostingDetail[] = [];
+        const jobDetailsList: IJobPostDetail[] = [];
 
         for (const result of lookups) {
             this.logger.info(

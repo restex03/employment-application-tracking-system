@@ -1,5 +1,5 @@
-import { profiles } from "./JobCandidateProfile/candidateProfiles";
-import { WorkdaySources } from "./Application/WorkdaySources/workdaySources";
+import { profiles } from "./data/candidateProfiles";
+import { WorkdaySources } from "./Infrastructure/JobSources/Workday/workdaySources";
 import { LogLevel } from "./Application/Common/Logging/LogLevel";
 import { buildDependencies } from "./Application/DependencyInjection/buildDependencies";
 

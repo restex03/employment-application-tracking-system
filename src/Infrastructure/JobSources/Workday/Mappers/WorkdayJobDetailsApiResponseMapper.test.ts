@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { WorkdayJobDetailsApiResponseMapper } from "./WorkdayJobDetailsApiResponseMapper";
-import { IWorkdayJobDetailsApiResponse, IWorkdayJobPostingInfo } from "../ApiContracts/IWorkdayJobDetailResponse";
+import { IWorkdayJobDetailsApiResponse, IWorkdayJobPostingInfo } from "../Contracts/IWorkdayJobDetailsApiResponse";
 
 function createResponse(jobPostingOverrides: Partial<IWorkdayJobPostingInfo> = {}): IWorkdayJobDetailsApiResponse {
     return {

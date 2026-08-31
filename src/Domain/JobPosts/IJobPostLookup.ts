@@ -1,6 +1,6 @@
-// types/IJobSearchResult.ts
+// types/IJobPostLookup.ts
 
-export interface IJobSearchResult {
+export interface IJobPostLookup {
     // /**
     //  * Stable application-owned identifier for this job posting.
     //  *

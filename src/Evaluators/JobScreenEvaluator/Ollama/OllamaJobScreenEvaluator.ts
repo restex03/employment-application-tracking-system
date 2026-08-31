@@ -1,5 +1,5 @@
-import { IJobSearchResult } from "../../../Infrastructure/APIs/JobSources/IJobSearchResult";
 import { ILogger } from "../../../Application/Common/Logging/ILogger";
+import { IJobPostLookup } from "../../../Domain/JobPosts/IJobPostLookup";
 import { OpenAiConnection } from "../../../ModelConnections/Ollama/OllamaClientConnection";
 import { IJobScreenEvaluator } from "../IJobScreenEvaluator";
 import { IJobScreenResult } from "../IJobScreenResult";
@@ -14,7 +14,7 @@ export class OllamaJobScreenEvaluator implements IJobScreenEvaluator {
         private readonly model: string = "qwen3:4b-instruct-8k"
     ) {}
 
-    public async evaluate(job: IJobSearchResult): Promise<IJobScreenResult> {
+    public async evaluate(job: IJobPostLookup): Promise<IJobScreenResult> {
         const jobInfo = `${job.company} - ${job.requisitionId} (${job.title})`;
         this.logger.debug(`[OllamaJobScreenEvaluator.evaluate] Evaluating job: ${jobInfo}`);
         const start = performance.now();

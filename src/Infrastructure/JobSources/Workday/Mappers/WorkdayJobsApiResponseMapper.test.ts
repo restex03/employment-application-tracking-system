@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import { WorkdayJobsResponseMapper } from "./WorkdayJobsApiResponseMapper";
-import { IWorkdayJobsResponse } from "../ApiContracts/IWorkdayJobsResponse";
+import { IWorkdayJobsApiResponse } from "../Contracts/IWorkdayJobsApiResponse";
 
-function createResponse(jobPostings: IWorkdayJobsResponse["jobPostings"]): IWorkdayJobsResponse {
+function createResponse(jobPostings: IWorkdayJobsApiResponse["jobPostings"]): IWorkdayJobsApiResponse {
     return {
         total: jobPostings.length,
         jobPostings,
@@ -13,8 +13,8 @@ function createResponse(jobPostings: IWorkdayJobsResponse["jobPostings"]): IWork
 }
 
 function createPosting(
-    overrides: Partial<IWorkdayJobsResponse["jobPostings"][number]> = {}
-): IWorkdayJobsResponse["jobPostings"][number] {
+    overrides: Partial<IWorkdayJobsApiResponse["jobPostings"][number]> = {}
+): IWorkdayJobsApiResponse["jobPostings"][number] {
     return {
         title: "Senior Software Engineer",
         externalPath: "/job/USA-GA-Atlanta/Senior-Software-Engineer_R-51887",

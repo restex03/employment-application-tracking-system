@@ -1,6 +1,6 @@
+import { IJobPostLookup } from "../../../Domain/JobPosts/IJobPostLookup";
 import { IJobScreenEvaluator } from "../../../Evaluators/JobScreenEvaluator/IJobScreenEvaluator";
 import { IJobScreenResult } from "../../../Evaluators/JobScreenEvaluator/IJobScreenResult";
-import { IJobSearchResult } from "../../../Infrastructure/APIs/JobSources/IJobSearchResult";
 import { ILogger } from "../../Common/Logging/ILogger";
 import { IJobScreeningService } from "./IJobScreeningService";
 
@@ -10,7 +10,7 @@ export class JobScreeningService implements IJobScreeningService {
         private readonly logger: ILogger
     ) {}
 
-    async screen(jobs: IJobSearchResult[]): Promise<IJobScreenResult[]> {
+    async screen(jobs: IJobPostLookup[]): Promise<IJobScreenResult[]> {
         this.logger.info(`[JobScreeningService.screen] Screening ${jobs.length} jobs`);
         const results: IJobScreenResult[] = [];
         for (const job of jobs) {

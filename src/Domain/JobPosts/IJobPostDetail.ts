@@ -1,4 +1,4 @@
-export interface IJobPostingDetail {
+export interface IJobPostDetail {
     id?: string;
     requisitionId?: string;
 

@@ -1,7 +1,3 @@
-export type WorkArrangement = "remote" | "hybrid" | "onsite" | "unknown";
-
-export type EmploymentType = "full_time" | "part_time" | "contract" | "temporary" | "internship" | "unknown";
-
 export type SkillLevel = "expert" | "strong" | "working" | "exposure" | "learning";
 
 export type SkillCategory =
@@ -19,6 +15,10 @@ export type SkillCategory =
     | "domain"
     | "tool"
     | "other";
+
+export type WorkArrangement = "remote" | "hybrid" | "onsite" | "unknown";
+
+export type EmploymentType = "full_time" | "part_time" | "contract" | "temporary" | "internship" | "unknown";
 
 export interface ISkill {
     /**
@@ -55,6 +55,24 @@ export interface ISkill {
     context?: string;
 }
 
+export interface ICandidateExperience {
+    title: string;
+    company: string;
+
+    startDate?: string; // YYYY-MM
+    endDate?: string; // YYYY-MM or omit if current
+
+    current?: boolean;
+
+    /**
+     * Don't dump 20 resume bullets here.
+     * Keep these to meaningful engineering accomplishments.
+     */
+    highlights: string[];
+
+    domains?: string[];
+}
+
 export interface ILocationPreference {
     city?: string;
     state?: string;
@@ -81,24 +99,6 @@ export interface ICompensationPreference {
      * Whether bonus/equity can compensate for a somewhat lower base.
      */
     considerVariableCompensation?: boolean;
-}
-
-export interface ICandidateExperience {
-    title: string;
-    company: string;
-
-    startDate?: string; // YYYY-MM
-    endDate?: string; // YYYY-MM or omit if current
-
-    current?: boolean;
-
-    /**
-     * Don't dump 20 resume bullets here.
-     * Keep these to meaningful engineering accomplishments.
-     */
-    highlights: string[];
-
-    domains?: string[];
 }
 
 export interface ICandidateProfile {

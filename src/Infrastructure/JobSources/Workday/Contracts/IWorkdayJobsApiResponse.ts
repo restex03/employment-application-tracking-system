@@ -1,4 +1,4 @@
-export interface IWorkdayJobsResponse {
+export interface IWorkdayJobsApiResponse {
     total: number;
 
     jobPostings: Array<{
@@ -15,7 +15,7 @@ export interface IWorkdayJobsResponse {
         descriptor?: string;
 
         values: Array<
-            | IWorkdayJobsResponse["facets"][number]
+            | IWorkdayJobsApiResponse["facets"][number]
             | {
                   descriptor: string;
                   id: string;

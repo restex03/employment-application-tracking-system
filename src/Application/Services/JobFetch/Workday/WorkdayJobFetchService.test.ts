@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ILogger } from "../../../Common/Logging/ILogger";
-import { IWorkdayJobsApiResponseMapper } from "../../../../Infrastructure/APIs/ACL/Mappers/WorkdayJobsApiResponseMapper";
-import { IJobSearchResult } from "../../../../Infrastructure/APIs/JobSources/IJobSearchResult";
-import { IJobGateway } from "../../../../Infrastructure/APIs/JobSources/IJobSource";
+import { IWorkdayJobsApiResponseMapper } from "../../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobsApiResponseMapper";
+
 import { WorkdayJobFetchService } from "./WorkdayJobFetchService";
+import { IJobGateway } from "../../../../Domain/JobPosts/IJobSource";
+import { IJobPostLookup } from "../../../../Domain/JobPosts/IJobPostLookup";
 
 describe("WorkdayJobFetchService", () => {
     let jobGateway: IJobGateway;
@@ -36,7 +37,7 @@ describe("WorkdayJobFetchService", () => {
 
     const createService = () => new WorkdayJobFetchService(jobGateway, mapper, logger);
 
-    const createJob = (overrides: Partial<IJobSearchResult> = {}): IJobSearchResult => ({
+    const createJob = (overrides: Partial<IJobPostLookup> = {}): IJobPostLookup => ({
         jobSourceId: crypto.randomUUID(),
         title: "Software Engineer",
         company: "Example Company",

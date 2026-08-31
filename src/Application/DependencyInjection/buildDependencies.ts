@@ -2,16 +2,6 @@ import { IJobScreenEvaluator } from "../../Evaluators/JobScreenEvaluator/IJobScr
 import { OllamaJobScreenEvaluator } from "../../Evaluators/JobScreenEvaluator/Ollama/OllamaJobScreenEvaluator";
 import { IJobMatchEvidenceEvaluator } from "../../Evaluators/ScoreEvaluator/IJobMatchEvidenceEvaluator";
 import { OllamaJobMatchEvidenceEvaluator } from "../../Evaluators/ScoreEvaluator/Ollama/OllamaJobScoreEvaluator";
-import {
-    IWorkdayJobDetailsApiResponseMapper,
-    WorkdayJobDetailsApiResponseMapper,
-} from "../../Infrastructure/APIs/ACL/Mappers/WorkdayJobDetailsApiResponseMapper";
-import {
-    IWorkdayJobsApiResponseMapper,
-    WorkdayJobsResponseMapper,
-} from "../../Infrastructure/APIs/ACL/Mappers/WorkdayJobsApiResponseMapper";
-import { IJobGateway } from "../../Infrastructure/APIs/JobSources/IJobSource";
-import { WorkdayJobsGateway } from "../../Infrastructure/APIs/JobSources/Workday/WorkdayJobsGateway";
 import { IJobRepository } from "../../Infrastructure/Persistence/IJobRepository";
 import { SqliteJobRepository } from "../../Infrastructure/Persistence/Sqlite/Repositories/SqliteJobRepository";
 import { SqliteDatabase } from "../../Infrastructure/Persistence/Sqlite/SqliteDatabase";
@@ -26,7 +16,17 @@ import { WorkdayJobFetchService } from "../Services/JobFetch/Workday/WorkdayJobF
 import { IJobScoringService, JobScoringService } from "../Services/JobScoringService";
 import { IJobScreeningService } from "../Services/JobScreening/IJobScreeningService";
 import { JobScreeningService } from "../Services/JobScreening/JobScreeningService";
-import { IWorkdayJobSource } from "../WorkdaySources/workdaySources";
+import { IWorkdayJobSource } from "../../Infrastructure/JobSources/Workday/workdaySources";
+import { IJobGateway } from "../../Domain/JobPosts/IJobSource";
+import {
+    IWorkdayJobDetailsApiResponseMapper,
+    WorkdayJobDetailsApiResponseMapper,
+} from "../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobDetailsApiResponseMapper";
+import {
+    IWorkdayJobsApiResponseMapper,
+    WorkdayJobsResponseMapper,
+} from "../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobsApiResponseMapper";
+import { WorkdayJobsGateway } from "../../Infrastructure/JobSources/Workday/WorkdayJobsGateway";
 
 export function buildDependencies(source: IWorkdayJobSource, logLevel: LogLevel) {
     const logger: ILogger = new ConsoleLogger(logLevel);

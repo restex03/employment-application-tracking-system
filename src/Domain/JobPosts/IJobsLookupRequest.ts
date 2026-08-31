@@ -1,4 +1,4 @@
-export interface IJobsRequest {
+export interface IJobsLookupRequest {
     appliedFacets: Record<string, string[]>;
     limit: number;
     offset: number;

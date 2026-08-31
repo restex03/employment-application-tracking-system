@@ -1,5 +1,5 @@
-import { IJobSearchResult } from "../../../Infrastructure/APIs/JobSources/IJobSearchResult";
+import { IJobPostLookup } from "../../../Domain/JobPosts/IJobPostLookup";
 
 export interface IJobFetchService {
-    fetchJobs(searchText?: string): Promise<IJobSearchResult[]>;
+    fetchJobs(searchText?: string): Promise<IJobPostLookup[]>;
 }

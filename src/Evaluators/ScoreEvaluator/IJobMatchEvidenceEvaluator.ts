@@ -1,7 +1,7 @@
-import { IJobPostingDetail } from "../../Infrastructure/APIs/JobSources/IJobPostingDetail";
-import { type ICandidateProfile } from "./types";
+import { ICandidateProfile } from "../../Domain/Candidates/ICandidateProfile";
+import { IJobPostDetail } from "../../Domain/JobPosts/IJobPostDetail";
 import { IJobMatchEvidence } from "./IJobMatchEvidence";
 
 export interface IJobMatchEvidenceEvaluator {
-    evaluate(profile: ICandidateProfile, job: IJobPostingDetail): Promise<IJobMatchEvidence>;
+    evaluate(profile: ICandidateProfile, job: IJobPostDetail): Promise<IJobMatchEvidence>;
 }

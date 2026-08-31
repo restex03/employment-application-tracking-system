@@ -1,11 +1,11 @@
-import { IWorkdayJobDetailsApiResponse } from "../ApiContracts/IWorkdayJobDetailResponse";
-import { IJobPostingDetail, IJobLocation } from "../../JobSources/IJobPostingDetail";
+import { IWorkdayJobDetailsApiResponse } from "../Contracts/IWorkdayJobDetailsApiResponse";
+import { IJobPostDetail, IJobLocation } from "../../../../Domain/JobPosts/IJobPostDetail";
 
 export interface IWorkdayJobDetailsApiResponseMapper {
-    map(response: IWorkdayJobDetailsApiResponse): IJobPostingDetail;
+    map(response: IWorkdayJobDetailsApiResponse): IJobPostDetail;
 }
 export class WorkdayJobDetailsApiResponseMapper implements IWorkdayJobDetailsApiResponseMapper {
-    public map(response: IWorkdayJobDetailsApiResponse): IJobPostingDetail {
+    public map(response: IWorkdayJobDetailsApiResponse): IJobPostDetail {
         const { jobPostingInfo, hiringOrganization } = response;
 
         const locations: IJobLocation[] = [
