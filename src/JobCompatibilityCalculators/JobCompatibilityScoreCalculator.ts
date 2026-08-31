@@ -1,4 +1,4 @@
-import { IJobScore } from "../Evaluators/ScoreEvaluator/IJobScoreEvaluation";
+import { IJobScore } from "../Evaluators/ScoreEvaluator/IJobMatchEvidence";
 import { IJobCompatibilityScoreCalculator } from "./IJobCompatibilityScoreCalculator";
 
 const SCORE_WEIGHTS = {

@@ -1,7 +1,7 @@
 import { IJobScreenEvaluator } from "../../Evaluators/JobScreenEvaluator/IJobScreenEvaluator";
 import { OllamaJobScreenEvaluator } from "../../Evaluators/JobScreenEvaluator/Ollama/OllamaJobScreenEvaluator";
-import { IJobScoreEvaluator } from "../../Evaluators/ScoreEvaluator/IJobScoreEvaluator";
-import { OllamaJobScoreEvaluator } from "../../Evaluators/ScoreEvaluator/Ollama/OllamaJobScoreEvaluator";
+import { IJobMatchEvidenceEvaluator } from "../../Evaluators/ScoreEvaluator/IJobMatchEvidenceEvaluator";
+import { OllamaJobMatchEvidenceEvaluator } from "../../Evaluators/ScoreEvaluator/Ollama/OllamaJobScoreEvaluator";
 import {
     IWorkdayJobDetailsApiResponseMapper,
     WorkdayJobDetailsApiResponseMapper,
@@ -43,7 +43,7 @@ export function buildDependencies(source: IWorkdayJobSource, logLevel: LogLevel)
     // TODO: Make singleton
     const sqlite = new SqliteDatabase("./data/job-app.db");
 
-    const scoreEvaluator: IJobScoreEvaluator = new OllamaJobScoreEvaluator(client, logger);
+    const scoreEvaluator: IJobMatchEvidenceEvaluator = new OllamaJobMatchEvidenceEvaluator(client, logger);
     const jobScoringService: IJobScoringService = new JobScoringService(scoreEvaluator, logger);
 
     const workdayJobMapper: IWorkdayJobsApiResponseMapper = new WorkdayJobsResponseMapper(source.companyName);

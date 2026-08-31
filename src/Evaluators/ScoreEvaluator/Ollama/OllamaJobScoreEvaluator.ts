@@ -1,23 +1,21 @@
-import { IJobScoreEvaluator } from "../IJobScoreEvaluator";
+import { IJobMatchEvidenceEvaluator } from "../IJobMatchEvidenceEvaluator";
 import { type ICandidateProfile } from "../types";
-import { JobScoreEvaluation, type IJobScoreEvaluation } from "../IJobScoreEvaluation";
 import { JobScoreEvaluationResponseSchema } from "../JobScoreEvaluationResponseSchema";
 import { JobScoreEvaluationResponseValidationSchema } from "../JobScoreEvaluationResponseValidationSchema";
 import { IJobPostingDetail } from "../../../Infrastructure/APIs/JobSources/IJobPostingDetail";
-import { IJobCompatibilityScoreCalculator } from "../../../JobCompatibilityCalculators/IJobCompatibilityScoreCalculator";
-import { JobCompatibilityScoreCalculator } from "../../../JobCompatibilityCalculators/JobCompatibilityScoreCalculator";
 import { OpenAiConnection } from "../../../ModelConnections/Ollama/OllamaClientConnection";
 import { ILogger } from "../../../Application/Common/Logging/ILogger";
-import { JobScoreEvaluatorSystemPrompt } from "../JobScoreEvaluatorSystemPrompt";
+import { JobMatchEvidenceExtractorSystemPrompt } from "../JobScoreEvaluatorSystemPrompt";
+import { IJobMatchEvidence, JobMatchEvidence } from "../IJobMatchEvidence";
 
-export class OllamaJobScoreEvaluator implements IJobScoreEvaluator {
+export class OllamaJobMatchEvidenceEvaluator implements IJobMatchEvidenceEvaluator {
     constructor(
         private readonly openAi: OpenAiConnection,
         private readonly logger: ILogger,
         private readonly model: string = "qwen3:4b-instruct-8k"
     ) {}
 
-    async evaluate(profile: ICandidateProfile, job: IJobPostingDetail): Promise<IJobScoreEvaluation> {
+    async evaluate(profile: ICandidateProfile, job: IJobPostingDetail): Promise<IJobMatchEvidence> {
         const jobInfo = `${job.company} - ${job.requisitionId} (${job.title})`;
         this.logger.debug(`[OllamaJobScoreEvaluator.evaluate] Evaluating job: ${jobInfo}`);
         const start = performance.now();
@@ -98,9 +96,9 @@ export class OllamaJobScoreEvaluator implements IJobScoreEvaluator {
 
         const { ...raw } = validationResult.data;
 
-        const result = new JobScoreEvaluation(job.title, raw.scores, raw.strengths, raw.gaps);
+        const result: IJobMatchEvidence = new JobMatchEvidence(job.title, raw.strengths, raw.gaps);
         return result;
     }
 
-    private readonly systemPrompt = JobScoreEvaluatorSystemPrompt;
+    private readonly systemPrompt = JobMatchEvidenceExtractorSystemPrompt;
 }

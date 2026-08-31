@@ -29,29 +29,23 @@ export interface IJobScoreStrength {
     reason: string;
 }
 
+export interface IJobMatchEvidence {
+    title: string;
+    strengths: IJobScoreStrength[];
+    gaps: IJobScoreGap[];
+}
+
 export interface IJobScoreEvaluation {
     title: string;
     scores: IJobScore;
-    strengths: IJobScoreStrength[];
-    gaps: IJobScoreGap[];
     overallScore(): number;
 }
 
-export class JobScoreEvaluation implements IJobScoreEvaluation {
+export class JobMatchEvidence implements IJobMatchEvidence {
     private readonly calculator: IJobCompatibilityScoreCalculator = new JobCompatibilityScoreCalculator();
     constructor(
         public readonly title: string,
-        public readonly scores: IJobScore,
         public readonly strengths: IJobScoreStrength[],
         public readonly gaps: IJobScoreGap[]
     ) {}
-
-    overallScore(): number {
-        if (!this.scores) {
-            throw new Error(
-                "[JobScoreEvaluation] Unable to calculate overall score - member property scores is null or undefined. "
-            );
-        }
-        return this.calculator.calculate(this.scores);
-    }
 }
