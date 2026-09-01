@@ -12,6 +12,8 @@ import { ClassifyJobRequirements } from "./Application/JobAssessment/Pipeline/St
 import { ExtractJobRequirements } from "./Application/JobAssessment/Pipeline/Steps/ExtractJobRequirements";
 import { FetchJobDetails } from "./Application/JobAssessment/Pipeline/Steps/FetchJobDetail";
 import { PipelineStepStatus } from "./Application/Pipelines/IPipelineStepResult";
+import { MatchJobRequirements } from "./Application/JobAssessment/Pipeline/Steps/MatchJobRequirements";
+import { IJobRequirementMatch } from "./Application/JobAssessment/Requirement Matching/IJobRequirementMatch";
 
 console.log("Starting application...");
 
@@ -25,6 +27,7 @@ for (const source of jobSources) {
             screeningService,
             requirementsExtractionService,
             requirementsClassificationService,
+            requirementsMatchingService,
         } = buildDependencies(source, LogLevel.Debug);
 
         logger.info(`\n========== ${source.companyName} ==========`);
@@ -36,12 +39,13 @@ for (const source of jobSources) {
             continue;
         }
 
-        const ctx = new JobAssessmentContext(rawJobsList[3]);
+        const ctx = new JobAssessmentContext(profiles.profile_08_23_2026, rawJobsList[3]);
         const jobAssessmentPipeline = new PipelineRunner<IJobAssessmentContext>([
             new ScreenJob(screeningService),
             new FetchJobDetails(jobFetchService),
             new ExtractJobRequirements(requirementsExtractionService),
             new ClassifyJobRequirements(requirementsClassificationService),
+            new MatchJobRequirements(requirementsMatchingService),
         ]);
         const result = await jobAssessmentPipeline.run(ctx);
 
@@ -63,8 +67,7 @@ for (const source of jobSources) {
             logger.info(`\t- Requisition ID: ${result.context.jobDetail!.requisitionId ?? "Unknown"}`);
             logger.info(`\t- Locations (${result.context.jobDetail!.locations?.length ?? 0}):\n${locations}`);
             logger.info(`\t- Description: ${result.context.jobDetail!.description.slice(0, 150)}...\n`);
-            console.table(result.context.requirements);
-            console.table(result.context.classifiedRequirements);
+            printRequirementMatches(result.context.requirementMatches ?? []);
         }
     } catch (error) {
         console.error(
@@ -77,4 +80,29 @@ for (const source of jobSources) {
                 : { error }
         );
     }
+}
+
+function truncate(value: string | null | undefined, maxLength = 120): string {
+    if (!value) {
+        return "-";
+    }
+
+    return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
+}
+
+function printRequirementMatches(matches: IJobRequirementMatch[]): void {
+    console.log("\nRequirement Analysis");
+
+    if (matches.length === 0) {
+        throw new Error(`Expected RequirementMatches, but received empty array.`);
+    }
+    console.table(
+        matches.map((match, index) => ({
+            "#": index + 1,
+            Requirement: match.requirement.area,
+            Category: match.requirement.category,
+            Match: match.matchType,
+            Evidence: truncate(match.evidence, 100),
+        }))
+    );
 }

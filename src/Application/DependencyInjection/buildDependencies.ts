@@ -26,6 +26,10 @@ import { IJobRequirementsExtractionService } from "../JobAssessment/Requirements
 import { JobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/JobRequirementsExtractionService";
 import { IJobRequirementClassificationService } from "../JobAssessment/RquirementClassification/IJobRequirementClassificationService";
 import { JobRequirementClassificationService } from "../JobAssessment/RquirementClassification/JobRequirementClassificationService";
+import { IJobRequirementsMatchingService } from "../JobAssessment/Requirement Matching/IJobRequirementMatchingService";
+import { JobRequirementsMatchingService } from "../JobAssessment/Requirement Matching/JobRequirementsMatchingService";
+import { JobRequirementMatchMapper } from "../JobAssessment/Requirement Matching/Mappers/JobRequirementMatchMapper";
+import { IJobRequirementMatchMapper } from "../JobAssessment/Requirement Matching/Mappers/IJobRequirementMatchMapper";
 
 export function buildDependencies(source: IWorkdayJobSource, logLevel: LogLevel) {
     const logger: ILogger = new ConsoleLogger(logLevel);
@@ -58,6 +62,13 @@ export function buildDependencies(source: IWorkdayJobSource, logLevel: LogLevel)
     const requirementsClassificationService: IJobRequirementClassificationService =
         new JobRequirementClassificationService(llm, logger);
 
+    const jobRequirementMatchMapper: IJobRequirementMatchMapper = new JobRequirementMatchMapper();
+    const requirementsMatchingService: IJobRequirementsMatchingService = new JobRequirementsMatchingService(
+        llm,
+        logger,
+        jobRequirementMatchMapper
+    );
+
     const jobRepository: IJobRepository = new SqliteJobRepository(sqlite.connection);
 
     return {
@@ -67,6 +78,7 @@ export function buildDependencies(source: IWorkdayJobSource, logLevel: LogLevel)
         screeningService,
         requirementsExtractionService,
         requirementsClassificationService,
+        requirementsMatchingService,
         jobRepository,
     };
 }
