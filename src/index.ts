@@ -23,7 +23,7 @@ for (const source of jobSources) {
             continue;
         }
 
-        const screenedJobsList = await jobScreeningSvc.screen(rawJobsList.slice(2, 3));
+        const screenedJobsList = await jobScreeningSvc.screen(rawJobsList);
 
         // todo: distill to approve/reject?
         const proceedList = screenedJobsList
