@@ -1,5 +1,5 @@
-import { IJobScreenEvaluator } from "../../Evaluators/JobScreenEvaluator/IJobScreenEvaluator";
-import { OllamaJobScreenEvaluator } from "../../Evaluators/JobScreenEvaluator/Ollama/OllamaJobScreenEvaluator";
+import { IJobScreenEvaluator } from "../JobAssessment/Screening/IJobScreenEvaluator";
+import { OllamaJobScreenEvaluator } from "../JobAssessment/Screening/Ollama/OllamaJobScreenEvaluator";
 import { IJobMatchEvidenceEvaluator } from "../../Evaluators/ScoreEvaluator/IJobMatchEvidenceEvaluator";
 import { OllamaJobMatchEvidenceEvaluator } from "../../Evaluators/ScoreEvaluator/Ollama/OllamaJobMatchEvidenceEvaluator";
 import { SqliteJobRepository } from "../../Infrastructure/Persistence/Sqlite/Repositories/SqliteJobRepository";
@@ -24,7 +24,7 @@ import { WorkdayJobsGateway } from "../../Infrastructure/JobSources/Workday/Work
 import { IJobScoringService } from "../JobAssessment/Scoring/IJobScoringService";
 import { JobScoringService } from "../JobAssessment/Scoring/JobScoringService";
 import { IJobScreeningService } from "../JobAssessment/Screening/IJobScreeningService";
-import { JobScreeningService } from "../JobAssessment/Screening/JobScreeningService";
+import { JobScreeningService } from "../JobAssessment/Screening/Ollama/JobScreeningService";
 import { OllamaInferenceProvider } from "../../Infrastructure/Inference/Ollama/OllamaInferenceProvider";
 import { ILlmInferenceProvider } from "../../Infrastructure/Inference/ILlmInferenceProvider";
 import { IJobRepository } from "../../Infrastructure/Persistence/IJobRepository";

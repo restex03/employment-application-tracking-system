@@ -1,8 +1,8 @@
-import { IJobPostLookup } from "../../../Domain/JobPosts/IJobPostLookup";
-import { IJobScreenEvaluator } from "../../../Evaluators/JobScreenEvaluator/IJobScreenEvaluator";
-import { IJobScreenResult } from "../../../Evaluators/JobScreenEvaluator/IJobScreenResult";
-import { ILogger } from "../../../Infrastructure/Logging/ILogger";
-import { IJobScreeningService } from "./IJobScreeningService";
+import { IJobPostLookup } from "../../../../Domain/JobPosts/IJobPostLookup";
+import { IJobScreenEvaluator } from "../IJobScreenEvaluator";
+import { IJobScreenResult } from "../IJobScreenResult";
+import { ILogger } from "../../../../Infrastructure/Logging/ILogger";
+import { IJobScreeningService } from "../IJobScreeningService";
 
 export class JobScreeningService implements IJobScreeningService {
     constructor(

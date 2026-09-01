@@ -2,7 +2,7 @@ import { IJobMatchEvidenceEvaluator } from "../IJobMatchEvidenceEvaluator";
 import { JobScoreEvaluationResponseSchema } from "../JobScoreEvaluationResponseSchema";
 import { JobScoreEvaluationResponseValidationSchema } from "../JobScoreEvaluationResponseValidationSchema";
 import { ILogger } from "../../../Infrastructure/Logging/ILogger";
-import { JobMatchEvidenceExtractorSystemPrompt } from "../JobScoreEvaluatorSystemPrompt";
+import { JobMatchEvidenceExtractorSystemPrompt } from "../JobMatchEvidenceExtractorSystemPrompt";
 import { IJobMatchEvidence, JobMatchEvidence } from "../IJobMatchEvidence";
 import { ICandidateProfile } from "../../../Domain/Candidates/ICandidateProfile";
 import { IJobPostDetail } from "../../../Domain/JobPosts/IJobPostDetail";

@@ -1,4 +1,4 @@
-import { IJobPostLookup } from "../../Domain/JobPosts/IJobPostLookup";
+import { IJobPostLookup } from "../../../Domain/JobPosts/IJobPostLookup";
 
 export type JobScreenDisposition = "advance" | "reject" | "review";
 

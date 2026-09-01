@@ -1,11 +1,12 @@
-import { ILlmInferenceProvider } from "../../../Infrastructure/Inference/ILlmInferenceProvider";
-import { ILogger } from "../../../Infrastructure/Logging/ILogger";
-import { IJobPostLookup } from "../../../Domain/JobPosts/IJobPostLookup";
-import { IJobScreenEvaluator } from "../IJobScreenEvaluator";
+import { ILlmInferenceProvider } from "../../../../Infrastructure/Inference/ILlmInferenceProvider";
+import { ILogger } from "../../../../Infrastructure/Logging/ILogger";
+import { IJobPostLookup } from "../../../../Domain/JobPosts/IJobPostLookup";
+
 import { IJobScreenResult } from "../IJobScreenResult";
 import { JobScreenResponseSchema } from "../JobScreenResponseSchema";
 import { JobScreenResponseValidationSchema } from "../JobScreenResponseValidationSchema";
 import { JobScreenSystemPrompt } from "../JobScreenSystemPrompt";
+import { IJobScreenEvaluator } from "../IJobScreenEvaluator";
 
 export class OllamaJobScreenEvaluator implements IJobScreenEvaluator {
     constructor(
