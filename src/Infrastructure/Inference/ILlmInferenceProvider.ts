@@ -1,8 +1,6 @@
 import { z } from "zod";
-import { OpenAI } from "openai";
 
 export interface StructuredInferenceRequest<T> {
-    model: string;
     systemPrompt: string;
     input: unknown;
 

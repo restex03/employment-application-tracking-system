@@ -1,5 +1,5 @@
-import { IJobScore } from "../../../Evaluators/ScoreEvaluator/IJobMatchEvidence";
 import { IJobCompatibilityScoreCalculator } from "./IJobCompatibilityScoreCalculator";
+import { IJobScore } from "./IJobScore";
 
 const SCORE_WEIGHTS = {
     currentSkillFit: 0.3,

@@ -5,7 +5,10 @@ import { ILogger } from "../../Logging/ILogger";
 export class OllamaInferenceProvider implements ILlmInferenceProvider {
     private readonly client: OpenAI;
 
-    constructor(private readonly logger: ILogger) {
+    constructor(
+        private readonly logger: ILogger,
+        private readonly model: string = "qwen3:4b-instruct-8k"
+    ) {
         this.client = new OpenAI({
             // TODO: Move to .env
             baseURL: "http://localhost:11434/v1",
@@ -16,7 +19,7 @@ export class OllamaInferenceProvider implements ILlmInferenceProvider {
     public async generateStructured<T>(request: StructuredInferenceRequest<T>): Promise<T> {
         const start = performance.now();
         const response = await this.client.chat.completions.create({
-            model: request.model,
+            model: this.model,
 
             temperature: request.temperature,
 

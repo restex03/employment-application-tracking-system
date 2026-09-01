@@ -1,4 +1,4 @@
-import { IJobScore } from "../../../Evaluators/ScoreEvaluator/IJobMatchEvidence";
+import { IJobScore } from "./IJobScore";
 
 export interface IJobCompatibilityScoreCalculator {
     calculate(scores: IJobScore): number;

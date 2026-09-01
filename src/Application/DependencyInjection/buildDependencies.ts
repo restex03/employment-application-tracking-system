@@ -1,7 +1,3 @@
-import { IJobScreenEvaluator } from "../JobAssessment/Screening/IJobScreenEvaluator";
-import { OllamaJobScreenEvaluator } from "../JobAssessment/Screening/Ollama/OllamaJobScreenEvaluator";
-import { IJobMatchEvidenceEvaluator } from "../../Evaluators/ScoreEvaluator/IJobMatchEvidenceEvaluator";
-import { OllamaJobMatchEvidenceEvaluator } from "../../Evaluators/ScoreEvaluator/Ollama/OllamaJobMatchEvidenceEvaluator";
 import { SqliteJobRepository } from "../../Infrastructure/Persistence/Sqlite/Repositories/SqliteJobRepository";
 import { SqliteDatabase } from "../../Infrastructure/Persistence/Sqlite/SqliteDatabase";
 import { ConsoleLogger } from "../../Infrastructure/Logging/Console/ConsoleLogger";
@@ -21,13 +17,15 @@ import {
     WorkdayJobsResponseMapper,
 } from "../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobsApiResponseMapper";
 import { WorkdayJobsGateway } from "../../Infrastructure/JobSources/Workday/WorkdayJobsGateway";
-import { IJobScoringService } from "../JobAssessment/Scoring/IJobScoringService";
-import { JobScoringService } from "../JobAssessment/Scoring/JobScoringService";
 import { IJobScreeningService } from "../JobAssessment/Screening/IJobScreeningService";
 import { JobScreeningService } from "../JobAssessment/Screening/Ollama/JobScreeningService";
 import { OllamaInferenceProvider } from "../../Infrastructure/Inference/Ollama/OllamaInferenceProvider";
 import { ILlmInferenceProvider } from "../../Infrastructure/Inference/ILlmInferenceProvider";
 import { IJobRepository } from "../../Infrastructure/Persistence/IJobRepository";
+import { IJobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/IJobRequirementsExtractionService";
+import { JobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/JobRequirementsExtractionService";
+import { IJobRequirementClassificationService } from "../JobAssessment/RquirementClassification/IJobRequirementClassificationService";
+import { JobRequirementClassificationService } from "../JobAssessment/RquirementClassification/JobRequirementClassificationService";
 
 export function buildDependencies(source: IWorkdayJobSource, logLevel: LogLevel) {
     const logger: ILogger = new ConsoleLogger(logLevel);
@@ -38,14 +36,10 @@ export function buildDependencies(source: IWorkdayJobSource, logLevel: LogLevel)
     });
 
     const llm: ILlmInferenceProvider = new OllamaInferenceProvider(logger);
-    const screenEvaluator: IJobScreenEvaluator = new OllamaJobScreenEvaluator(llm, logger);
-    const jobScreeningSvc: IJobScreeningService = new JobScreeningService(screenEvaluator, logger);
+    const jobScreeningService: IJobScreeningService = new JobScreeningService(llm, logger);
 
     // TODO: Make singleton
     const sqlite = new SqliteDatabase("./data/job-app.db");
-
-    const scoreEvaluator: IJobMatchEvidenceEvaluator = new OllamaJobMatchEvidenceEvaluator(llm, logger);
-    const jobScoringService: IJobScoringService = new JobScoringService(scoreEvaluator, logger);
 
     const lookupMapper: IWorkdayJobsApiResponseMapper = new WorkdayJobsResponseMapper(source.companyName);
     const detailMapper: IWorkdayJobDetailsApiResponseMapper = new WorkdayJobDetailsApiResponseMapper();
@@ -56,13 +50,23 @@ export function buildDependencies(source: IWorkdayJobSource, logLevel: LogLevel)
         logger,
     });
 
+    const screeningService: IJobScreeningService = new JobScreeningService(llm, logger);
+    const requirementsExtractionService: IJobRequirementsExtractionService = new JobRequirementsExtractionService(
+        llm,
+        logger
+    );
+    const requirementsClassificationService: IJobRequirementClassificationService =
+        new JobRequirementClassificationService(llm, logger);
+
     const jobRepository: IJobRepository = new SqliteJobRepository(sqlite.connection);
 
     return {
         logger,
-        jobScreeningSvc,
-        jobScoringService,
+        jobScreeningService,
         jobFetchService,
+        screeningService,
+        requirementsExtractionService,
+        requirementsClassificationService,
         jobRepository,
     };
 }

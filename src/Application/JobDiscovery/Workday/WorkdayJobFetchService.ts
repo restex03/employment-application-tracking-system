@@ -62,25 +62,33 @@ export class WorkdayJobFetchService implements IJobPostFetchService {
 
         return [...jobs.values()];
     }
+
+    async fetchDetail(lookup: IJobPostLookup): Promise<IJobPostDetail> {
+        this.logger.info(
+            `[WorkdayJobDetailFetchService.fetchJobDetail] Fetching details: ${lookup.company} - ${lookup.jobSourceId} (${lookup.title})`
+        );
+        const apiResult = await this.jobGateway.getDetail(lookup.detailPath);
+        const jobDetail = this.detailMapper.map(apiResult);
+        const locations =
+            jobDetail.locations
+                ?.map(location => `\t- ${location.city ?? "Unknown"}, ${location.country ?? "Unknown"}`)
+                .join("\n") ?? "\t- None";
+
+        this.logger.info(`\t- Title: ${jobDetail.title}`);
+        this.logger.info(`\t- Requisition ID: ${jobDetail.requisitionId ?? "Unknown"}`);
+        this.logger.info(`\t- Locations (${jobDetail.locations?.length ?? 0}):\n${locations}`);
+        this.logger.info(`\t- Description: ${jobDetail.description.slice(0, 150)}...\n`);
+
+        return jobDetail;
+    }
+
+    /** @deprecated use fetchDetail instead */
     async fetchDetails(lookups: IJobPostLookup[]): Promise<IJobPostDetail[]> {
         this.logger.info(`[WorkdayJobDetailFetchService.fetchJobDetails] Fetching details: ${lookups.length} jobs.`);
         const jobDetailsList: IJobPostDetail[] = [];
 
         for (const result of lookups) {
-            this.logger.info(
-                `[WorkdayJobDetailFetchService.fetchJobDetails] Fetching details: ${result.company} - ${result.jobSourceId} (${result.title})`
-            );
-            const apiResult = await this.jobGateway.getDetail(result.detailPath);
-            const jobDetail = this.detailMapper.map(apiResult);
-            const locations =
-                jobDetail.locations
-                    ?.map(location => `\t- ${location.city ?? "Unknown"}, ${location.country ?? "Unknown"}`)
-                    .join("\n") ?? "\t- None";
-
-            this.logger.info(`\t- Title: ${jobDetail.title}`);
-            this.logger.info(`\t- Requisition ID: ${jobDetail.requisitionId ?? "Unknown"}`);
-            this.logger.info(`\t- Locations (${jobDetail.locations?.length ?? 0}):\n${locations}`);
-            this.logger.info(`\t- Description: ${jobDetail.description.slice(0, 150)}...\n`);
+            const jobDetail = await this.fetchDetail(result);
             jobDetailsList.push(jobDetail);
         }
 

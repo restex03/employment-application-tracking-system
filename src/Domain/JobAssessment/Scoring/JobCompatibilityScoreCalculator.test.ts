@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { IJobScore } from "../../../Evaluators/ScoreEvaluator/IJobMatchEvidence";
+
 import { JobCompatibilityScoreCalculator } from "./JobCompatibilityScoreCalculator";
+import { IJobScore } from "./IJobScore";
 
 describe("JobCompatibilityScoreCalculator", () => {
     const calculator = new JobCompatibilityScoreCalculator();
