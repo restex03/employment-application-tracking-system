@@ -2,7 +2,7 @@ import { IJobPostDetail } from "../../../Domain/JobPosts/IJobPostDetail";
 import { ILlmInferenceProvider } from "../../../Infrastructure/Inference/ILlmInferenceProvider";
 import { ILogger } from "../../../Infrastructure/Logging/ILogger";
 import { IJobRequirementsExtractionService } from "./IJobRequirementsExtractionService";
-import { IJobRequirement } from "./IJobRequirementsResult";
+import { IJobRequirement } from "./IJobRequirement";
 import { JobRequirementsExtractorSystemPrompt } from "./JobRequirementsExtractorSystemPrompt";
 import { JobRequirementsResponseSchema } from "./JobRequirementsResponseSchema";
 import { JobRequirementsResponseValidationSchema } from "./JobRequirementsResponseValidationSchema";
@@ -35,14 +35,11 @@ export class JobRequirementsExtractionService implements IJobRequirementsExtract
 
         for (const requirement of result.requirements) {
             this.logger.info(`\t\t- ${requirement.area}`);
-            this.logger.info(`\t\t\t- Category: ${requirement.category}`);
             this.logger.info(`\t\t\t- Description: ${requirement.description}`);
         }
 
         this.logger.info("\n");
 
-        return {
-            ...result.requirements,
-        };
+        return result.requirements;
     }
 }

@@ -1,6 +1,6 @@
 import { ILlmInferenceProvider } from "../../../Infrastructure/Inference/ILlmInferenceProvider";
 import { ILogger } from "../../../Infrastructure/Logging/ILogger";
-import { IJobRequirement } from "../RequirementsExtraction/IJobRequirementsResult";
+import { IJobRequirement } from "../RequirementsExtraction/IJobRequirement";
 import { IClassifiedJobRequirement } from "./IClassifiedJobRequirement";
 import { IJobRequirementClassificationService } from "./IJobRequirementClassificationService";
 import { JobRequirementClassificationResponseSchema } from "./JobRequirementClassificationResponseSchema";
@@ -25,7 +25,11 @@ export class JobRequirementClassificationService implements IJobRequirementClass
         const result = await this.llm.generateStructured({
             systemPrompt: JobRequirementClassificationSystemPrompt,
             input: {
-                requirements,
+                requirements: requirements.map((requirement, index) => ({
+                    index,
+                    area: requirement.area,
+                    description: requirement.description,
+                })),
             },
 
             schemaName: "job_requirement_classification",
@@ -33,16 +37,24 @@ export class JobRequirementClassificationService implements IJobRequirementClass
             validationSchema: JobRequirementClassificationResponseValidationSchema,
 
             temperature: 0.1,
-            maxTokens: 800,
+            maxTokens: 300,
         });
 
-        for (const requirement of result.requirements) {
-            this.logger.info(`\t- ${requirement.area}`);
-            this.logger.info(`\t\t- Category: ${requirement.category}`);
-        }
+        const categoryByIndex = new Map(
+            result.classifications.map(classification => [classification.index, classification.category])
+        );
 
-        this.logger.info("\n");
+        return requirements.map((requirement, index) => {
+            const category = categoryByIndex.get(index);
 
-        return result.requirements;
+            if (!category) {
+                throw new Error(`Missing classification for requirement index ${index}.`);
+            }
+
+            return {
+                ...requirement,
+                category,
+            };
+        });
     }
 }

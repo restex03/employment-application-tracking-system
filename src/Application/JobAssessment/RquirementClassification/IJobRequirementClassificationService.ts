@@ -1,4 +1,4 @@
-import { IJobRequirement } from "../RequirementsExtraction/IJobRequirementsResult";
+import { IJobRequirement } from "../RequirementsExtraction/IJobRequirement";
 import { IClassifiedJobRequirement } from "./IClassifiedJobRequirement";
 
 export interface IJobRequirementClassificationService {

@@ -1,4 +1,4 @@
-import { IJobRequirement } from "../RequirementsExtraction/IJobRequirementsResult";
+import { IJobRequirement } from "../RequirementsExtraction/IJobRequirement";
 
 export type JobRequirementCategory =
     | "technical_skill"

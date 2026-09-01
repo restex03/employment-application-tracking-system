@@ -1,6 +1,6 @@
 import { IJobPostDetail } from "../../../Domain/JobPosts/IJobPostDetail";
 import { IJobPostLookup } from "../../../Domain/JobPosts/IJobPostLookup";
-import { IJobRequirement } from "../RequirementsExtraction/IJobRequirementsResult";
+import { IJobRequirement } from "../RequirementsExtraction/IJobRequirement";
 import { IClassifiedJobRequirement } from "../RquirementClassification/IClassifiedJobRequirement";
 import { IJobScreenResult } from "../Screening/IJobScreenResult";
 

@@ -13,6 +13,12 @@ export class ClassifyJobRequirements implements IPipelineStep<IJobAssessmentCont
                 reason: "Job requirements are required before classification.",
             };
         }
+        if (!Array.isArray(context.requirements)) {
+            return {
+                status: PipelineStepStatus.Failed,
+                reason: `Pipeline step received requirements that are not array: ${JSON.stringify(context.requirements, null, 2)}`,
+            };
+        }
 
         try {
             context.classifiedRequirements = await this.classificationSvc.classify(context.requirements);
