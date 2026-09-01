@@ -1,7 +1,7 @@
 import { IJobScreenEvaluator } from "../../Evaluators/JobScreenEvaluator/IJobScreenEvaluator";
 import { OllamaJobScreenEvaluator } from "../../Evaluators/JobScreenEvaluator/Ollama/OllamaJobScreenEvaluator";
 import { IJobMatchEvidenceEvaluator } from "../../Evaluators/ScoreEvaluator/IJobMatchEvidenceEvaluator";
-import { OllamaJobMatchEvidenceEvaluator } from "../../Evaluators/ScoreEvaluator/Ollama/OllamaJobScoreEvaluator";
+import { OllamaJobMatchEvidenceEvaluator } from "../../Evaluators/ScoreEvaluator/Ollama/OllamaJobMatchEvidenceEvaluator";
 import { SqliteJobRepository } from "../../Infrastructure/Persistence/Sqlite/Repositories/SqliteJobRepository";
 import { SqliteDatabase } from "../../Infrastructure/Persistence/Sqlite/SqliteDatabase";
 import { ConsoleLogger } from "../../Infrastructure/Logging/Console/ConsoleLogger";
@@ -37,7 +37,7 @@ export function buildDependencies(source: IWorkdayJobSource, logLevel: LogLevel)
         logger,
     });
 
-    const llm: ILlmInferenceProvider = new OllamaInferenceProvider();
+    const llm: ILlmInferenceProvider = new OllamaInferenceProvider(logger);
     const screenEvaluator: IJobScreenEvaluator = new OllamaJobScreenEvaluator(llm, logger);
     const jobScreeningSvc: IJobScreeningService = new JobScreeningService(screenEvaluator, logger);
 
