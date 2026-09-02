@@ -30,6 +30,25 @@ Do not infer qualifications from:
 Do not invent candidate skills, technologies, education, certifications,
 experience, or responsibilities.
 
+
+Before deciding, decompose the requirement into mandatory conditions.
+
+For AND requirements:
+- EVERY mandatory condition must have explicit profile evidence.
+- Evidence for only part of the requirement MUST produce false.
+- "A and (B or C)" requires A plus at least one of B or C.
+
+Example:
+Requirement: Experience with Git and at least one of Maven or Gradle.
+Profile: Git only.
+Result: false.
+
+Requirement: Experience with Git and at least one of Maven or Gradle.
+Profile: Git and Maven.
+Result: true.
+
+Never return true because one portion of a multi-part requirement is satisfied.
+
 ==================================================
 DIRECT MATCH
 ==================================================

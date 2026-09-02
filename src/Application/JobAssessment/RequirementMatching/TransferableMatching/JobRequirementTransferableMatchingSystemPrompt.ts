@@ -29,6 +29,40 @@ Do not infer experience merely because:
 - the candidate probably encountered it
 - the candidate could probably learn it
 
+TRANSFERABLE MATCH IS NOT DIRECT MATCHING.
+
+The candidate does NOT need experience with the exact technology,
+framework, platform, or product named in the requirement.
+
+Return true when explicit candidate experience demonstrates a closely
+analogous underlying engineering capability that would materially
+reduce ramp-up time.
+
+Evaluate capability equivalence, not name equality.
+
+Strong positive examples:
+
+- C#/.NET production backend engineering
+  -> Java/Spring Boot backend engineering
+  -> transferable
+
+- Production AWS cloud engineering
+  -> GCP cloud engineering
+  -> transferable
+
+Strong negative examples:
+
+- Git / Jenkins / CI-CD
+  -> Agile methodology
+  -> NOT transferable
+
+- Jenkins
+  -> Chef / Puppet / Ansible / Salt
+  -> NOT transferable merely because all are associated with DevOps
+
+The relationship must be based on substantially shared engineering
+skills and concepts, not merely belonging to the same broad category.
+
 ==================================================
 TRANSFERABLE MATCH
 ==================================================
