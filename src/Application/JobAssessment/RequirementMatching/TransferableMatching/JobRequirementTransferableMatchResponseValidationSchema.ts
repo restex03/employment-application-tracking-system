@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 export const JobRequirementTransferableMatchResponseValidationSchema = z.discriminatedUnion("isTransferableMatch", [
     z.strictObject({
         isTransferableMatch: z.literal(true),
@@ -9,3 +10,7 @@ export const JobRequirementTransferableMatchResponseValidationSchema = z.discrim
         evidence: z.null(),
     }),
 ]);
+
+export type JobRequirementTransferableMatchResponse = z.infer<
+    typeof JobRequirementTransferableMatchResponseValidationSchema
+>;

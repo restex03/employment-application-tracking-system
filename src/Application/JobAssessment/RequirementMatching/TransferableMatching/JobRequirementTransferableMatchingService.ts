@@ -1,12 +1,15 @@
 import { ICandidateProfile } from "../../../../Domain/Candidates/ICandidateProfile";
+import { ILlmInferenceProvider } from "../../../../Infrastructure/Inference/ILlmInferenceProvider";
+import { ILogger } from "../../../../Infrastructure/Logging/ILogger";
 import { IClassifiedJobRequirement } from "../../RquirementClassification/IClassifiedJobRequirement";
 import { IJobRequirementTransferableMatch } from "./IJobRequirementTransferableMatch";
 import { IJobRequirementTransferableMatchingService } from "./IJobRequirementTransferableMatchingService";
-import { ILogger } from "../../../../Infrastructure/Logging/ILogger";
-import { ILlmInferenceProvider } from "../../../../Infrastructure/Inference/ILlmInferenceProvider";
 import { JobRequirementTransferableMatchingSystemPrompt } from "./JobRequirementTransferableMatchingSystemPrompt";
 import { JobRequirementTransferableMatchResponseSchema } from "./JobRequirementTransferableMatchResponseSchema";
-import { JobRequirementTransferableMatchResponseValidationSchema } from "./JobRequirementTransferableMatchResponseValidationSchema";
+import {
+    JobRequirementTransferableMatchResponse,
+    JobRequirementTransferableMatchResponseValidationSchema,
+} from "./JobRequirementTransferableMatchResponseValidationSchema";
 
 export class JobRequirementTransferableMatchingService implements IJobRequirementTransferableMatchingService {
     constructor(
@@ -20,7 +23,7 @@ export class JobRequirementTransferableMatchingService implements IJobRequiremen
     ): Promise<IJobRequirementTransferableMatch> {
         this.logger.info(`[JobRequirementTransferableMatchingService.assess] Assessing: ${requirement.area}`);
 
-        const result = await this.llm.generateStructured({
+        const result = await this.llm.generateStructured<JobRequirementTransferableMatchResponse>({
             systemPrompt: JobRequirementTransferableMatchingSystemPrompt,
             input: {
                 requirement,

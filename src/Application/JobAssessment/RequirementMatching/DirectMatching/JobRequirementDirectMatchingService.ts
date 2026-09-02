@@ -1,15 +1,15 @@
 import { ICandidateProfile } from "../../../../Domain/Candidates/ICandidateProfile";
+import { ILlmInferenceProvider } from "../../../../Infrastructure/Inference/ILlmInferenceProvider";
+import { ILogger } from "../../../../Infrastructure/Logging/ILogger";
 import { IClassifiedJobRequirement } from "../../RquirementClassification/IClassifiedJobRequirement";
 import { IJobRequirementDirectMatch } from "./IJobRequirementDirectMatch";
 import { IJobRequirementDirectMatchingService } from "./IJobRequirementDirectMatchingService";
-
-// Adjust these two paths to your existing locations.
-
-import { ILogger } from "../../../../Infrastructure/Logging/ILogger";
-import { ILlmInferenceProvider } from "../../../../Infrastructure/Inference/ILlmInferenceProvider";
 import { JobRequirementDirectMatchingSystemPrompt } from "./JobRequirementDirectMatchingSystemPrompt";
 import { JobRequirementDirectMatchResponseSchema } from "./JobRequirementDirectMatchResponseSchema";
-import { JobRequirementDirectMatchResponseValidationSchema } from "./JobRequirementDirectMatchResponseValidationSchema";
+import {
+    JobRequirementDirectMatchResponse,
+    JobRequirementDirectMatchResponseValidationSchema,
+} from "./JobRequirementDirectMatchResponseValidationSchema";
 
 export class JobRequirementDirectMatchingService implements IJobRequirementDirectMatchingService {
     constructor(
@@ -23,7 +23,7 @@ export class JobRequirementDirectMatchingService implements IJobRequirementDirec
     ): Promise<IJobRequirementDirectMatch> {
         this.logger.info(`[JobRequirementDirectMatchingService.assess] Assessing: ${requirement.area}`);
 
-        const result = await this.llm.generateStructured({
+        const result = await this.llm.generateStructured<JobRequirementDirectMatchResponse>({
             systemPrompt: JobRequirementDirectMatchingSystemPrompt,
             input: {
                 requirement,

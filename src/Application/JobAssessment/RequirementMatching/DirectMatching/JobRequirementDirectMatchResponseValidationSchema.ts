@@ -10,3 +10,5 @@ export const JobRequirementDirectMatchResponseValidationSchema = z.discriminated
         evidence: z.null(),
     }),
 ]);
+
+export type JobRequirementDirectMatchResponse = z.infer<typeof JobRequirementDirectMatchResponseValidationSchema>;

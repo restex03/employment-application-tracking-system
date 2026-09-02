@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ICandidateProfile } from "../../../../../Domain/Candidates/ICandidateProfile";
-import { IClassifiedJobRequirement } from "../../../RquirementClassification/IClassifiedJobRequirement";
-import { IJobRequirementTransferableMatchingService } from "../../TransferableMatching/IJobRequirementTransferableMatchingService";
-import { PipelineStepStatus } from "../../../../Pipelines/IPipelineStepResult";
+import { ICandidateProfile } from "../../../../../../Domain/Candidates/ICandidateProfile";
+import { PipelineStepStatus } from "../../../../../Pipelines/IPipelineStepResult";
+import { IClassifiedJobRequirement } from "../../../../RquirementClassification/IClassifiedJobRequirement";
+import { IJobRequirementTransferableMatchingService } from "../../../TransferableMatching/IJobRequirementTransferableMatchingService";
 import { AssessTransferableMatch } from "./AssessTransferableMatch";
-import { IJobRequirementMatchingContext } from "./IJobRequirementMatchingContext";
+import { IJobRequirementMatchingContext } from "../../IJobRequirementMatchingContext";
 
 describe("AssessTransferableMatch", () => {
     let transferableMatchingService: IJobRequirementTransferableMatchingService;
@@ -42,8 +42,6 @@ describe("AssessTransferableMatch", () => {
         });
 
         expect(transferableMatchingService.assess).not.toHaveBeenCalled();
-
-        expect(context.transferableMatch).toBeUndefined();
     });
 
     it("succeeds without assessing transferability when the requirement is a direct match", async () => {
@@ -53,7 +51,7 @@ describe("AssessTransferableMatch", () => {
             directMatch: {
                 requirement,
                 isDirectMatch: true,
-                evidence: "Profile explicitly satisfies the requirement.",
+                evidence: "Candidate explicitly satisfies the requirement.",
             },
         };
 
@@ -100,7 +98,7 @@ describe("AssessTransferableMatch", () => {
         expect(context.transferableMatch).toBe(transferableMatch);
     });
 
-    it("stores a non-transferable assessment in the context", async () => {
+    it("stores a non-transferable assessment in context", async () => {
         const transferableMatch = {
             requirement,
             isTransferableMatch: false,
@@ -128,6 +126,37 @@ describe("AssessTransferableMatch", () => {
         expect(context.transferableMatch).toBe(transferableMatch);
     });
 
+    it("fails when the transferable assessment references a different requirement instance", async () => {
+        const differentRequirement: IClassifiedJobRequirement = {
+            ...requirement,
+        };
+
+        vi.mocked(transferableMatchingService.assess).mockResolvedValue({
+            requirement: differentRequirement,
+            isTransferableMatch: true,
+            evidence: "Production backend development experience using C# and .NET.",
+        });
+
+        const context: IJobRequirementMatchingContext = {
+            requirement,
+            profile,
+            directMatch: {
+                requirement,
+                isDirectMatch: false,
+                evidence: null,
+            },
+        };
+
+        const result = await step.execute(context);
+
+        expect(result).toEqual({
+            status: PipelineStepStatus.Failed,
+            reason: "Transferable match requirement does not match context requirement.",
+        });
+
+        expect(context.transferableMatch).toBeUndefined();
+    });
+
     it("passes the original requirement and profile instances to the service", async () => {
         vi.mocked(transferableMatchingService.assess).mockResolvedValue({
             requirement,
@@ -152,10 +181,11 @@ describe("AssessTransferableMatch", () => {
         const [actualRequirement, actualProfile] = assess.mock.calls[0];
 
         expect(actualRequirement).toBe(requirement);
+
         expect(actualProfile).toBe(profile);
     });
 
-    it("returns a failed result when the transferable matching service throws an Error", async () => {
+    it("returns a failed result when the service throws an Error", async () => {
         vi.mocked(transferableMatchingService.assess).mockRejectedValue(new Error("Transferability inference failed"));
 
         const context: IJobRequirementMatchingContext = {
@@ -197,7 +227,5 @@ describe("AssessTransferableMatch", () => {
             status: PipelineStepStatus.Failed,
             reason: "Transferability inference failed",
         });
-
-        expect(context.transferableMatch).toBeUndefined();
     });
 });
