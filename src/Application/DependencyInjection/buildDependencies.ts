@@ -26,10 +26,14 @@ import { IJobRequirementsExtractionService } from "../JobAssessment/Requirements
 import { JobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/JobRequirementsExtractionService";
 import { IJobRequirementClassificationService } from "../JobAssessment/RquirementClassification/IJobRequirementClassificationService";
 import { JobRequirementClassificationService } from "../JobAssessment/RquirementClassification/JobRequirementClassificationService";
-import { IJobRequirementsMatchingService } from "../JobAssessment/Requirement Matching/IJobRequirementMatchingService";
-import { JobRequirementsMatchingService } from "../JobAssessment/Requirement Matching/JobRequirementsMatchingService";
-import { JobRequirementMatchMapper } from "../JobAssessment/Requirement Matching/Mappers/JobRequirementMatchMapper";
-import { IJobRequirementMatchMapper } from "../JobAssessment/Requirement Matching/Mappers/IJobRequirementMatchMapper";
+import { IJobRequirementsMatchingService } from "../JobAssessment/RequirementMatching/IJobRequirementMatchingService";
+import { JobRequirementsMatchingService } from "../JobAssessment/RequirementMatching/JobRequirementsMatchingService";
+import { JobRequirementMatchMapper } from "../JobAssessment/RequirementMatching/Mappers/JobRequirementMatchMapper";
+import { IJobRequirementMatchMapper } from "../JobAssessment/RequirementMatching/Mappers/IJobRequirementMatchMapper";
+import { IJobRequirementDirectMatchingService } from "../JobAssessment/RequirementMatching/DirectMatching/IJobRequirementDirectMatchingService";
+import { JobRequirementDirectMatchingService } from "../JobAssessment/RequirementMatching/DirectMatching/JobRequirementDirectMatchingService";
+import { IJobRequirementTransferableMatchingService } from "../JobAssessment/RequirementMatching/TransferableMatching/IJobRequirementTransferableMatchingService";
+import { JobRequirementTransferableMatchingService } from "../JobAssessment/RequirementMatching/TransferableMatching/JobRequirementTransferableMatchingService";
 
 export function buildDependencies(source: IWorkdayJobSource, logLevel: LogLevel) {
     const logger: ILogger = new ConsoleLogger(logLevel);
@@ -62,11 +66,19 @@ export function buildDependencies(source: IWorkdayJobSource, logLevel: LogLevel)
     const requirementsClassificationService: IJobRequirementClassificationService =
         new JobRequirementClassificationService(llm, logger);
 
+    const directMatchingService: IJobRequirementDirectMatchingService = new JobRequirementDirectMatchingService(
+        llm,
+        logger
+    );
+    const transferableMatchingService: IJobRequirementTransferableMatchingService =
+        new JobRequirementTransferableMatchingService(llm, logger);
+
     const jobRequirementMatchMapper: IJobRequirementMatchMapper = new JobRequirementMatchMapper();
     const requirementsMatchingService: IJobRequirementsMatchingService = new JobRequirementsMatchingService(
-        llm,
-        logger,
-        jobRequirementMatchMapper
+        directMatchingService,
+        transferableMatchingService,
+        jobRequirementMatchMapper,
+        logger
     );
 
     const jobRepository: IJobRepository = new SqliteJobRepository(sqlite.connection);

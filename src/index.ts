@@ -13,7 +13,7 @@ import { ExtractJobRequirements } from "./Application/JobAssessment/Pipeline/Ste
 import { FetchJobDetails } from "./Application/JobAssessment/Pipeline/Steps/FetchJobDetail";
 import { PipelineStepStatus } from "./Application/Pipelines/IPipelineStepResult";
 import { MatchJobRequirements } from "./Application/JobAssessment/Pipeline/Steps/MatchJobRequirements";
-import { IJobRequirementMatch } from "./Application/JobAssessment/Requirement Matching/IJobRequirementMatch";
+import { IJobRequirementMatch } from "./Application/JobAssessment/RequirementMatching/IJobRequirementMatch";
 
 console.log("Starting application...");
 
@@ -34,40 +34,42 @@ for (const source of jobSources) {
         logger.info(`[index] Fetching jobs from ${source.companyName} at ${source.baseUrl}...`);
 
         const rawJobsList = await jobFetchService.fetchLookups("software engineer");
-        if (rawJobsList.length === 0) {
+        const test = rawJobsList.slice(3, 10);
+        if (test.length === 0) {
             logger.info(`[index] Skipping ${source.companyName} - no jobs available`);
             continue;
         }
+        for (const job of test) {
+            const ctx = new JobAssessmentContext(profiles.profile_08_23_2026, job);
+            const jobAssessmentPipeline = new PipelineRunner<IJobAssessmentContext>([
+                new ScreenJob(screeningService),
+                new FetchJobDetails(jobFetchService),
+                new ExtractJobRequirements(requirementsExtractionService),
+                new ClassifyJobRequirements(requirementsClassificationService),
+                new MatchJobRequirements(requirementsMatchingService),
+            ]);
+            const result = await jobAssessmentPipeline.run(ctx);
 
-        const ctx = new JobAssessmentContext(profiles.profile_08_23_2026, rawJobsList[3]);
-        const jobAssessmentPipeline = new PipelineRunner<IJobAssessmentContext>([
-            new ScreenJob(screeningService),
-            new FetchJobDetails(jobFetchService),
-            new ExtractJobRequirements(requirementsExtractionService),
-            new ClassifyJobRequirements(requirementsClassificationService),
-            new MatchJobRequirements(requirementsMatchingService),
-        ]);
-        const result = await jobAssessmentPipeline.run(ctx);
+            if (result.status === PipelineStepStatus.Failed) {
+                logger.error(`Pipeline failure detected at step ${result.failedStep}`);
+                logger.error(`\t- Reason: ${result.reason}`);
+            } else {
+                const company = result.context.job.company;
+                const title = result.context.job.title;
+                const postedDate = result.context.job.postedDate;
+                const locations =
+                    result.context
+                        .jobDetail!.locations?.map(
+                            location => `\t- ${location.city ?? "Unknown"}, ${location.country ?? "Unknown"}`
+                        )
+                        .join("\n") ?? "\t- None";
 
-        if (result.status === PipelineStepStatus.Failed) {
-            logger.error(`Pipeline failure detected at step ${result.failedStep}`);
-            logger.error(`\t- Reason: ${result.reason}`);
-        } else {
-            const company = result.context.job.company;
-            const title = result.context.job.title;
-            const postedDate = result.context.job.postedDate;
-            const locations =
-                result.context
-                    .jobDetail!.locations?.map(
-                        location => `\t- ${location.city ?? "Unknown"}, ${location.country ?? "Unknown"}`
-                    )
-                    .join("\n") ?? "\t- None";
-
-            logger.info(`${company} - ${postedDate} ${title}`);
-            logger.info(`\t- Requisition ID: ${result.context.jobDetail!.requisitionId ?? "Unknown"}`);
-            logger.info(`\t- Locations (${result.context.jobDetail!.locations?.length ?? 0}):\n${locations}`);
-            logger.info(`\t- Description: ${result.context.jobDetail!.description.slice(0, 150)}...\n`);
-            printRequirementMatches(result.context.requirementMatches ?? []);
+                logger.info(`${company} - ${postedDate} ${title}`);
+                logger.info(`\t- Requisition ID: ${result.context.jobDetail!.requisitionId ?? "Unknown"}`);
+                logger.info(`\t- Locations (${result.context.jobDetail!.locations?.length ?? 0}):\n${locations}`);
+                logger.info(`\t- Description: ${result.context.jobDetail!.description.slice(0, 150)}...\n`);
+                printRequirementMatches(result.context.requirementMatches ?? []);
+            }
         }
     } catch (error) {
         console.error(

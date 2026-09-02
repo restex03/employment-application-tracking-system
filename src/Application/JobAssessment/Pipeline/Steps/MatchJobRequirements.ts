@@ -1,6 +1,6 @@
 import { IPipelineStep } from "../../../Pipelines/IPipelineStep";
 import { IPipelineStepResult, PipelineStepStatus } from "../../../Pipelines/IPipelineStepResult";
-import { IJobRequirementsMatchingService } from "../../Requirement Matching/IJobRequirementMatchingService";
+import { IJobRequirementsMatchingService } from "../../RequirementMatching/IJobRequirementMatchingService";
 
 import { IJobAssessmentContext } from "../IJobAssessmentContext";
 

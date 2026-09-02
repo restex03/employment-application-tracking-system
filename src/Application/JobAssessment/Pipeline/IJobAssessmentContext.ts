@@ -1,7 +1,7 @@
 import { ICandidateProfile } from "../../../Domain/Candidates/ICandidateProfile";
 import { IJobPostDetail } from "../../../Domain/JobPosts/IJobPostDetail";
 import { IJobPostLookup } from "../../../Domain/JobPosts/IJobPostLookup";
-import { IJobRequirementMatch } from "../Requirement Matching/IJobRequirementMatch";
+import { IJobRequirementMatch } from "../RequirementMatching/IJobRequirementMatch";
 import { IJobRequirement } from "../RequirementsExtraction/IJobRequirement";
 import { IClassifiedJobRequirement } from "../RquirementClassification/IClassifiedJobRequirement";
 import { IJobScreenResult } from "../Screening/IJobScreenResult";
