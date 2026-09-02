@@ -34,12 +34,13 @@ for (const source of jobSources) {
         logger.info(`[index] Fetching jobs from ${source.companyName} at ${source.baseUrl}...`);
 
         const rawJobsList = await jobFetchService.fetchLookups("software engineer");
-        const test = rawJobsList.slice(3, 10);
-        if (test.length === 0) {
+        const runSuite = rawJobsList.slice(0, 10);
+        // const runSuite = rawJobsList;
+        if (runSuite.length === 0) {
             logger.info(`[index] Skipping ${source.companyName} - no jobs available`);
             continue;
         }
-        for (const job of test) {
+        for (const job of runSuite) {
             const ctx = new JobAssessmentContext(profiles.profile_08_23_2026, job);
             const jobAssessmentPipeline = new PipelineRunner<IJobAssessmentContext>([
                 new ScreenJob(screeningService),
