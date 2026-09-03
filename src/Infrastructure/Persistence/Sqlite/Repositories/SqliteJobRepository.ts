@@ -8,7 +8,6 @@ import { IJobPostDetail } from "../../../../Domain/JobPosts/IJobPostDetail";
 interface JobInsertParameters {
     id: string;
     sourceId: string;
-    sourceJobId: string;
     requisitionId: string | null;
     company: string;
     title: string;
@@ -28,7 +27,6 @@ export class SqliteJobRepository implements IJobRepository {
             INSERT INTO jobLookups (
                 id,
                 sourceId,
-                source_job_id,
                 requisition_id,
                 company,
                 title,
@@ -39,7 +37,6 @@ export class SqliteJobRepository implements IJobRepository {
             VALUES (
                 @id,
                 @sourceId,
-                @sourceJobId,
                 @requisitionId,
                 @company,
                 @title,
@@ -96,7 +93,6 @@ export class SqliteJobRepository implements IJobRepository {
         return {
             id: randomUUID(),
             sourceId,
-            sourceJobId: job.jobSourceId,
             requisitionId: job.requisitionId ?? null,
             company: job.company,
             title: job.title,

@@ -17,7 +17,6 @@ export class SqliteDatabase {
             CREATE TABLE IF NOT EXISTS jobLookups (
                 id TEXT PRIMARY KEY NOT NULL,
                 sourceId TEXT NOT NULL,
-                source_job_id TEXT NOT NULL,
                 requisition_id TEXT,
                 company TEXT NOT NULL,
                 title TEXT NOT NULL,
