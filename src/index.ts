@@ -41,7 +41,7 @@ for (const source of jobSources) {
         const rawJobsList = await jobFetchService.fetchLookups("software engineer");
         // const todoJobs =
         const todoJobs = TEST_MODE ? rawJobsList.slice(0, 10) : rawJobsList;
-        await jobRepository.addLookupsIfNotExists(source.companyName, todoJobs);
+        await jobRepository.addLookupsIfNotExists(source.id, todoJobs);
 
         if (todoJobs.length === 0) {
             logger.info(`[index] Skipping ${source.companyName} - no jobs available`);

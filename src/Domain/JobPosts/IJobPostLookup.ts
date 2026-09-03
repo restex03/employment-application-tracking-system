@@ -10,15 +10,6 @@ export interface IJobPostLookup {
     // jobPostingId: string;
 
     /**
-     * Stable identifier supplied by the external job source.
-     *
-     * Examples:
-     * "JR-0109507"
-     * "R-51887"
-     */
-    jobSourceId: string;
-
-    /**
      * Human-readable job title.
      */
     title: string;
@@ -36,7 +27,11 @@ export interface IJobPostLookup {
     detailPath: string;
 
     /**
-     * Optional employer requisition ID when distinct from sourceJobId.
+     * Stable identifier supplied by the external job source.
+     *
+     * Examples:
+     * "JR-0109507"
+     * "R-51887"
      */
     requisitionId?: string;
 

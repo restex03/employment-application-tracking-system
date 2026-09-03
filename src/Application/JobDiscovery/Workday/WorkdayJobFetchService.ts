@@ -65,7 +65,7 @@ export class WorkdayJobFetchService implements IJobPostFetchService {
 
     async fetchDetail(lookup: IJobPostLookup): Promise<IJobPostDetail> {
         this.logger.info(
-            `[WorkdayJobDetailFetchService.fetchJobDetail] Fetching details: ${lookup.company} - ${lookup.jobSourceId} (${lookup.title})`
+            `[WorkdayJobDetailFetchService.fetchJobDetail] Fetching details: ${lookup.company} - ${lookup.requisitionId} (${lookup.title})`
         );
         const apiResult = await this.jobGateway.getDetail(lookup.detailPath);
         const jobDetail = this.detailMapper.map(apiResult);

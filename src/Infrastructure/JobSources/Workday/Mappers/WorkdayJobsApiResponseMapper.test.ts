@@ -36,7 +36,6 @@ describe("WorkdayJobsResponseMapper", () => {
         const result = mapper.map(response);
 
         expect(result).toEqual({
-            jobSourceId: "R-51887",
             requisitionId: "R-51887",
             title: "Senior Software Engineer",
             company: companyName,
@@ -62,7 +61,6 @@ describe("WorkdayJobsResponseMapper", () => {
         const result = mapper.map(response);
 
         expect(result.requisitionId).toBe(expectedRequisitionId);
-        expect(result.jobSourceId).toBe(expectedRequisitionId);
     });
 
     it("extracts JR-prefixed requisition IDs containing a hyphen", () => {
@@ -75,7 +73,6 @@ describe("WorkdayJobsResponseMapper", () => {
         const result = mapper.map(response);
 
         expect(result.requisitionId).toBe("JR-0107919");
-        expect(result.jobSourceId).toBe("JR-0107919");
     });
 
     it("falls back to externalPath when a requisition ID cannot be determined", () => {
@@ -87,8 +84,7 @@ describe("WorkdayJobsResponseMapper", () => {
 
         const result = mapper.map(response);
 
-        expect(result.jobSourceId).toBe(externalPath);
-        expect(result.requisitionId).toBeUndefined();
+        expect(result.requisitionId).toBe(externalPath);
     });
 
     it("omits locations when locationsText is empty", () => {

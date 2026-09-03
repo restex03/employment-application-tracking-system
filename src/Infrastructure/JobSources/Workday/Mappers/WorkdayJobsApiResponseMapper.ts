@@ -11,10 +11,9 @@ export class WorkdayJobsResponseMapper implements IWorkdayJobsApiResponseMapper 
     public constructor(private readonly companyName: string) {}
 
     public map(posting: WorkdayJobPosting): IJobPostLookup {
-        const requisitionId = this.getRequisitionId(posting.externalPath);
-
+        let requisitionId = this.getRequisitionId(posting.externalPath);
+        requisitionId ??= posting.externalPath;
         return {
-            jobSourceId: requisitionId ?? posting.externalPath,
             title: posting.title,
             company: this.companyName,
             detailPath: posting.externalPath,

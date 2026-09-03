@@ -1,11 +1,13 @@
 import Database from "better-sqlite3";
+import { randomUUID } from "node:crypto";
 import { IJobPostLookup } from "../../../../Domain/JobPosts/IJobPostLookup";
 import { IJobRepository } from "../../IJobRepository";
 import { ILogger } from "../../../Logging/ILogger";
 import { IJobPostDetail } from "../../../../Domain/JobPosts/IJobPostDetail";
 
 interface JobInsertParameters {
-    source: string;
+    id: string;
+    sourceId: string;
     sourceJobId: string;
     requisitionId: string | null;
     company: string;
@@ -24,7 +26,8 @@ export class SqliteJobRepository implements IJobRepository {
     ) {
         this.insertLookupStatement = this.connection.prepare(`
             INSERT INTO jobLookups (
-                source,
+                id,
+                sourceId,
                 source_job_id,
                 requisition_id,
                 company,
@@ -34,7 +37,8 @@ export class SqliteJobRepository implements IJobRepository {
                 posted_date
             )
             VALUES (
-                @source,
+                @id,
+                @sourceId,
                 @sourceJobId,
                 @requisitionId,
                 @company,
@@ -43,7 +47,7 @@ export class SqliteJobRepository implements IJobRepository {
                 @locations,
                 @postedDate
             )
-            ON CONFLICT(source, detail_path)
+            ON CONFLICT(sourceId, detail_path)
             DO UPDATE SET
                 locations = excluded.locations,
                 posted_date = excluded.posted_date
@@ -88,9 +92,10 @@ export class SqliteJobRepository implements IJobRepository {
         );
     }
 
-    private mapInsertParameters(source: string, job: IJobPostLookup): JobInsertParameters {
+    private mapInsertParameters(sourceId: string, job: IJobPostLookup): JobInsertParameters {
         return {
-            source,
+            id: randomUUID(),
+            sourceId,
             sourceJobId: job.jobSourceId,
             requisitionId: job.requisitionId ?? null,
             company: job.company,
