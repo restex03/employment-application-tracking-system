@@ -1,6 +1,8 @@
 import Database from "better-sqlite3";
 import { IJobPostLookup } from "../../../../Domain/JobPosts/IJobPostLookup";
 import { IJobRepository } from "../../IJobRepository";
+import { ILogger } from "../../../Logging/ILogger";
+import { IJobPostDetail } from "../../../../Domain/JobPosts/IJobPostDetail";
 
 interface JobInsertParameters {
     source: string;
@@ -14,20 +16,14 @@ interface JobInsertParameters {
 }
 
 export class SqliteJobRepository implements IJobRepository {
-    private readonly existsStatement: Database.Statement;
-    private readonly insertStatement: Database.Statement;
+    private readonly insertLookupStatement: Database.Statement;
 
-    constructor(private readonly connection: Database.Database) {
-        this.existsStatement = this.connection.prepare(`
-            SELECT 1
-            FROM jobs
-            WHERE source = ?
-              AND source_job_id = ?
-            LIMIT 1
-        `);
-
-        this.insertStatement = this.connection.prepare(`
-            INSERT INTO jobs (
+    constructor(
+        private readonly connection: Database.Database,
+        private readonly logger: ILogger
+    ) {
+        this.insertLookupStatement = this.connection.prepare(`
+            INSERT INTO jobLookups (
                 source,
                 source_job_id,
                 requisition_id,
@@ -47,29 +43,49 @@ export class SqliteJobRepository implements IJobRepository {
                 @locations,
                 @postedDate
             )
-            ON CONFLICT(source, source_job_id)
-            DO NOTHING
+            ON CONFLICT(source, detail_path)
+            DO UPDATE SET
+                locations = excluded.locations,
+                posted_date = excluded.posted_date
         `);
     }
+    addDetailsIfNotExists(source: string, jobs: IJobPostDetail[]): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
 
-    public async exists(source: string, sourceJobId: string): Promise<boolean> {
-        const row = this.existsStatement.get(source, sourceJobId);
+    public async getJobPostCount(): Promise<number> {
+        const row = this.connection.prepare(`SELECT COUNT(*) AS count FROM jobLookups`).get() as { count: number };
 
-        return row !== undefined;
+        return row.count;
     }
 
     public async add(source: string, job: IJobPostLookup): Promise<void> {
-        this.insertStatement.run(this.mapInsertParameters(source, job));
+        this.insertLookupStatement.run(this.mapInsertParameters(source, job));
     }
 
-    public async addMany(source: string, jobs: IJobPostLookup[]): Promise<void> {
+    public async addLookupsIfNotExists(source: string, jobs: IJobPostLookup[]): Promise<void> {
         const insertMany = this.connection.transaction((jobs: IJobPostLookup[]) => {
+            let inserted = 0;
+            let skipped = 0;
+
             for (const job of jobs) {
-                this.insertStatement.run(this.mapInsertParameters(source, job));
+                const result = this.insertLookupStatement.run(this.mapInsertParameters(source, job));
+
+                if (result.changes === 1) {
+                    inserted++;
+                } else {
+                    skipped++;
+                }
             }
+
+            return { inserted, skipped };
         });
 
-        insertMany(jobs);
+        const result = insertMany(jobs);
+
+        this.logger.debug(
+            `[SqliteJobRepository.addManyIfNotExists] ` + `Inserted: ${result.inserted}, skipped: ${result.skipped}`
+        );
     }
 
     private mapInsertParameters(source: string, job: IJobPostLookup): JobInsertParameters {

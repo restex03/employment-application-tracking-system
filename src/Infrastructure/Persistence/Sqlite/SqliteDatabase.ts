@@ -14,7 +14,7 @@ export class SqliteDatabase {
 
     private initialize(): void {
         this.connection.exec(`
-            CREATE TABLE IF NOT EXISTS jobs (
+            CREATE TABLE IF NOT EXISTS jobLookups (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 source TEXT NOT NULL,
                 source_job_id TEXT NOT NULL,
@@ -24,9 +24,11 @@ export class SqliteDatabase {
                 detail_path TEXT NOT NULL,
                 locations TEXT,
                 posted_date TEXT,
-                first_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(source, source_job_id)
+                first_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS ux_jobLookups_source_detail_path
+            ON jobLookups(source, detail_path);
         `);
     }
 }

@@ -46,8 +46,7 @@ export function buildDependencies(source: IWorkdayJobSource, logLevel: LogLevel)
     const llm: ILlmInferenceProvider = new OllamaInferenceProvider(logger);
     const jobScreeningService: IJobScreeningService = new JobScreeningService(llm, logger);
 
-    // TODO: Make singleton
-    const sqlite = new SqliteDatabase("./data/job-app.db");
+    const sqlite = createSqliteDatabase();
 
     const lookupMapper: IWorkdayJobsApiResponseMapper = new WorkdayJobsResponseMapper(source.companyName);
     const detailMapper: IWorkdayJobDetailsApiResponseMapper = new WorkdayJobDetailsApiResponseMapper();
@@ -80,8 +79,9 @@ export function buildDependencies(source: IWorkdayJobSource, logLevel: LogLevel)
         jobRequirementMatchMapper,
         logger
     );
-
-    const jobRepository: IJobRepository = new SqliteJobRepository(sqlite.connection);
+    const jobRepository: IJobRepository = new SqliteJobRepository(sqlite.connection, logger);
+    logger.debug(`[buildDependencies] Dependencies built for source: ${source.companyName} at ${source.baseUrl}`);
+    logger.debug(`DB Connection Path: ${sqlite.connection.name}`);
 
     return {
         logger,
@@ -93,4 +93,12 @@ export function buildDependencies(source: IWorkdayJobSource, logLevel: LogLevel)
         requirementsMatchingService,
         jobRepository,
     };
+}
+
+export function createSqliteDatabase(): SqliteDatabase {
+    const dbPath = process.env.DB_PATH;
+    if (!dbPath) {
+        throw new Error("DB_PATH environment variable is not set.");
+    }
+    return new SqliteDatabase(dbPath);
 }
