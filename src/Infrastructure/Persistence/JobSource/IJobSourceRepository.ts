@@ -8,6 +8,7 @@ export interface IJobSourceRepository {
     upsertMany(sources: JobSourceInput[]): Promise<IWorkdayJobSource[]>;
 
     getById(id: string): Promise<IWorkdayJobSource | undefined>;
+    getByIdOrThrow(id: string): Promise<IWorkdayJobSource>;
 
     getByCompanyName(companyName: string): Promise<IWorkdayJobSource | undefined>;
 

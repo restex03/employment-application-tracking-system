@@ -19,7 +19,7 @@ import { WorkdayJobDiscoveryService } from "./Workday/WorkdayJobDiscoveryService
  */
 export class JobPostDiscoveryServiceFactory implements IJobPostDiscoveryServiceFactory {
     constructor(private readonly logger: ILogger) {}
-    createJobPostDiscoveryService(source: IWorkdayJobSource): IJobPostDiscoveryService {
+    create(source: IWorkdayJobSource): IJobPostDiscoveryService {
         const jobGateway: IJobGateway = new WorkdayJobsGateway({
             baseUrl: source.baseUrl,
             logger: this.logger,

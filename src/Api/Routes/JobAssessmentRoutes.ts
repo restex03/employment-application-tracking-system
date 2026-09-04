@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IRouteRegistrar } from "../Host/IRouteRegistrar";
+import { IJobAssessmentService } from "../../Application/JobAssessment/IJobAssessmentService";
 
 interface JobPostParams {
     jobPostId: string;
@@ -11,16 +12,19 @@ interface JobAssessmentRunBody {
 }
 
 export class JobAssessmentRoutes implements IRouteRegistrar {
-    constructor(private readonly logger: ILogger) {}
+    constructor(
+        private readonly jobAssessmentService: IJobAssessmentService,
+        private readonly logger: ILogger
+    ) {}
 
     public register(server: FastifyInstance): void {
         server.post<{
             Params: JobPostParams;
-        }>("/job-posts/:jobPostId/assessments", async (request, reply) => {
+        }>("/job-posts/:jobPostId/run-assessments", async (request, reply) => {
             const { jobPostId } = request.params;
 
-            this.logger.debug(`[POST /job-posts/${jobPostId}/assessments] Assessment requested`);
-
+            this.logger.debug(`[POST /job-posts/${jobPostId}/run-assessments] Assessment requested`);
+            await this.jobAssessmentService.runAssessment(jobPostId);
             return reply.code(501).send({
                 message: "Job assessment endpoint is not implemented yet.",
             });

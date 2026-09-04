@@ -1,4 +1,3 @@
-import { IJobPostDiscovery } from "../../../../Domain/JobPosts/IJobPostDiscovery";
 import { IJobScreenResult } from "../IJobScreenResult";
 import { ILogger } from "../../../../Infrastructure/Logging/ILogger";
 import { IJobScreeningService } from "../IJobScreeningService";
@@ -6,6 +5,7 @@ import { JobScreenSystemPrompt } from "../JobScreenSystemPrompt";
 import { JobScreenResponseSchema } from "../JobScreenResponseSchema";
 import { JobScreenResponseValidationSchema } from "../JobScreenResponseValidationSchema";
 import { ILlmInferenceProvider } from "../../../../Infrastructure/Inference/ILlmInferenceProvider";
+import { IJobPost } from "../../../../Domain/JobPosts/IJobPost";
 
 export class JobScreeningService implements IJobScreeningService {
     constructor(
@@ -13,7 +13,7 @@ export class JobScreeningService implements IJobScreeningService {
         private readonly logger: ILogger
     ) {}
 
-    async screen(job: IJobPostDiscovery): Promise<IJobScreenResult> {
+    async screen(job: IJobPost): Promise<IJobScreenResult> {
         const jobInfo = `${job.requisitionId} (${job.title})`;
         this.logger.info(`[JobScreeningService.screen] Screening job`);
 
@@ -37,7 +37,7 @@ export class JobScreeningService implements IJobScreeningService {
     }
 
     /** @deprecated use screen instead. */
-    async screenList(jobs: IJobPostDiscovery[]): Promise<IJobScreenResult[]> {
+    async screenList(jobs: IJobPost[]): Promise<IJobScreenResult[]> {
         this.logger.info(`[JobScreeningService.screen] Screening ${jobs.length} jobs`);
         const results: IJobScreenResult[] = [];
         for (const job of jobs) {

@@ -63,10 +63,7 @@ export class WorkdayJobDiscoveryService implements IJobPostDiscoveryService {
         return [...jobs.values()];
     }
 
-    async fetchDetail(lookup: IJobPostDiscovery): Promise<IJobPostDetail> {
-        this.logger.info(
-            `[WorkdayJobDiscoveryService.fetchJobDetail] Fetching details: ${lookup.requisitionId} (${lookup.title})`
-        );
+    async fetchDetail(lookup: Pick<IJobPostDiscovery, "detailPath">): Promise<IJobPostDetail> {
         const apiResult = await this.jobGateway.getDetail(lookup.detailPath);
         const jobDetail = this.detailMapper.map(apiResult);
         const locations =
@@ -83,11 +80,11 @@ export class WorkdayJobDiscoveryService implements IJobPostDiscoveryService {
     }
 
     /** @deprecated use fetchDetail instead */
-    async fetchDetails(lookups: IJobPostDiscovery[]): Promise<IJobPostDetail[]> {
-        this.logger.info(`[WorkdayJobDiscoveryService.fetchJobDetails] Fetching details: ${lookups.length} jobs.`);
+    async fetchDetails(detailPaths: Pick<IJobPostDiscovery, "detailPath">[]): Promise<IJobPostDetail[]> {
+        this.logger.info(`[WorkdayJobDiscoveryService.fetchJobDetails] Fetching details: ${detailPaths.length} jobs.`);
         const jobDetailsList: IJobPostDetail[] = [];
 
-        for (const result of lookups) {
+        for (const result of detailPaths) {
             const jobDetail = await this.fetchDetail(result);
             jobDetailsList.push(jobDetail);
         }

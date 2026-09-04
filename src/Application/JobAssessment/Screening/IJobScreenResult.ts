@@ -1,9 +1,9 @@
-import { IJobPostDiscovery } from "../../../Domain/JobPosts/IJobPostDiscovery";
+import { IJobPost } from "../../../Domain/JobPosts/IJobPost";
 
 export type JobScreenDisposition = "advance" | "reject" | "review";
 
 export interface IJobScreenResult {
     disposition: JobScreenDisposition;
     reason: string;
-    job: IJobPostDiscovery;
+    job: IJobPost;
 }

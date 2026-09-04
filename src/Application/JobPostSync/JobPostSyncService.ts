@@ -25,7 +25,7 @@ export class JobPostSyncService implements IJobPostSyncService {
             this.logger.debug(`[JobPostSyncService.sync] Syncing source: ${source.companyName}`);
 
             // TODO: Incorporate batching
-            const discoveryService = this.discoveryServiceFactory.createJobPostDiscoveryService(source);
+            const discoveryService = this.discoveryServiceFactory.create(source);
             const discoveries = await discoveryService.fetchList("software engineer");
             const jobPosts = discoveries.map(discovery => this.createJobPost(discovery));
             await this.jobPostService.addMany(jobPosts);

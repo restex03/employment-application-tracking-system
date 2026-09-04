@@ -1,11 +1,8 @@
 import Fastify, { FastifyInstance, RouteOptions } from "fastify";
-
 import { IApplicationDependencies } from "../../Application/DependencyInjection/IApplicationDependencies";
-
 import { JobAssessmentRoutes } from "../Routes/JobAssessmentRoutes";
 import { JobPostRoutes } from "../Routes/JobPostRoutes";
 import { JobSourceRoutes } from "../Routes/JobSourceRoutes";
-
 import { IRouteRegistrar } from "./IRouteRegistrar";
 import { IRouteDetails } from "./IRouteDetails";
 
@@ -22,11 +19,15 @@ export class Server {
         this.captureRoutes();
 
         this.routes = [
-            new JobSourceRoutes(dependencies.jobSourceRepository, dependencies.logger),
+            new JobSourceRoutes(this.dependencies.jobSourceRepository, this.dependencies.logger),
 
-            new JobPostRoutes(dependencies.jobPostService, dependencies.jobPostSyncService, dependencies.logger),
+            new JobPostRoutes(
+                this.dependencies.jobPostService,
+                this.dependencies.jobPostSyncService,
+                this.dependencies.logger
+            ),
 
-            new JobAssessmentRoutes(dependencies.logger),
+            new JobAssessmentRoutes(this.dependencies.jobAssessmentService, this.dependencies.logger),
         ];
 
         this.registerRoutes();

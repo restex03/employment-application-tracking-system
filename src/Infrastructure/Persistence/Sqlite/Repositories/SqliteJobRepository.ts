@@ -213,6 +213,13 @@ export class SqliteJobRepository implements IJobPostRepository {
 
         return this.mapJobPost(row);
     }
+    public async getByIdOrThrow(id: string): Promise<IJobPost> {
+        const jobPost = await this.getById(id);
+        if (!jobPost) {
+            throw new Error(`Job post not found: ${id}`);
+        }
+        return jobPost;
+    }
 
     private persist(job: IJobPost): string {
         const row = this.upsertJobPostStatement.get(this.mapJobPostParameters(job)) as JobPostIdRow;

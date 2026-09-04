@@ -5,4 +5,5 @@ export interface IJobPostRepository {
     addMany(jobPosts: IJobPost[]): Promise<void>;
     getAll(): Promise<IJobPost[]>;
     getById(id: string): Promise<IJobPost | undefined>;
+    getByIdOrThrow(id: string): Promise<IJobPost>;
 }

@@ -128,6 +128,13 @@ export class WorkdayJobSourceRepository implements IJobSourceRepository {
 
         return result;
     }
+    public async getByIdOrThrow(id: string): Promise<IWorkdayJobSource> {
+        const source = await this.getById(id);
+        if (!source) {
+            throw new Error(`Workday job source not found for id: ${id}`);
+        }
+        return source;
+    }
 
     public async getByCompanyName(companyName: string): Promise<IWorkdayJobSource | undefined> {
         const row = this.getByCompanyNameStatement.get(companyName) as WorkdaySourceRow | undefined;

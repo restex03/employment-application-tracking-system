@@ -282,6 +282,15 @@ export class SqliteJobRepository implements IJobPostRepository {
         return this.mapJobPost(row);
     }
 
+    public async getByIdOrThrow(id: string): Promise<IJobPost> {
+        const jobPost = await this.getById(id);
+        if (!jobPost) {
+            this.logger.error(`[SqliteJobRepository.getByIdOrThrow] Job post not found: ${id}`);
+            throw new Error(`Job post not found: ${id}`);
+        }
+        return jobPost;
+    }
+
     private persist(jobPost: IJobPost): string {
         /*
          * Upsert the discovery/root portion first.

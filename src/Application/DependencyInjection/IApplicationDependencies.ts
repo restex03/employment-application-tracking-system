@@ -3,6 +3,7 @@ import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
 import { SqliteDatabase } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteDatabase";
 import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
+import { IJobAssessmentService } from "../JobAssessment/IJobAssessmentService";
 import { IJobRequirementsMatchingService } from "../JobAssessment/RequirementMatching/IJobRequirementMatchingService";
 import { IJobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/IJobRequirementsExtractionService";
 import { IJobRequirementClassificationService } from "../JobAssessment/RquirementClassification/IJobRequirementClassificationService";
@@ -12,6 +13,7 @@ import { IJobPostDiscoveryServiceFactory } from "../JobPostDiscovery/IJobPostDis
 import { IJobPostSyncService } from "../JobPostSync/IJobPostSyncService";
 
 export interface IApplicationDependencies {
+    jobAssessmentService: IJobAssessmentService;
     logger: ILogger;
     sqlite: SqliteDatabase;
     jobPostRepository: IJobPostRepository;

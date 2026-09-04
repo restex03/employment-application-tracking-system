@@ -29,6 +29,17 @@ import { JobPostSyncService } from "../JobPostSync/JobPostSyncService";
 import { IJobPostDiscoveryServiceFactory } from "../JobPostDiscovery/IJobPostDiscoveryServiceFactory";
 import { JobPostDiscoveryServiceFactory } from "../JobPostDiscovery/JobPostDiscoveryServiceFactory";
 import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
+import { IJobAssessmentService } from "../JobAssessment/IJobAssessmentService";
+import { JobAssessmentService } from "../JobAssessment/JobAssessmentService";
+import { readFileSync } from "fs";
+import { ICandidateProfile } from "../../Domain/Candidates/ICandidateProfile";
+import { ScreenJob } from "../JobAssessment/Pipeline/Steps/ScreenJob";
+import { IJobAssessmentContext } from "../JobAssessment/Pipeline/IJobAssessmentContext";
+import { ClassifyJobRequirements } from "../JobAssessment/Pipeline/Steps/ClassifyJobRequirements";
+import { ExtractJobRequirements } from "../JobAssessment/Pipeline/Steps/ExtractJobRequirements";
+import { FetchJobDetails } from "../JobAssessment/Pipeline/Steps/FetchJobDetail";
+import { MatchJobRequirements } from "../JobAssessment/Pipeline/Steps/MatchJobRequirements";
+import { PipelineRunner } from "../Pipelines/PipelineRunner";
 
 export function buildDependencies(logLevel: LogLevel): IApplicationDependencies {
     const logger: ILogger = new ConsoleLogger(logLevel);
@@ -92,7 +103,21 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         jobPostService,
         logger
     );
-
+    const candidateProfile: ICandidateProfile = readCandidateProfile();
+    const jobAssessmentPipeline = new PipelineRunner<IJobAssessmentContext>([
+        new ScreenJob(screeningService),
+        new FetchJobDetails(jobPostDiscoveryServiceFactory),
+        new ExtractJobRequirements(requirementsExtractionService),
+        new ClassifyJobRequirements(requirementsClassificationService),
+        new MatchJobRequirements(requirementsMatchingService),
+    ]);
+    const jobAssessmentService: IJobAssessmentService = new JobAssessmentService(
+        candidateProfile,
+        jobAssessmentPipeline,
+        jobSourceRepository,
+        jobPostRepository,
+        logger
+    );
     logger.debug("[buildDependencies] Application dependencies initialized");
 
     logger.debug(`[buildDependencies] DB Connection Path: ${sqlite.connection.name}`);
@@ -113,6 +138,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         requirementsClassificationService,
         requirementsMatchingService,
         jobPostDiscoveryServiceFactory,
+        jobAssessmentService,
     };
 }
 
@@ -124,4 +150,13 @@ function createSqliteDatabase(): SqliteDatabase {
     }
 
     return new SqliteDatabase(dbPath);
+}
+
+function readCandidateProfile(): ICandidateProfile {
+    const profilePath = process.env.CANDIDATE_PROFILE_PATH;
+    if (!profilePath) {
+        throw new Error("CANDIDATE_PROFILE_PATH environment variable is not set.");
+    }
+    const profileJson = readFileSync(profilePath, "utf-8");
+    return JSON.parse(profileJson) as ICandidateProfile;
 }

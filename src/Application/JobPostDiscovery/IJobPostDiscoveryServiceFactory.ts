@@ -2,5 +2,5 @@ import { IWorkdayJobSource } from "../../Infrastructure/JobSources/Workday/IWork
 import { IJobPostDiscoveryService } from "./IJobPostDiscoveryService";
 
 export interface IJobPostDiscoveryServiceFactory {
-    createJobPostDiscoveryService(source: IWorkdayJobSource): IJobPostDiscoveryService;
+    create(source: IWorkdayJobSource): IJobPostDiscoveryService;
 }
