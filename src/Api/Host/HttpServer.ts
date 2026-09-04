@@ -6,7 +6,7 @@ import { JobSourceRoutes } from "../Routes/JobSourceRoutes";
 import { IRouteRegistrar } from "./IRouteRegistrar";
 import { IRouteDetails } from "./IRouteDetails";
 
-export class Server {
+export class HttpServer {
     private readonly app: FastifyInstance;
     private readonly routes: IRouteRegistrar[];
     private readonly registeredRoutes: IRouteDetails[] = [];

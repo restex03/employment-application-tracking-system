@@ -20,10 +20,10 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
     public register(server: FastifyInstance): void {
         server.post<{
             Params: JobPostParams;
-        }>("/job-posts/:jobPostId/run-assessments", async (request, reply) => {
+        }>("/job-posts/:jobPostId/run-assessment", async (request, reply) => {
             const { jobPostId } = request.params;
 
-            this.logger.debug(`[POST /job-posts/${jobPostId}/run-assessments] Assessment requested`);
+            this.logger.debug(`[POST /job-posts/${jobPostId}/run-assessment] Assessment requested`);
             await this.jobAssessmentService.runAssessment(jobPostId);
             return reply.code(501).send({
                 message: "Job assessment endpoint is not implemented yet.",

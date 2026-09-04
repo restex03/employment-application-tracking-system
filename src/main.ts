@@ -2,11 +2,11 @@ import "dotenv/config";
 
 import { buildDependencies } from "./Application/DependencyInjection/buildDependencies";
 import { LogLevel } from "./Infrastructure/Logging/LogLevel";
-import { Server } from "./Api/Host/Server";
+import { HttpServer } from "./Api/Host/HttpServer";
 
 const dependencies = buildDependencies(LogLevel.Debug);
 
-const server = new Server(dependencies);
+const server = new HttpServer(dependencies);
 const port = process.env.API_PORT ? parseInt(process.env.API_PORT) : 3000;
 const shutdown = async () => {
     await server.stop();

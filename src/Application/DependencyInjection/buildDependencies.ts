@@ -32,7 +32,6 @@ import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource
 import { IJobAssessmentService } from "../JobAssessment/IJobAssessmentService";
 import { JobAssessmentService } from "../JobAssessment/JobAssessmentService";
 import { readFileSync } from "fs";
-import { ICandidateProfile } from "../../Domain/Candidates/ICandidateProfile";
 import { ScreenJob } from "../JobAssessment/Pipeline/Steps/ScreenJob";
 import { IJobAssessmentContext } from "../JobAssessment/Pipeline/IJobAssessmentContext";
 import { ClassifyJobRequirements } from "../JobAssessment/Pipeline/Steps/ClassifyJobRequirements";
@@ -40,6 +39,7 @@ import { ExtractJobRequirements } from "../JobAssessment/Pipeline/Steps/ExtractJ
 import { FetchJobDetails } from "../JobAssessment/Pipeline/Steps/FetchJobDetail";
 import { MatchJobRequirements } from "../JobAssessment/Pipeline/Steps/MatchJobRequirements";
 import { PipelineRunner } from "../Pipelines/PipelineRunner";
+import { ICandidateProfile } from "../../Domain/Candidates/ICandidateProfile";
 
 export function buildDependencies(logLevel: LogLevel): IApplicationDependencies {
     const logger: ILogger = new ConsoleLogger(logLevel);
@@ -157,6 +157,7 @@ function readCandidateProfile(): ICandidateProfile {
     if (!profilePath) {
         throw new Error("CANDIDATE_PROFILE_PATH environment variable is not set.");
     }
-    const profileJson = readFileSync(profilePath, "utf-8");
-    return JSON.parse(profileJson) as ICandidateProfile;
+    console.log(`[buildDependencies] Reading candidate profile from: ${profilePath}`);
+    const profileData = readFileSync(profilePath, "utf-8");
+    return JSON.parse(profileData) as ICandidateProfile;
 }

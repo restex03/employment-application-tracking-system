@@ -5,3 +5,5 @@ OLLAMA_MODEL=qwen3:4b-instruct
 
 DB_PATH=./data/job-app.db
 TEST_MODE=true
+API_PORT=3001
+CANDIDATE_PROFILE_PATH=./src/data/candidateProfiles.json

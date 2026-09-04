@@ -93,11 +93,11 @@ The repository contains an example candidate profile that can be used as a templ
 
 ## Copy:
 
-`src/data/candidateProfiles.example.ts`
+`src/data/candidateProfiles.example.jsonc`
 
 to
 
-`src/data/candidateProfiles.ts`
+`src/data/candidateProfiles.jsonc`
 
 Then customize the local profile with your own:
 
@@ -110,7 +110,7 @@ Then customize the local profile with your own:
 - Work arrangements and locations
 - Hard constraints
 
-`candidateProfiles.ts` contains private candidate information and is intentionally excluded from source control.
+`candidateProfiles.jsonc` contains private candidate information and is intentionally excluded from source control.
 
 Do not commit personal candidate data to the repository.
 
