@@ -132,8 +132,9 @@ function printRequirementMatches(matches: IJobRequirementMatch[]): void {
 }
 
 export async function loadWorkdaySources(jobSourceRepository: IJobSourceRepository): Promise<IWorkdayJobSource[]> {
-    const sourcesPath = path.resolve(process.cwd(), "data", "JobSources", "workdaySources.json");
-
+    const seedDataPath = path.resolve(process.cwd(), "data", "JobSources", "workdaySources.json");
+    const seedData = JSON.parse(readFileSync(seedDataPath, "utf-8")) as JobSourceInput[];
+    await jobSourceRepository.upsertMany(seedData);
     const workdaySources = await jobSourceRepository.getAll();
 
     return Promise.resolve(workdaySources);
