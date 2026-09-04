@@ -55,38 +55,37 @@ try {
                 continue;
             }
 
-            // for (const job of todoJobs) {
-            //     const ctx = new JobAssessmentContext(profiles.profile_08_23_2026, job);
-            //     const jobAssessmentPipeline = new PipelineRunner<IJobAssessmentContext>([
-            //         new ScreenJob(screeningService),
-            //         new FetchJobDetails(jobFetchService),
-            //         new ExtractJobRequirements(requirementsExtractionService),
-            //         new ClassifyJobRequirements(requirementsClassificationService),
-            //         new MatchJobRequirements(requirementsMatchingService),
-            //     ]);
-            //     const result = await jobAssessmentPipeline.run(ctx);
+            for (const job of todoJobs) {
+                const ctx = new JobAssessmentContext(profiles.profile_08_23_2026, job);
+                const jobAssessmentPipeline = new PipelineRunner<IJobAssessmentContext>([
+                    new ScreenJob(screeningService),
+                    new FetchJobDetails(jobPostDiscoveryService),
+                    new ExtractJobRequirements(requirementsExtractionService),
+                    new ClassifyJobRequirements(requirementsClassificationService),
+                    new MatchJobRequirements(requirementsMatchingService),
+                ]);
+                const result = await jobAssessmentPipeline.run(ctx);
 
-            //     if (result.status === PipelineStepStatus.Failed) {
-            //         logger.error(`Pipeline failure detected at step ${result.failedStep}`);
-            //         logger.error(`\t- Reason: ${result.reason}`);
-            //     } else {
-            //         const company = result.context.job.company;
-            //         const title = result.context.job.title;
-            //         const postedDate = result.context.job.postedDate;
-            //         const locations =
-            //             result.context
-            //                 .jobDetail!.locations?.map(
-            //                     location => `\t- ${location.city ?? "Unknown"}, ${location.country ?? "Unknown"}`
-            //                 )
-            //                 .join("\n") ?? "\t- None";
+                if (result.status === PipelineStepStatus.Failed) {
+                    logger.error(`Pipeline failure detected at step ${result.failedStep}`);
+                    logger.error(`\t- Reason: ${result.reason}`);
+                } else {
+                    const title = result.context.job.title;
+                    const postedDate = result.context.job.postedDate;
+                    const locations =
+                        result.context
+                            .jobDetail!.locations?.map(
+                                location => `\t- ${location.city ?? "Unknown"}, ${location.country ?? "Unknown"}`
+                            )
+                            .join("\n") ?? "\t- None";
 
-            //         logger.info(`${company} - ${postedDate} ${title}`);
-            //         logger.info(`\t- Requisition ID: ${result.context.jobDetail!.requisitionId ?? "Unknown"}`);
-            //         logger.info(`\t- Locations (${result.context.jobDetail!.locations?.length ?? 0}):\n${locations}`);
-            //         logger.info(`\t- Description: ${result.context.jobDetail!.description.slice(0, 150)}...\n`);
-            //         printRequirementMatches(result.context.requirementMatches ?? []);
-            //     }
-            // }
+                    logger.info(`${source.companyName} - ${postedDate} ${title}`);
+                    logger.info(`\t- Requisition ID: ${result.context.jobDetail!.requisitionId ?? "Unknown"}`);
+                    logger.info(`\t- Locations (${result.context.jobDetail!.locations?.length ?? 0}):\n${locations}`);
+                    logger.info(`\t- Description: ${result.context.jobDetail!.description.slice(0, 150)}...\n`);
+                    printRequirementMatches(result.context.requirementMatches ?? []);
+                }
+            }
         } catch (error) {
             console.error(
                 `Failed to retrieve jobs for ${source.companyName}`,
