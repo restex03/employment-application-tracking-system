@@ -49,7 +49,6 @@ describe("WorkdayJobDetailsApiResponseMapper", () => {
             requisitionId: "JR-0107919",
             title: "Senior Software Engineer",
             description: "<p>Build great software.</p>",
-            company: "Workday",
             datePosted: "Posted 2 Days Ago",
             employmentType: "Full time",
             locations: [
@@ -183,6 +182,5 @@ describe("WorkdayJobDetailsApiResponseMapper", () => {
         expect(result.id).toBe("JR-0107919");
         expect(result.requisitionId).toBe("JR-0107919");
         expect(result.title).toBe("Senior Software Engineer");
-        expect(result.company).toBe("Workday");
     });
 });

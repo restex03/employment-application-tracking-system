@@ -2,8 +2,8 @@ import { FastifyInstance } from "fastify";
 
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 
-import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository ";
 import { IRouteRegistrar } from "../Host/IRouteRegistrar";
+import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
 
 interface JobSourceQuery {
     companyName?: string;

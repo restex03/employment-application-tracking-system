@@ -26,19 +26,19 @@ function createPosting(
 }
 
 describe("WorkdayJobsResponseMapper", () => {
-    const companyName = "Travelers";
+    const jobSourceId = "job-source-abc";
 
     it("maps Workday job postings to job search results", () => {
-        const mapper = new WorkdayJobsResponseMapper(companyName);
+        const mapper = new WorkdayJobsResponseMapper(jobSourceId);
 
         const response = createPosting();
 
         const result = mapper.map(response);
 
         expect(result).toEqual({
+            sourceId: jobSourceId,
             requisitionId: "R-51887",
             title: "Senior Software Engineer",
-            company: companyName,
             detailPath: "/job/USA-GA-Atlanta/Senior-Software-Engineer_R-51887",
             locations: ["Atlanta, GA"],
             postedDate: "Posted 2 Days Ago",
@@ -54,7 +54,7 @@ describe("WorkdayJobsResponseMapper", () => {
         ["/job/test/Software-Engineer_2021114", "2021114"],
         ["/job/test/Software-Engineer_J00177610-1", "J00177610"],
     ])("extracts requisition ID from %s", (externalPath, expectedRequisitionId) => {
-        const mapper = new WorkdayJobsResponseMapper(companyName);
+        const mapper = new WorkdayJobsResponseMapper(jobSourceId);
 
         const response = createPosting({ externalPath });
 
@@ -64,7 +64,7 @@ describe("WorkdayJobsResponseMapper", () => {
     });
 
     it("extracts JR-prefixed requisition IDs containing a hyphen", () => {
-        const mapper = new WorkdayJobsResponseMapper(companyName);
+        const mapper = new WorkdayJobsResponseMapper(jobSourceId);
 
         const externalPath = "/job/USA-CA-Pleasanton/Senior-Software-Engineer_JR-0107919";
 
@@ -76,7 +76,7 @@ describe("WorkdayJobsResponseMapper", () => {
     });
 
     it("falls back to externalPath when a requisition ID cannot be determined", () => {
-        const mapper = new WorkdayJobsResponseMapper(companyName);
+        const mapper = new WorkdayJobsResponseMapper(jobSourceId);
 
         const externalPath = "/job/USA-GA-Atlanta/Some-Unusual-Job";
 
@@ -88,7 +88,7 @@ describe("WorkdayJobsResponseMapper", () => {
     });
 
     it("omits locations when locationsText is empty", () => {
-        const mapper = new WorkdayJobsResponseMapper(companyName);
+        const mapper = new WorkdayJobsResponseMapper(jobSourceId);
 
         const result = mapper.map(createPosting({ locationsText: "" }));
 
@@ -96,7 +96,7 @@ describe("WorkdayJobsResponseMapper", () => {
     });
 
     it("omits postedDate when postedOn is empty", () => {
-        const mapper = new WorkdayJobsResponseMapper(companyName);
+        const mapper = new WorkdayJobsResponseMapper(jobSourceId);
 
         const result = mapper.map(createPosting({ postedOn: "" }));
 

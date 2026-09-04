@@ -11,11 +11,6 @@ export interface IJobPostDiscovery {
     title: string;
 
     /**
-     * Employer name.
-     */
-    company: string;
-
-    /**
      * Path of the actual job detail page.
      *
      * This will normally be what getDetail() uses.

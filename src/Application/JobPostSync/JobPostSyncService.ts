@@ -1,12 +1,13 @@
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IJobPostService } from "../JobPost/IJobPostService";
 import { IJobPostSyncResult, IJobPostSyncService } from "./IJobPostSyncService";
-import { IJobPostDiscoveryService } from "../JobPostDiscovery/IJobPostDiscoveryService";
-import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository ";
+import { IJobPostDiscoveryServiceFactory } from "../JobPostDiscovery/IJobPostDiscoveryServiceFactory";
+import { IWorkdayJobSource } from "../../Infrastructure/JobSources/Workday/IWorkdayJobSource";
+import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
 
 export class JobPostSyncService implements IJobPostSyncService {
     constructor(
-        private readonly jobFetchService: IJobPostDiscoveryService,
+        private readonly discoveryServiceFactory: IJobPostDiscoveryServiceFactory,
         private readonly jobSourceRepository: IJobSourceRepository,
         private readonly jobPostService: IJobPostService,
         private readonly logger: ILogger
@@ -20,7 +21,8 @@ export class JobPostSyncService implements IJobPostSyncService {
         for (const source of sources) {
             this.logger.debug(`[JobPostSyncService.sync] Syncing source: ${source.companyName}`);
 
-            const discoveries = await this.jobFetchService.fetchLookups("software engineer");
+            const discoveryService = this.discoveryServiceFactory.createJobPostDiscoveryService(source);
+            const discoveries = await discoveryService.fetchLookups("software engineer");
 
             await this.jobPostService.storeDiscoveredJobs(discoveries);
 
@@ -37,7 +39,7 @@ export class JobPostSyncService implements IJobPostSyncService {
         };
     }
 
-    private async getSource(sourceId: string) {
+    private async getSource(sourceId: string): Promise<IWorkdayJobSource[]> {
         const source = await this.jobSourceRepository.getById(sourceId);
 
         if (!source) {

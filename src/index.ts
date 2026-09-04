@@ -1,10 +1,7 @@
 import "dotenv/config";
 import { profiles } from "./data/candidateProfiles";
 import { LogLevel } from "./Infrastructure/Logging/LogLevel";
-import {
-    buildApplicationDependencies,
-    buildSourceDependencies,
-} from "./Application/DependencyInjection/buildDependencies";
+
 import {
     IJobAssessmentContext,
     JobAssessmentContext,
@@ -19,19 +16,20 @@ import { MatchJobRequirements } from "./Application/JobAssessment/Pipeline/Steps
 import { IJobRequirementMatch } from "./Application/JobAssessment/RequirementMatching/IJobRequirementMatch";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { IJobSourceRepository, JobSourceInput } from "./Infrastructure/Persistence/JobSource/IJobSourceRepository ";
+import { IJobSourceRepository, JobSourceInput } from "./Infrastructure/Persistence/JobSource/IJobSourceRepository";
 import { IWorkdayJobSource } from "./Infrastructure/JobSources/Workday/IWorkdayJobSource";
+import { buildDependencies } from "./Application/DependencyInjection/buildDependencies";
 
 const TEST_MODE = process.env.TEST_MODE === "true" || false;
 console.log("Starting application in " + (TEST_MODE ? "test" : "production") + " mode...");
 
-const app = buildApplicationDependencies(LogLevel.Debug);
+const app = buildDependencies(LogLevel.Debug);
 const workdaySources = await loadWorkdaySources(app.jobSourceRepository);
-const jobSources = TEST_MODE ? workdaySources.filter(x => x.companyName === "Walmart") : workdaySources;
+const jobSources = TEST_MODE ? workdaySources.filter(x => x.companyName === "Equifax") : workdaySources;
 try {
     for (const source of jobSources) {
         try {
-            const sourceDependencies = buildSourceDependencies(source, app);
+            // const sourceDependencies = buildSourceDependencies(source, app);
 
             const {
                 logger,
@@ -40,14 +38,13 @@ try {
                 requirementsExtractionService,
                 requirementsClassificationService,
                 requirementsMatchingService,
+                jobPostDiscoveryServiceFactory,
             } = app;
-
-            const { jobFetchService } = sourceDependencies;
 
             logger.info(`\n========== ${source.companyName} ==========`);
             logger.info(`[index] Fetching jobs from ${source.companyName} at ${source.baseUrl}...`);
-
-            const rawJobsList = await jobFetchService.fetchLookups("software engineer");
+            const jobPostDiscoveryService = jobPostDiscoveryServiceFactory.createJobPostDiscoveryService(source);
+            const rawJobsList = await jobPostDiscoveryService.fetchLookups("software engineer");
             // const todoJobs =
             const todoJobs = TEST_MODE ? rawJobsList.slice(0, 10) : rawJobsList;
 

@@ -14,7 +14,7 @@ export class JobRequirementsExtractionService implements IJobRequirementsExtract
     ) {}
 
     public async extract(job: IJobPostDetail): Promise<IJobRequirement[]> {
-        const jobInfo = `${job.company} - ${job.requisitionId} (${job.title})`;
+        const jobInfo = `${job.requisitionId} (${job.title})`;
 
         this.logger.info(`[JobRequirementsExtractionService.extract] Extracting job requirements`);
 

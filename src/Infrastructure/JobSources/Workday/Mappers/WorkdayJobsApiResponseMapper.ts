@@ -16,7 +16,6 @@ export class WorkdayJobsResponseMapper implements IWorkdayJobsApiResponseMapper 
         return {
             sourceId: this.jobSourceId,
             title: posting.title,
-            company: this.jobSourceId,
             detailPath: posting.externalPath,
             ...(requisitionId === undefined ? {} : { requisitionId }),
             ...(posting.locationsText ? { locations: [posting.locationsText] } : {}),

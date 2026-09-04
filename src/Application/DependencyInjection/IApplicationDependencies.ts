@@ -2,12 +2,13 @@ import { ILlmInferenceProvider } from "../../Infrastructure/Inference/ILlmInfere
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
 import { SqliteDatabase } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteDatabase";
-import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository ";
+import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
 import { IJobRequirementsMatchingService } from "../JobAssessment/RequirementMatching/IJobRequirementMatchingService";
 import { IJobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/IJobRequirementsExtractionService";
 import { IJobRequirementClassificationService } from "../JobAssessment/RquirementClassification/IJobRequirementClassificationService";
 import { IJobScreeningService } from "../JobAssessment/Screening/IJobScreeningService";
 import { IJobPostService } from "../JobPost/IJobPostService";
+import { IJobPostDiscoveryServiceFactory } from "../JobPostDiscovery/IJobPostDiscoveryServiceFactory";
 import { IJobPostSyncService } from "../JobPostSync/IJobPostSyncService";
 
 export interface IApplicationDependencies {
@@ -23,6 +24,5 @@ export interface IApplicationDependencies {
     requirementsExtractionService: IJobRequirementsExtractionService;
     requirementsClassificationService: IJobRequirementClassificationService;
     requirementsMatchingService: IJobRequirementsMatchingService;
-
-    jobSourceDependenciesFactory: IJobSourceDependenciesFactory;
+    jobPostDiscoveryServiceFactory: IJobPostDiscoveryServiceFactory;
 }

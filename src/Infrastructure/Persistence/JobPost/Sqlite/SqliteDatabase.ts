@@ -35,7 +35,6 @@ export class SqliteDatabase {
                 id TEXT PRIMARY KEY NOT NULL,
                 source_id TEXT NOT NULL,
                 requisition_id TEXT,
-                company TEXT NOT NULL,
                 title TEXT NOT NULL,
                 detail_path TEXT NOT NULL,
                 locations TEXT,
@@ -52,10 +51,14 @@ export class SqliteDatabase {
             CREATE TABLE IF NOT EXISTS job_post_details (
                 id TEXT PRIMARY KEY NOT NULL,
                 job_post_id TEXT NOT NULL UNIQUE,
+
                 description TEXT NOT NULL,
                 employment_type TEXT,
                 locations TEXT,
-                posted_date TEXT,
+                valid_through TEXT,
+                remote_type TEXT,
+                applicant_locations TEXT,
+
                 fetched_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
                 FOREIGN KEY (job_post_id)

@@ -12,10 +12,19 @@ export class JobPostService implements IJobPostService {
     ) {}
 
     public async storeDiscoveredJobs(discoveries: IJobPostDiscovery[]): Promise<void> {
-        this.logger.info(`[JobPostService.storeDiscoveredJobs] Storing ${discoveries.length} discovered jobs...`);
+        this.logger.info(`[JobPostService.storeDiscoveredJobs] ` + `Storing ${discoveries.length} discovered jobs...`);
+
         const jobs = discoveries.map(discovery => this.createJobPost(discovery));
 
         await this.jobRepository.addMany(jobs);
+    }
+
+    public async getAll(): Promise<IJobPost[]> {
+        return this.jobRepository.getAll();
+    }
+
+    public async getById(id: string): Promise<IJobPost | undefined> {
+        return this.jobRepository.getById(id);
     }
 
     private createJobPost(discovery: IJobPostDiscovery): IJobPost {

@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { IWorkdayJobSource } from "../../../JobSources/Workday/IWorkdayJobSource";
 
 import { ILogger } from "../../../Logging/ILogger";
-import { IJobSourceRepository, JobSourceInput } from "../IJobSourceRepository ";
+import { IJobSourceRepository, JobSourceInput } from "../IJobSourceRepository";
 
 interface WorkdaySourceParameters {
     id: string;

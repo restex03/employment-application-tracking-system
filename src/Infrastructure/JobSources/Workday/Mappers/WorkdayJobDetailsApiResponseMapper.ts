@@ -6,7 +6,7 @@ export interface IWorkdayJobDetailsApiResponseMapper {
 }
 export class WorkdayJobDetailsApiResponseMapper implements IWorkdayJobDetailsApiResponseMapper {
     public map(response: IWorkdayJobDetailsApiResponse): IJobPostDetail {
-        const { jobPostingInfo, hiringOrganization } = response;
+        const { jobPostingInfo } = response;
 
         const locations: IJobLocation[] = [
             ...(jobPostingInfo.location
@@ -29,7 +29,6 @@ export class WorkdayJobDetailsApiResponseMapper implements IWorkdayJobDetailsApi
             requisitionId: jobPostingInfo.jobReqId,
             title: jobPostingInfo.title,
             description: jobPostingInfo.jobDescription,
-            company: hiringOrganization.name,
             datePosted: jobPostingInfo.postedOn,
             employmentType: jobPostingInfo.timeType,
             locations: uniqueLocations,
