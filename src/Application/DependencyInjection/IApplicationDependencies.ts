@@ -1,3 +1,4 @@
+import { ICandidateProfile } from "../../Domain/Candidates/ICandidateProfile";
 import { ILlmInferenceProvider } from "../../Infrastructure/Inference/ILlmInferenceProvider";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
@@ -20,7 +21,8 @@ export interface IApplicationDependencies {
     jobSourceRepository: IJobSourceRepository;
     jobPostService: IJobPostService;
     jobPostSyncService: IJobPostSyncService;
-
+    // TODO: Move to db
+    jobCandidateProfile: ICandidateProfile;
     llm: ILlmInferenceProvider;
     screeningService: IJobScreeningService;
     requirementsExtractionService: IJobRequirementsExtractionService;

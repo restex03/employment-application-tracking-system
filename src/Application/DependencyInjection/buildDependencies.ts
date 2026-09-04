@@ -103,7 +103,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         jobPostService,
         logger
     );
-    const candidateProfile: ICandidateProfile = readCandidateProfile();
+    const jobCandidateProfile: ICandidateProfile = readCandidateProfile();
     const jobAssessmentPipeline = new PipelineRunner<IJobAssessmentContext>([
         new ScreenJob(screeningService),
         new FetchJobDetails(jobPostDiscoveryServiceFactory),
@@ -112,7 +112,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         new MatchJobRequirements(requirementsMatchingService),
     ]);
     const jobAssessmentService: IJobAssessmentService = new JobAssessmentService(
-        candidateProfile,
+        jobCandidateProfile,
         jobAssessmentPipeline,
         jobSourceRepository,
         jobPostRepository,
@@ -126,7 +126,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         logger,
         sqlite,
         llm,
-
+        jobCandidateProfile,
         jobPostRepository,
         jobSourceRepository,
 

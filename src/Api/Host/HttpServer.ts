@@ -5,6 +5,7 @@ import { JobPostRoutes } from "../Routes/JobPostRoutes";
 import { JobSourceRoutes } from "../Routes/JobSourceRoutes";
 import { IRouteRegistrar } from "./IRouteRegistrar";
 import { IRouteDetails } from "./IRouteDetails";
+import { JobCandidateProfileRoutes } from "../Routes/JobCandidateProfileRoutes";
 
 export class HttpServer {
     private readonly app: FastifyInstance;
@@ -20,7 +21,7 @@ export class HttpServer {
 
         this.routes = [
             new JobSourceRoutes(this.dependencies.jobSourceRepository, this.dependencies.logger),
-
+            new JobCandidateProfileRoutes(this.dependencies.jobCandidateProfile, this.dependencies.logger),
             new JobPostRoutes(
                 this.dependencies.jobPostService,
                 this.dependencies.jobPostSyncService,
