@@ -4,6 +4,9 @@ import { IJobPostSyncResult, IJobPostSyncService } from "./IJobPostSyncService";
 import { IJobPostDiscoveryServiceFactory } from "../JobPostDiscovery/IJobPostDiscoveryServiceFactory";
 import { IWorkdayJobSource } from "../../Infrastructure/JobSources/Workday/IWorkdayJobSource";
 import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
+import { IJobPostDiscovery } from "../../Domain/JobPosts/IJobPostDiscovery";
+import { randomUUID } from "crypto";
+import { IJobPost } from "../../Domain/JobPosts/IJobPost";
 
 export class JobPostSyncService implements IJobPostSyncService {
     constructor(
@@ -21,12 +24,13 @@ export class JobPostSyncService implements IJobPostSyncService {
         for (const source of sources) {
             this.logger.debug(`[JobPostSyncService.sync] Syncing source: ${source.companyName}`);
 
+            // TODO: Incorporate batching
             const discoveryService = this.discoveryServiceFactory.createJobPostDiscoveryService(source);
-            const discoveries = await discoveryService.fetchLookups("software engineer");
+            const discoveries = await discoveryService.fetchList("software engineer");
+            const jobPosts = discoveries.map(discovery => this.createJobPost(discovery));
+            await this.jobPostService.addMany(jobPosts);
 
-            await this.jobPostService.storeDiscoveredJobs(discoveries);
-
-            jobsDiscovered += discoveries.length;
+            jobsDiscovered += jobPosts.length;
         }
 
         this.logger.debug(
@@ -47,5 +51,18 @@ export class JobPostSyncService implements IJobPostSyncService {
         }
 
         return [source];
+    }
+
+    private createJobPost(discovery: IJobPostDiscovery): IJobPost {
+        return {
+            id: randomUUID(),
+            sourceId: discovery.sourceId,
+            requisitionId: discovery.requisitionId,
+            title: discovery.title,
+            detailPath: discovery.detailPath,
+            locations: discovery.locations,
+            postedDate: discovery.postedDate,
+            createdAt: new Date(),
+        };
     }
 }

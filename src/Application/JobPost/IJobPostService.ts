@@ -1,8 +1,7 @@
 import { IJobPost } from "../../Domain/JobPosts/IJobPost";
-import { IJobPostDiscovery } from "../../Domain/JobPosts/IJobPostDiscovery";
 
 export interface IJobPostService {
-    storeDiscoveredJobs(discoveries: IJobPostDiscovery[]): Promise<void>;
+    addMany(jobs: IJobPost[]): Promise<void>;
 
     getAll(): Promise<IJobPost[]>;
 

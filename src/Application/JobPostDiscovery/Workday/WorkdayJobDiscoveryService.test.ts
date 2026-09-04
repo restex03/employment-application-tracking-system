@@ -161,7 +161,7 @@ describe("WorkdayJobDiscoveryService", () => {
 
             mapMock.mockReturnValue(mappedJob);
 
-            const result = await service.fetchLookups("software");
+            const result = await service.fetchList("software");
 
             expect(result).toEqual([mappedJob]);
 
@@ -228,7 +228,7 @@ describe("WorkdayJobDiscoveryService", () => {
                     })
                 );
 
-            const result = await service.fetchLookups();
+            const result = await service.fetchList();
 
             expect(searchMock).toHaveBeenCalledTimes(3);
 
@@ -269,7 +269,7 @@ describe("WorkdayJobDiscoveryService", () => {
                     jobPostings: [],
                 });
 
-            const result = await service.fetchLookups();
+            const result = await service.fetchList();
 
             expect(searchMock).toHaveBeenCalledTimes(2);
             expect(result).toEqual([]);
@@ -302,7 +302,7 @@ describe("WorkdayJobDiscoveryService", () => {
 
             mapMock.mockReturnValueOnce(firstVersion).mockReturnValueOnce(duplicateVersion);
 
-            const result = await service.fetchLookups();
+            const result = await service.fetchList();
 
             expect(result).toEqual([duplicateVersion]);
         });
@@ -315,7 +315,7 @@ describe("WorkdayJobDiscoveryService", () => {
                 jobPostings: [],
             });
 
-            const result = await service.fetchLookups();
+            const result = await service.fetchList();
 
             expect(result).toEqual([]);
             expect(searchMock).toHaveBeenCalledOnce();
@@ -330,7 +330,7 @@ describe("WorkdayJobDiscoveryService", () => {
                 jobPostings: [],
             });
 
-            await service.fetchLookups();
+            await service.fetchList();
 
             expect(logger.info).toHaveBeenCalledWith("[WorkdayJobDiscoveryService.fetchJobs] Total jobs to fetch: 37");
         });

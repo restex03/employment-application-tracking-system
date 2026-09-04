@@ -35,7 +35,7 @@ export class WorkdayJobDiscoveryService implements IJobPostDiscoveryService {
         this.jobGateway = opts.jobGateway;
         this.logger = opts.logger;
     }
-    async fetchLookups(searchText?: string): Promise<IJobPostDiscovery[]> {
+    async fetchList(searchText?: string): Promise<IJobPostDiscovery[]> {
         this.logger.info(`[WorkdayJobDiscoveryService.fetchJobs] Fetching jobs...`);
         const jobs = new Map<string, IJobPostDiscovery>();
         let offset = 0;
