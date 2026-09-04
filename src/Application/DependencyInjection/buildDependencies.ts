@@ -40,6 +40,8 @@ import { WorkdayJobSourceRepository } from "../../Infrastructure/Persistence/Job
 import { IWorkdayJobSource } from "../../Infrastructure/JobSources/Workday/IWorkdayJobSource";
 import { IApplicationDependencies } from "./IApplicationDependencies";
 import { ISourceDependencies } from "./ISourceDependencies";
+import { IJobPostSyncService } from "../JobPostSync/IJobPostSyncService";
+import { JobPostSyncService } from "../JobPostSync/JobPostSyncService";
 
 export function buildApplicationDependencies(logLevel: LogLevel): IApplicationDependencies {
     const logger: ILogger = new ConsoleLogger(logLevel);
@@ -81,6 +83,13 @@ export function buildApplicationDependencies(logLevel: LogLevel): IApplicationDe
         logger
     );
 
+    const jobPostSyncService: IJobPostSyncService = new JobPostSyncService(
+        jobFetchService,
+        jobSourceRepository,
+        jobPostService,
+        logger
+    );
+
     logger.debug(`[buildApplicationDependencies] Application dependencies initialized`);
 
     logger.debug(`[buildApplicationDependencies] DB Connection Path: ${sqlite.connection.name}`);
@@ -96,6 +105,7 @@ export function buildApplicationDependencies(logLevel: LogLevel): IApplicationDe
         requirementsClassificationService,
         requirementsMatchingService,
         jobSourceRepository,
+        jobPostSyncService,
     };
 }
 

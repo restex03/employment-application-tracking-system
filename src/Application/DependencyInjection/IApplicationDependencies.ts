@@ -8,18 +8,21 @@ import { IJobRequirementsExtractionService } from "../JobAssessment/Requirements
 import { IJobRequirementClassificationService } from "../JobAssessment/RquirementClassification/IJobRequirementClassificationService";
 import { IJobScreeningService } from "../JobAssessment/Screening/IJobScreeningService";
 import { IJobPostService } from "../JobPost/IJobPostService";
+import { IJobPostSyncService } from "../JobPostSync/IJobPostSyncService";
 
 export interface IApplicationDependencies {
-    jobSourceRepository: IJobSourceRepository;
     logger: ILogger;
     sqlite: SqliteDatabase;
-    llm: ILlmInferenceProvider;
-
     jobPostRepository: IJobPostRepository;
+    jobSourceRepository: IJobSourceRepository;
     jobPostService: IJobPostService;
+    jobPostSyncService: IJobPostSyncService;
 
+    llm: ILlmInferenceProvider;
     screeningService: IJobScreeningService;
     requirementsExtractionService: IJobRequirementsExtractionService;
     requirementsClassificationService: IJobRequirementClassificationService;
     requirementsMatchingService: IJobRequirementsMatchingService;
+
+    jobSourceDependenciesFactory: IJobSourceDependenciesFactory;
 }
