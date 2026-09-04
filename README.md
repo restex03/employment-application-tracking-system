@@ -33,7 +33,9 @@ LLM Evaluation
     ↓
 Compatibility Scoring
     ↓
-Persistence / Application Workflow
+Persistence
+    ↓
+Analysis
 ```
 
 Provider-specific infrastructure is kept separate from the application and evaluation layers so additional job sources or evaluation implementations can be introduced without changing the core domain logic.
@@ -42,23 +44,24 @@ Provider-specific infrastructure is kept separate from the application and evalu
 
 ```
 src/
-├── Application/ # Application orchestration and services
-│ ├── Common/ # Shared application utilities
+├── Application/ # Application workflows and orchestration
 │ ├── DependencyInjection/ # Dependency registration
-│ ├── Services/ # Application services
-│ └── WorkdaySources/ # Configured Workday sources
+│ ├── JobAssessment/ # Job screening and requirement evaluation
+│ ├── JobDiscovery/ # Job retrieval workflows
+│ └── Pipelines/ # Reusable pipeline execution & future paralelization
 │
-├── Evaluators/ # Job evaluation strategies
-│ ├── JobScreenEvaluator/ # Initial candidate/job screening
-│ └── ScoreEvaluator/ # Detailed compatibility evaluation
+├── data/ # Application seed and candidate profile data
 │
-├── Infrastructure/ # External systems and persistence
-│ ├── APIs/ # Job-source integrations
-│ └── Persistence/ # Database repositories
+├── Domain/ # Core application models and contracts
+│ ├── Candidates/ # Candidate profile definitions
+│ ├── JobAssessment/ # Assessment-related domain models
+│ └── JobPosts/ # Job posting models and lookup contracts
 │
-├── JobCandidateProfile/ # Candidate profile definitions
-│
-└── JobCompatibilityCalculators/ # Deterministic compatibility scoring
+└── Infrastructure/ # External systems and persistence
+    ├── Inference/ # LLM provider integrations
+    ├── JobSources/ # Job-source integrations
+    ├── Logging/ # Logging implementations
+    └── Persistence/ # Database repositories
 
 ```
 
@@ -90,11 +93,11 @@ The repository contains an example candidate profile that can be used as a templ
 
 ## Copy:
 
-`src/JobCandidateProfile/candidateProfiles.example.ts`
+`src/data/candidateProfiles.example.ts`
 
 to
 
-`src/JobCandidateProfile/candidateProfiles.ts`
+`src/data/candidateProfiles.ts`
 
 Then customize the local profile with your own:
 
@@ -113,8 +116,9 @@ Do not commit personal candidate data to the repository.
 
 ## Job Sources
 
-Workday sources are configured in:
-`src/Application/WorkdaySources/workdaySources.ts`
+Workday sources are configured in the following data file and seeded into the database when the
+application starts.
+`data\JobSources\workdaySources.json`
 
 Additional Workday-hosted career sites can be added through the existing source configuration.
 
@@ -126,8 +130,16 @@ The LLM implementation is accessed through an abstraction so model and provider 
 
 ## Usage
 
-Start the application:
+Start the scripted application workflow:
 `npm start`
+
+Start the scripted workflow and write console output to `output.txt`:
+`npm run start:tee`
+
+Start the alternative API entry point (WIP; may be broken):
+`npm run api`
+
+### Pre-run Validation
 
 Run typescript validation:
 `npm run typecheck`
@@ -149,17 +161,17 @@ Filters opportunities based on candidate requirements and practical constraints 
 
 Evaluates job requirements against candidate experience, skills, preferences, and career direction using a locally hosted LLM.
 
-### Compatibility Scoring
+### Compatibility Scoring (WIP)
 
-Uses structured evaluation results and deterministic scoring logic to rank job opportunities.
+Uses structured evaluation results and deterministic scoring logic to rank job opportunities. Scoring remains a work in progress.
 
-### Local-First AI
+### Local-First AI (Support your local AI!)
 
-Supports local LLM inference through Ollama, allowing candidate profile information and job-evaluation prompts to remain on the local machine.
+This project supports local AI through Ollama. Candidate profile information and job-evaluation prompts can remain on the local machine, while development and testing avoid charges associated with hosted LLM APIs.
 
 ### Persistence
 
-Currently dormant. Plans to use SQLite to persist job and evaluation data locally are currently in the works.
+SQLite persistence is implemented for job sources and discovered job posts. Persistence for additional evaluation data remains a work in progress.
 
 ### Extensible Architecture
 
