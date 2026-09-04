@@ -46,7 +46,6 @@ describe("WorkdayJobDiscoveryService", () => {
     const createJob = (overrides: Partial<IJobPostDiscovery> = {}): IJobPostDiscovery => ({
         sourceId: crypto.randomUUID(),
         title: "Software Engineer",
-        company: "Example Company",
         detailPath: "/job/software-engineer_R-100",
         ...overrides,
     });

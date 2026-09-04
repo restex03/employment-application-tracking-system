@@ -14,7 +14,7 @@ export class JobScreeningService implements IJobScreeningService {
     ) {}
 
     async screen(job: IJobPostDiscovery): Promise<IJobScreenResult> {
-        const jobInfo = `${job.company} - ${job.requisitionId} (${job.title})`;
+        const jobInfo = `${job.requisitionId} (${job.title})`;
         this.logger.info(`[JobScreeningService.screen] Screening job`);
 
         const result = await this.llm.generateStructured({
