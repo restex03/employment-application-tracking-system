@@ -2,12 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ILogger } from "../../../Infrastructure/Logging/ILogger";
 import { IWorkdayJobsApiResponseMapper } from "../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobsApiResponseMapper";
 
-import { WorkdayJobFetchService } from "./WorkdayJobFetchService";
+import { WorkdayJobDiscoveryService } from "./WorkdayJobDiscoveryService";
 import { IJobGateway } from "../../../Domain/JobPosts/IJobSource";
-import { IJobPostLookup } from "../../../Domain/JobPosts/IJobPostLookup";
+import { IJobPostDiscovery } from "../../../Domain/JobPosts/IJobPostDiscovery";
 import { IWorkdayJobDetailsApiResponseMapper } from "../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobDetailsApiResponseMapper";
 
-describe("WorkdayJobFetchService", () => {
+describe("WorkdayJobDiscoveryService", () => {
     let jobGateway: IJobGateway;
     let lookupMapper: IWorkdayJobsApiResponseMapper;
     let detailMapper: IWorkdayJobDetailsApiResponseMapper;
@@ -41,10 +41,10 @@ describe("WorkdayJobFetchService", () => {
         } as unknown as ILogger;
     });
 
-    const createService = () => new WorkdayJobFetchService({ jobGateway, lookupMapper, detailMapper, logger });
+    const createService = () => new WorkdayJobDiscoveryService({ jobGateway, lookupMapper, detailMapper, logger });
 
-    const createJob = (overrides: Partial<IJobPostLookup> = {}): IJobPostLookup => ({
-        jobSourceId: crypto.randomUUID(),
+    const createJob = (overrides: Partial<IJobPostDiscovery> = {}): IJobPostDiscovery => ({
+        sourceId: crypto.randomUUID(),
         title: "Software Engineer",
         company: "Example Company",
         detailPath: "/job/software-engineer_R-100",
@@ -111,12 +111,12 @@ describe("WorkdayJobFetchService", () => {
             };
 
             const mappedJob1 = createJob({
-                jobSourceId: "R-100",
+                sourceId: "R-100",
                 detailPath: rawJob1.externalPath,
             });
 
             const mappedJob2 = createJob({
-                jobSourceId: "R-200",
+                sourceId: "R-200",
                 title: "Platform Engineer",
                 detailPath: rawJob2.externalPath,
             });
@@ -212,19 +212,19 @@ describe("WorkdayJobFetchService", () => {
             mapMock
                 .mockReturnValueOnce(
                     createJob({
-                        jobSourceId: "R-1",
+                        sourceId: "R-1",
                         detailPath: "/job/1",
                     })
                 )
                 .mockReturnValueOnce(
                     createJob({
-                        jobSourceId: "R-2",
+                        sourceId: "R-2",
                         detailPath: "/job/2",
                     })
                 )
                 .mockReturnValueOnce(
                     createJob({
-                        jobSourceId: "R-3",
+                        sourceId: "R-3",
                         detailPath: "/job/3",
                     })
                 );
@@ -280,13 +280,13 @@ describe("WorkdayJobFetchService", () => {
             const service = createService();
 
             const firstVersion = createJob({
-                jobSourceId: "R-100",
+                sourceId: "R-100",
                 title: "Software Engineer",
                 detailPath: "/job/software-engineer_R-100",
             });
 
             const duplicateVersion = createJob({
-                jobSourceId: "R-100",
+                sourceId: "R-100",
                 title: "Senior Software Engineer",
                 detailPath: "/job/software-engineer_R-100",
             });
@@ -333,7 +333,7 @@ describe("WorkdayJobFetchService", () => {
 
             await service.fetchLookups();
 
-            expect(logger.info).toHaveBeenCalledWith("[WorkdayJobFetchService.fetchJobs] Total jobs to fetch: 37");
+            expect(logger.info).toHaveBeenCalledWith("[WorkdayJobDiscoveryService.fetchJobs] Total jobs to fetch: 37");
         });
     });
 });

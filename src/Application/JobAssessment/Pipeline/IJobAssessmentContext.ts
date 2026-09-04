@@ -1,6 +1,6 @@
 import { ICandidateProfile } from "../../../Domain/Candidates/ICandidateProfile";
 import { IJobPostDetail } from "../../../Domain/JobPosts/IJobPostDetail";
-import { IJobPostLookup } from "../../../Domain/JobPosts/IJobPostLookup";
+import { IJobPostDiscovery } from "../../../Domain/JobPosts/IJobPostDiscovery";
 import { IJobRequirementMatch } from "../RequirementMatching/IJobRequirementMatch";
 import { IJobRequirement } from "../RequirementsExtraction/IJobRequirement";
 import { IClassifiedJobRequirement } from "../RquirementClassification/IClassifiedJobRequirement";
@@ -8,7 +8,7 @@ import { IJobScreenResult } from "../Screening/IJobScreenResult";
 
 export interface IJobAssessmentContext {
     candidateProfile: ICandidateProfile;
-    job: IJobPostLookup;
+    job: IJobPostDiscovery;
     screenResult: IJobScreenResult | undefined;
     jobDetail: IJobPostDetail | undefined;
     requirements: IJobRequirement[] | undefined;
@@ -17,12 +17,12 @@ export interface IJobAssessmentContext {
 }
 
 export class JobAssessmentContext implements IJobAssessmentContext {
-    constructor(candidateProfile: ICandidateProfile, jobLookup: IJobPostLookup) {
+    constructor(candidateProfile: ICandidateProfile, jobLookup: IJobPostDiscovery) {
         this.candidateProfile = candidateProfile;
         this.job = jobLookup;
     }
     public readonly candidateProfile: ICandidateProfile;
-    public readonly job: IJobPostLookup;
+    public readonly job: IJobPostDiscovery;
     public screenResult: IJobScreenResult | undefined;
     public jobDetail: IJobPostDetail | undefined;
     public requirements: IJobRequirement[] | undefined;

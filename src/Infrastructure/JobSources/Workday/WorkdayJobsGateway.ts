@@ -5,12 +5,10 @@ import { IWorkdayJobDetailsApiResponse } from "./Contracts/IWorkdayJobDetailsApi
 import { IWorkdayJobsApiResponse } from "./Contracts/IWorkdayJobsApiResponse";
 
 export class WorkdayJobsGateway implements IJobGateway {
-    private readonly companyName: string;
     private readonly baseUrl: string;
     private readonly logger: ILogger;
 
-    constructor(opts: { companyName: string; baseUrl: string; logger: ILogger }) {
-        this.companyName = opts.companyName;
+    constructor(opts: { baseUrl: string; logger: ILogger }) {
         this.baseUrl = opts.baseUrl.endsWith("/") ? opts.baseUrl : `${opts.baseUrl}/`;
         this.logger = opts.logger;
     }

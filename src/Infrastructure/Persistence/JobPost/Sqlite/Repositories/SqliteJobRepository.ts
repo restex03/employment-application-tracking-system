@@ -1,9 +1,9 @@
 import Database from "better-sqlite3";
 import { randomUUID } from "node:crypto";
-import { IJobPost } from "../../../../Domain/JobPosts/IJobPost";
-import { IJobPostDetail } from "../../../../Domain/JobPosts/IJobPostDetail";
-import { ILogger } from "../../../Logging/ILogger";
-import { IJobRepository } from "../../JobPost/IJobPostRepository";
+import { IJobPost } from "../../../../../Domain/JobPosts/IJobPost";
+import { IJobPostDetail } from "../../../../../Domain/JobPosts/IJobPostDetail";
+import { IJobRepository } from "../../IJobPostRepository";
+import { ILogger } from "../../../../Logging/ILogger";
 
 interface JobPostParameters {
     id: string;
@@ -94,51 +94,51 @@ export class SqliteJobRepository implements IJobRepository {
         `);
     }
 
-    public async add(job: IJobPost): Promise<void> {
-        const persist = this.connection.transaction((job: IJobPost) => {
-            this.persist(job);
+    public async add(jobPost: IJobPost): Promise<void> {
+        const persist = this.connection.transaction((jobPost: IJobPost) => {
+            this.persist(jobPost);
         });
 
-        persist(job);
+        persist(jobPost);
     }
 
-    public async addMany(jobs: IJobPost[]): Promise<void> {
-        const persistMany = this.connection.transaction((jobs: IJobPost[]) => {
-            for (const job of jobs) {
-                this.persist(job);
+    public async addMany(jobPosts: IJobPost[]): Promise<void> {
+        const persistMany = this.connection.transaction((jobPosts: IJobPost[]) => {
+            for (const jobPost of jobPosts) {
+                this.persist(jobPost);
             }
         });
 
-        persistMany(jobs);
+        persistMany(jobPosts);
 
         const count = this.connection.prepare(`SELECT COUNT(*) AS count FROM job_posts`).get() as { count: number };
         this.logger.debug(
-            `[SqliteJobRepository.addMany] Processed ${jobs.length} job posts. Database contains ${count.count} job posts.`
+            `[SqliteJobRepository.addMany] Processed ${jobPosts.length} job posts. Database contains ${count.count} job posts.`
         );
     }
 
-    private persist(job: IJobPost): string {
-        const row = this.upsertJobPostStatement.get(this.mapJobPostParameters(job)) as JobPostIdRow;
+    private persist(jobPost: IJobPost): string {
+        const row = this.upsertJobPostStatement.get(this.mapJobPostParameters(jobPost)) as JobPostIdRow;
 
         const jobPostId = row.id;
 
-        if (job.detail) {
-            this.upsertDetailStatement.run(this.mapDetailParameters(jobPostId, job.detail));
+        if (jobPost.detail) {
+            this.upsertDetailStatement.run(this.mapDetailParameters(jobPostId, jobPost.detail));
         }
 
         return jobPostId;
     }
 
-    private mapJobPostParameters(job: IJobPost): JobPostParameters {
+    private mapJobPostParameters(jobPost: IJobPost): JobPostParameters {
         return {
-            id: job.id,
-            sourceId: job.sourceId,
-            requisitionId: job.requisitionId ?? null,
-            title: job.title,
-            detailPath: job.detailPath,
-            locations: job.locations ? JSON.stringify(job.locations) : null,
-            postedDate: job.postedDate ?? null,
-            createdAt: job.createdAt.toISOString(),
+            id: jobPost.id,
+            sourceId: jobPost.sourceId,
+            requisitionId: jobPost.requisitionId ?? null,
+            title: jobPost.title,
+            detailPath: jobPost.detailPath,
+            locations: jobPost.locations ? JSON.stringify(jobPost.locations) : null,
+            postedDate: jobPost.postedDate ?? null,
+            createdAt: jobPost.createdAt.toISOString(),
         };
     }
 

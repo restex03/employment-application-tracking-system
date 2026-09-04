@@ -1,12 +1,11 @@
-import { SqliteJobRepository } from "../../Infrastructure/Persistence/Sqlite/Repositories/SqliteJobRepository";
-import { SqliteDatabase } from "../../Infrastructure/Persistence/Sqlite/SqliteDatabase";
+import { SqliteJobRepository } from "../../Infrastructure/Persistence/JobPost/Sqlite/Repositories/SqliteJobRepository";
+import { SqliteDatabase } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteDatabase";
 import { ConsoleLogger } from "../../Infrastructure/Logging/Console/ConsoleLogger";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { LogLevel } from "../../Infrastructure/Logging/LogLevel";
 
-import { IJobPostFetchService } from "../JobDiscovery/IJobFetchService";
-import { WorkdayJobFetchService } from "../JobDiscovery/Workday/WorkdayJobFetchService";
-import { IWorkdayJobSource } from "../../Infrastructure/JobSources/Workday/workdaySources";
+import { IJobPostDiscoveryService } from "../JobPostDiscovery/IJobPostDiscoveryService";
+import { WorkdayJobDiscoveryService } from "../JobPostDiscovery/Workday/WorkdayJobDiscoveryService";
 import { IJobGateway } from "../../Domain/JobPosts/IJobSource";
 import {
     IWorkdayJobDetailsApiResponseMapper,
@@ -21,7 +20,7 @@ import { IJobScreeningService } from "../JobAssessment/Screening/IJobScreeningSe
 import { JobScreeningService } from "../JobAssessment/Screening/Ollama/JobScreeningService";
 import { OllamaInferenceProvider } from "../../Infrastructure/Inference/Ollama/OllamaInferenceProvider";
 import { ILlmInferenceProvider } from "../../Infrastructure/Inference/ILlmInferenceProvider";
-import { IJobRepository } from "../../Infrastructure/Persistence/IJobRepository";
+import { IJobRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
 import { IJobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/IJobRequirementsExtractionService";
 import { JobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/JobRequirementsExtractionService";
 import { IJobRequirementClassificationService } from "../JobAssessment/RquirementClassification/IJobRequirementClassificationService";
@@ -34,34 +33,52 @@ import { IJobRequirementDirectMatchingService } from "../JobAssessment/Requireme
 import { JobRequirementDirectMatchingService } from "../JobAssessment/RequirementMatching/DirectMatching/JobRequirementDirectMatchingService";
 import { IJobRequirementTransferableMatchingService } from "../JobAssessment/RequirementMatching/TransferableMatching/IJobRequirementTransferableMatchingService";
 import { JobRequirementTransferableMatchingService } from "../JobAssessment/RequirementMatching/TransferableMatching/JobRequirementTransferableMatchingService";
+import { IJobPostService } from "../JobPost/IJobPostService";
+import { JobPostService } from "../JobPost/JobPostService";
+import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository ";
+import { WorkdayJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/Workday/WorkdayJobSourceRepository";
+import { IWorkdayJobSource } from "../../Infrastructure/JobSources/Workday/IWorkdayJobSource";
 
-export function buildDependencies(source: IWorkdayJobSource, logLevel: LogLevel) {
+export interface IApplicationDependencies {
+    jobSourceRepository: IJobSourceRepository;
+    logger: ILogger;
+    sqlite: SqliteDatabase;
+    llm: ILlmInferenceProvider;
+
+    jobRepository: IJobRepository;
+    jobPostService: IJobPostService;
+
+    screeningService: IJobScreeningService;
+    requirementsExtractionService: IJobRequirementsExtractionService;
+    requirementsClassificationService: IJobRequirementClassificationService;
+    requirementsMatchingService: IJobRequirementsMatchingService;
+}
+
+export interface ISourceDependencies {
+    jobGateway: IJobGateway;
+    jobFetchService: IJobPostDiscoveryService;
+}
+
+export function buildApplicationDependencies(logLevel: LogLevel): IApplicationDependencies {
     const logger: ILogger = new ConsoleLogger(logLevel);
-    const jobGateway: IJobGateway = new WorkdayJobsGateway({
-        companyName: source.companyName,
-        baseUrl: source.baseUrl,
-        logger,
-    });
-
-    const llm: ILlmInferenceProvider = new OllamaInferenceProvider(logger);
-    const jobScreeningService: IJobScreeningService = new JobScreeningService(llm, logger);
 
     const sqlite = createSqliteDatabase();
 
-    const lookupMapper: IWorkdayJobsApiResponseMapper = new WorkdayJobsResponseMapper(source.companyName);
-    const detailMapper: IWorkdayJobDetailsApiResponseMapper = new WorkdayJobDetailsApiResponseMapper();
-    const jobFetchService: IJobPostFetchService = new WorkdayJobFetchService({
-        jobGateway,
-        detailMapper,
-        lookupMapper,
-        logger,
-    });
+    const jobRepository: IJobRepository = new SqliteJobRepository(sqlite.connection, logger);
+
+    const jobSourceRepository: IJobSourceRepository = new WorkdayJobSourceRepository(sqlite.connection, logger);
+
+    const jobPostService: IJobPostService = new JobPostService(jobRepository, logger);
+
+    const llm: ILlmInferenceProvider = new OllamaInferenceProvider(logger);
 
     const screeningService: IJobScreeningService = new JobScreeningService(llm, logger);
+
     const requirementsExtractionService: IJobRequirementsExtractionService = new JobRequirementsExtractionService(
         llm,
         logger
     );
+
     const requirementsClassificationService: IJobRequirementClassificationService =
         new JobRequirementClassificationService(llm, logger);
 
@@ -69,36 +86,70 @@ export function buildDependencies(source: IWorkdayJobSource, logLevel: LogLevel)
         llm,
         logger
     );
+
     const transferableMatchingService: IJobRequirementTransferableMatchingService =
         new JobRequirementTransferableMatchingService(llm, logger);
 
     const jobRequirementMatchMapper: IJobRequirementMatchMapper = new JobRequirementMatchMapper();
+
     const requirementsMatchingService: IJobRequirementsMatchingService = new JobRequirementsMatchingService(
         directMatchingService,
         transferableMatchingService,
         jobRequirementMatchMapper,
         logger
     );
-    const jobRepository: IJobRepository = new SqliteJobRepository(sqlite.connection, logger);
-    logger.debug(`[buildDependencies] Dependencies built for source: ${source.companyName} at ${source.baseUrl}`);
-    logger.debug(`DB Connection Path: ${sqlite.connection.name}`);
+
+    logger.debug(`[buildApplicationDependencies] Application dependencies initialized`);
+
+    logger.debug(`[buildApplicationDependencies] DB Connection Path: ${sqlite.connection.name}`);
 
     return {
         logger,
-        jobScreeningService,
-        jobFetchService,
+        sqlite,
+        llm,
+        jobRepository,
+        jobPostService,
         screeningService,
         requirementsExtractionService,
         requirementsClassificationService,
         requirementsMatchingService,
-        jobRepository,
+        jobSourceRepository,
     };
 }
 
-export function createSqliteDatabase(): SqliteDatabase {
+export function buildSourceDependencies(source: IWorkdayJobSource, app: IApplicationDependencies): ISourceDependencies {
+    const jobGateway: IJobGateway = new WorkdayJobsGateway({
+        baseUrl: source.baseUrl,
+        logger: app.logger,
+    });
+
+    const lookupMapper: IWorkdayJobsApiResponseMapper = new WorkdayJobsResponseMapper(source.id);
+
+    const detailMapper: IWorkdayJobDetailsApiResponseMapper = new WorkdayJobDetailsApiResponseMapper();
+
+    const jobFetchService: IJobPostDiscoveryService = new WorkdayJobDiscoveryService({
+        jobGateway,
+        detailMapper,
+        lookupMapper,
+        logger: app.logger,
+    });
+
+    app.logger.debug(
+        `[buildSourceDependencies] Dependencies built for source: ` + `${source.companyName} at ${source.baseUrl}`
+    );
+
+    return {
+        jobGateway,
+        jobFetchService,
+    };
+}
+
+function createSqliteDatabase(): SqliteDatabase {
     const dbPath = process.env.DB_PATH;
+
     if (!dbPath) {
         throw new Error("DB_PATH environment variable is not set.");
     }
+
     return new SqliteDatabase(dbPath);
 }

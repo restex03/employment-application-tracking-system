@@ -1,10 +1,10 @@
-import { IJobPostFetchService } from "../../../JobDiscovery/IJobFetchService";
+import { IJobPostDiscoveryService } from "../../../JobPostDiscovery/IJobPostDiscoveryService";
 import { IPipelineStep } from "../../../Pipelines/IPipelineStep";
 import { IPipelineStepResult, PipelineStepStatus } from "../../../Pipelines/IPipelineStepResult";
 import { IJobAssessmentContext } from "../IJobAssessmentContext";
 
 export class FetchJobDetails implements IPipelineStep<IJobAssessmentContext> {
-    constructor(private readonly jobFetchSvc: IJobPostFetchService) {}
+    constructor(private readonly jobFetchSvc: IJobPostDiscoveryService) {}
     public async execute(context: IJobAssessmentContext): Promise<IPipelineStepResult> {
         try {
             const jobDetail = await this.jobFetchSvc.fetchDetail(context.job);

@@ -1,13 +1,9 @@
-// types/IJobPostLookup.ts
-
-export interface IJobPostLookup {
-    // /**
-    //  * Stable application-owned identifier for this job posting.
-    //  *
-    //  * Remains the same as the posting moves through screening,
-    //  * detail retrieval, scoring, shortlisting, and application tracking.
-    //  */
-    // jobPostingId: string;
+export interface IJobPostDiscovery {
+    /**
+     * Job Source stable identifier affiliated with the job posting board
+     * Guid
+     */
+    sourceId: string;
 
     /**
      * Human-readable job title.

@@ -1,7 +1,7 @@
-import { IJobPostLookup } from "../../../Domain/JobPosts/IJobPostLookup";
+import { IJobPostDiscovery } from "../../../Domain/JobPosts/IJobPostDiscovery";
 import { IJobScreenResult } from "./IJobScreenResult";
 
 export interface IJobScreeningService {
-    screenList(jobs: IJobPostLookup[]): Promise<IJobScreenResult[]>;
-    screen(job: IJobPostLookup): Promise<IJobScreenResult>;
+    screenList(jobs: IJobPostDiscovery[]): Promise<IJobScreenResult[]>;
+    screen(job: IJobPostDiscovery): Promise<IJobScreenResult>;
 }

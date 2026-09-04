@@ -1,10 +1,10 @@
 import { IJobPostDetail } from "../../../Domain/JobPosts/IJobPostDetail";
-import { IJobPostLookup } from "../../../Domain/JobPosts/IJobPostLookup";
+import { IJobPostDiscovery } from "../../../Domain/JobPosts/IJobPostDiscovery";
 import { IJobGateway } from "../../../Domain/JobPosts/IJobSource";
 import { IWorkdayJobDetailsApiResponseMapper } from "../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobDetailsApiResponseMapper";
 import { IWorkdayJobsApiResponseMapper } from "../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobsApiResponseMapper";
 import { ILogger } from "../../../Infrastructure/Logging/ILogger";
-import { IJobPostFetchService } from "../IJobFetchService";
+import { IJobPostDiscoveryService } from "../IJobPostDiscoveryService";
 
 interface IGetJobsBatchOptions {
     searchText?: string;
@@ -12,32 +12,32 @@ interface IGetJobsBatchOptions {
     offset: number;
 }
 interface IWorkdayJobsBatchResponse {
-    jobPostings: IJobPostLookup[];
+    jobPostings: IJobPostDiscovery[];
     total: number;
 }
 
-interface WorkdayJobFetchServiceOptions {
+interface WorkdayJobDiscoveryServiceOptions {
     readonly lookupMapper: IWorkdayJobsApiResponseMapper;
     readonly detailMapper: IWorkdayJobDetailsApiResponseMapper;
     readonly jobGateway: IJobGateway;
     readonly logger: ILogger;
 }
 
-export class WorkdayJobFetchService implements IJobPostFetchService {
+export class WorkdayJobDiscoveryService implements IJobPostDiscoveryService {
     private readonly lookupMapper: IWorkdayJobsApiResponseMapper;
     private readonly detailMapper: IWorkdayJobDetailsApiResponseMapper;
     private readonly jobGateway: IJobGateway;
     private readonly logger: ILogger;
 
-    public constructor(opts: WorkdayJobFetchServiceOptions) {
+    public constructor(opts: WorkdayJobDiscoveryServiceOptions) {
         this.lookupMapper = opts.lookupMapper;
         this.detailMapper = opts.detailMapper;
         this.jobGateway = opts.jobGateway;
         this.logger = opts.logger;
     }
-    async fetchLookups(searchText?: string): Promise<IJobPostLookup[]> {
-        this.logger.info(`[WorkdayJobFetchService.fetchJobs] Fetching jobs...`);
-        const jobs = new Map<string, IJobPostLookup>();
+    async fetchLookups(searchText?: string): Promise<IJobPostDiscovery[]> {
+        this.logger.info(`[WorkdayJobDiscoveryService.fetchJobs] Fetching jobs...`);
+        const jobs = new Map<string, IJobPostDiscovery>();
         let offset = 0;
         const limit = 20;
         let total: number | undefined = undefined;
@@ -50,7 +50,7 @@ export class WorkdayJobFetchService implements IJobPostFetchService {
 
             if (total === undefined) {
                 total = response.total;
-                this.logger.info(`[WorkdayJobFetchService.fetchJobs] Total jobs to fetch: ${total}`);
+                this.logger.info(`[WorkdayJobDiscoveryService.fetchJobs] Total jobs to fetch: ${total}`);
             }
 
             for (const job of response.jobPostings) {
@@ -63,9 +63,9 @@ export class WorkdayJobFetchService implements IJobPostFetchService {
         return [...jobs.values()];
     }
 
-    async fetchDetail(lookup: IJobPostLookup): Promise<IJobPostDetail> {
+    async fetchDetail(lookup: IJobPostDiscovery): Promise<IJobPostDetail> {
         this.logger.info(
-            `[WorkdayJobDetailFetchService.fetchJobDetail] Fetching details: ${lookup.company} - ${lookup.requisitionId} (${lookup.title})`
+            `[WorkdayJobDiscoveryService.fetchJobDetail] Fetching details: ${lookup.company} - ${lookup.requisitionId} (${lookup.title})`
         );
         const apiResult = await this.jobGateway.getDetail(lookup.detailPath);
         const jobDetail = this.detailMapper.map(apiResult);
@@ -83,8 +83,8 @@ export class WorkdayJobFetchService implements IJobPostFetchService {
     }
 
     /** @deprecated use fetchDetail instead */
-    async fetchDetails(lookups: IJobPostLookup[]): Promise<IJobPostDetail[]> {
-        this.logger.info(`[WorkdayJobDetailFetchService.fetchJobDetails] Fetching details: ${lookups.length} jobs.`);
+    async fetchDetails(lookups: IJobPostDiscovery[]): Promise<IJobPostDetail[]> {
+        this.logger.info(`[WorkdayJobDiscoveryService.fetchJobDetails] Fetching details: ${lookups.length} jobs.`);
         const jobDetailsList: IJobPostDetail[] = [];
 
         for (const result of lookups) {
@@ -104,7 +104,9 @@ export class WorkdayJobFetchService implements IJobPostFetchService {
         };
 
         const batch = await this.jobGateway.search(request);
-        this.logger.trace(`[WorkdayJobFetchService.getJobsBatch] Batch retrieved: ${batch.jobPostings.length} jobs`);
+        this.logger.trace(
+            `[WorkdayJobDiscoveryService.getJobsBatch] Batch retrieved: ${batch.jobPostings.length} jobs`
+        );
         const mapped = batch.jobPostings.map(x => this.lookupMapper.map(x));
         return {
             jobPostings: mapped,
