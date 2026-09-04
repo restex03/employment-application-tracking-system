@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { IJobPost } from "../../../../Domain/JobPosts/IJobPost";
 import { IJobPostDetail } from "../../../../Domain/JobPosts/IJobPostDetail";
 import { ILogger } from "../../../Logging/ILogger";
-import { IJobRepository } from "../../JobPost/IJobPostRepository";
+import { IJobPostRepository } from "../../JobPost/IJobPostRepository";
 
 interface JobPostParameters {
     id: string;
@@ -29,7 +29,7 @@ interface JobPostIdRow {
     id: string;
 }
 
-export class SqliteJobRepository implements IJobRepository {
+export class SqliteJobRepository implements IJobPostRepository {
     private readonly upsertJobPostStatement: Database.Statement;
     private readonly upsertDetailStatement: Database.Statement;
 

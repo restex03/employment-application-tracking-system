@@ -2,7 +2,7 @@ import Database from "better-sqlite3";
 import { randomUUID } from "node:crypto";
 import { IJobPost } from "../../../../../Domain/JobPosts/IJobPost";
 import { IJobPostDetail } from "../../../../../Domain/JobPosts/IJobPostDetail";
-import { IJobRepository } from "../../IJobPostRepository";
+import { IJobPostRepository } from "../../IJobPostRepository";
 import { ILogger } from "../../../../Logging/ILogger";
 
 interface JobPostParameters {
@@ -29,7 +29,7 @@ interface JobPostIdRow {
     id: string;
 }
 
-export class SqliteJobRepository implements IJobRepository {
+export class SqliteJobRepository implements IJobPostRepository {
     private readonly upsertJobPostStatement: Database.Statement;
     private readonly upsertDetailStatement: Database.Statement;
 

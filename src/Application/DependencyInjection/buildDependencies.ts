@@ -20,7 +20,7 @@ import { IJobScreeningService } from "../JobAssessment/Screening/IJobScreeningSe
 import { JobScreeningService } from "../JobAssessment/Screening/Ollama/JobScreeningService";
 import { OllamaInferenceProvider } from "../../Infrastructure/Inference/Ollama/OllamaInferenceProvider";
 import { ILlmInferenceProvider } from "../../Infrastructure/Inference/ILlmInferenceProvider";
-import { IJobRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
+import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
 import { IJobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/IJobRequirementsExtractionService";
 import { JobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/JobRequirementsExtractionService";
 import { IJobRequirementClassificationService } from "../JobAssessment/RquirementClassification/IJobRequirementClassificationService";
@@ -38,37 +38,19 @@ import { JobPostService } from "../JobPost/JobPostService";
 import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository ";
 import { WorkdayJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/Workday/WorkdayJobSourceRepository";
 import { IWorkdayJobSource } from "../../Infrastructure/JobSources/Workday/IWorkdayJobSource";
-
-export interface IApplicationDependencies {
-    jobSourceRepository: IJobSourceRepository;
-    logger: ILogger;
-    sqlite: SqliteDatabase;
-    llm: ILlmInferenceProvider;
-
-    jobRepository: IJobRepository;
-    jobPostService: IJobPostService;
-
-    screeningService: IJobScreeningService;
-    requirementsExtractionService: IJobRequirementsExtractionService;
-    requirementsClassificationService: IJobRequirementClassificationService;
-    requirementsMatchingService: IJobRequirementsMatchingService;
-}
-
-export interface ISourceDependencies {
-    jobGateway: IJobGateway;
-    jobFetchService: IJobPostDiscoveryService;
-}
+import { IApplicationDependencies } from "./IApplicationDependencies";
+import { ISourceDependencies } from "./ISourceDependencies";
 
 export function buildApplicationDependencies(logLevel: LogLevel): IApplicationDependencies {
     const logger: ILogger = new ConsoleLogger(logLevel);
 
     const sqlite = createSqliteDatabase();
 
-    const jobRepository: IJobRepository = new SqliteJobRepository(sqlite.connection, logger);
+    const jobPostRepository: IJobPostRepository = new SqliteJobRepository(sqlite.connection, logger);
 
     const jobSourceRepository: IJobSourceRepository = new WorkdayJobSourceRepository(sqlite.connection, logger);
 
-    const jobPostService: IJobPostService = new JobPostService(jobRepository, logger);
+    const jobPostService: IJobPostService = new JobPostService(jobPostRepository, logger);
 
     const llm: ILlmInferenceProvider = new OllamaInferenceProvider(logger);
 
@@ -107,7 +89,7 @@ export function buildApplicationDependencies(logLevel: LogLevel): IApplicationDe
         logger,
         sqlite,
         llm,
-        jobRepository,
+        jobPostRepository,
         jobPostService,
         screeningService,
         requirementsExtractionService,

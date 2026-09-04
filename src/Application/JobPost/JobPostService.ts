@@ -1,13 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { IJobPost } from "../../Domain/JobPosts/IJobPost";
 import { IJobPostDiscovery } from "../../Domain/JobPosts/IJobPostDiscovery";
-import { IJobRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
+import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
 import { IJobPostService } from "./IJobPostService";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 
 export class JobPostService implements IJobPostService {
     constructor(
-        private readonly jobRepository: IJobRepository,
+        private readonly jobRepository: IJobPostRepository,
         private readonly logger: ILogger
     ) {}
 
