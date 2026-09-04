@@ -7,7 +7,7 @@ import { Server } from "./Api/Host/Server";
 const dependencies = buildDependencies(LogLevel.Debug);
 
 const server = new Server(dependencies);
-
+const port = process.env.API_PORT ? parseInt(process.env.API_PORT) : 3000;
 const shutdown = async () => {
     await server.stop();
     dependencies.sqlite.close();
@@ -18,4 +18,9 @@ const shutdown = async () => {
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
-await server.start(3000);
+await server.start(port);
+
+console.log(`API server started at http://localhost:${port}`);
+console.log(`Health check: http://localhost:${port}/health`);
+console.log(`API base URL: http://localhost:${port}/api/v1`);
+console.log(server.printRoutes());
