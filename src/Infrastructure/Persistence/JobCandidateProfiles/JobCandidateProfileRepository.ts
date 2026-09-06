@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import { randomUUID } from "node:crypto";
 
-import { ICandidateProfile, ISkill, ICandidateExperience, ILocationPreference, ICompensationPreference, SkillLevel, SkillCategory, WorkArrangement, EmploymentType } from "../../../Domain/Candidates/ICandidateProfile";
+import { ICandidateProfile, ISkill, ICandidateExperience, ILocationPreference, ICompensationPreference, IWorkAuthorization, ICandidateEducation, SkillLevel, SkillCategory, WorkArrangement, EmploymentType } from "../../../Domain/Candidates/ICandidateProfile";
 import { IJobCandidateProfileRepository } from "./IJobCandidateProfileRepository";
 import { ILogger } from "../../Logging/ILogger";
 
@@ -9,8 +9,10 @@ interface CandidateProfileRow {
     id: string;
     current_title: string | null;
     total_years_experience: number;
-    education_degree: string | null;
-    education_field: string | null;
+    education_json: string | null;
+    work_auth_citizenship_country: string | null;
+    work_auth_authorized_in_us: number | null;
+    work_auth_requires_sponsorship: number | null;
     strengths: string;
     desired_work: string;
     desired_growth_areas: string;
@@ -99,7 +101,8 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
         // Profile statements
         this.insertProfileStatement = connection.prepare(`
             INSERT INTO candidate_profiles (
-                id, current_title, total_years_experience, education_degree, education_field,
+                id, current_title, total_years_experience,
+                education_json, work_auth_citizenship_country, work_auth_authorized_in_us, work_auth_requires_sponsorship,
                 strengths, desired_work, desired_growth_areas, avoid_work,
                 career_priorities_technical_ownership, career_priorities_architecture_depth,
                 career_priorities_skill_portability, career_priorities_learning_opportunity,
@@ -110,7 +113,8 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
                 constraints_requires_remote_or_approved_hybrid_location, constraints_requires_sponsorship,
                 constraints_hard_constraints
             ) VALUES (
-                @id, @currentTitle, @totalYearsExperience, @educationDegree, @educationField,
+                @id, @currentTitle, @totalYearsExperience,
+                @educationJson, @workAuthCitizenshipCountry, @workAuthAuthorizedInUS, @workAuthRequiresSponsorship,
                 @strengths, @desiredWork, @desiredGrowthAreas, @avoidWork,
                 @careerPrioritiesTechnicalOwnership, @careerPrioritiesArchitectureDepth,
                 @careerPrioritiesSkillPortability, @careerPrioritiesLearningOpportunity,
@@ -127,8 +131,10 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
             UPDATE candidate_profiles SET
                 current_title = @currentTitle,
                 total_years_experience = @totalYearsExperience,
-                education_degree = @educationDegree,
-                education_field = @educationField,
+                education_json = @educationJson,
+                work_auth_citizenship_country = @workAuthCitizenshipCountry,
+                work_auth_authorized_in_us = @workAuthAuthorizedInUS,
+                work_auth_requires_sponsorship = @workAuthRequiresSponsorship,
                 strengths = @strengths,
                 desired_work = @desiredWork,
                 desired_growth_areas = @desiredGrowthAreas,
@@ -340,8 +346,10 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
             id: profile.id,
             currentTitle: profile.currentTitle ?? null,
             totalYearsExperience: profile.totalYearsExperience,
-            educationDegree: profile.education?.degree ?? null,
-            educationField: profile.education?.field ?? null,
+            educationJson: JSON.stringify(profile.education),
+            workAuthCitizenshipCountry: profile.workAuthorization.citizenshipCountry,
+            workAuthAuthorizedInUS: profile.workAuthorization.authorizedToWorkInUS ? 1 : 0,
+            workAuthRequiresSponsorship: profile.workAuthorization.requiresSponsorship ? 1 : 0,
             strengths: JSON.stringify(profile.strengths),
             desiredWork: JSON.stringify(profile.desiredWork),
             desiredGrowthAreas: JSON.stringify(profile.desiredGrowthAreas),
@@ -370,8 +378,10 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
             id: profile.id,
             currentTitle: profile.currentTitle ?? null,
             totalYearsExperience: profile.totalYearsExperience,
-            educationDegree: profile.education?.degree ?? null,
-            educationField: profile.education?.field ?? null,
+            educationJson: JSON.stringify(profile.education),
+            workAuthCitizenshipCountry: profile.workAuthorization.citizenshipCountry,
+            workAuthAuthorizedInUS: profile.workAuthorization.authorizedToWorkInUS ? 1 : 0,
+            workAuthRequiresSponsorship: profile.workAuthorization.requiresSponsorship ? 1 : 0,
             strengths: JSON.stringify(profile.strengths),
             desiredWork: JSON.stringify(profile.desiredWork),
             desiredGrowthAreas: JSON.stringify(profile.desiredGrowthAreas),
@@ -520,10 +530,12 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
             id: row.id,
             currentTitle: row.current_title ?? undefined,
             totalYearsExperience: row.total_years_experience,
-            education: {
-                degree: row.education_degree ?? undefined,
-                field: row.education_field ?? undefined
+            workAuthorization: {
+                citizenshipCountry: row.work_auth_citizenship_country!,
+                authorizedToWorkInUS: row.work_auth_authorized_in_us === 1,
+                requiresSponsorship: row.work_auth_requires_sponsorship === 1
             },
+            education: row.education_json ? JSON.parse(row.education_json) : [],
             skills: [], // Will be populated separately
             experience: [], // Will be populated separately
             strengths: JSON.parse(row.strengths),

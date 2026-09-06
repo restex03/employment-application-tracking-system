@@ -100,6 +100,18 @@ export interface ICompensationPreference {
      */
     considerVariableCompensation?: boolean;
 }
+export interface IWorkAuthorization {
+    citizenshipCountry: string;
+    authorizedToWorkInUS: boolean;
+    requiresSponsorship: boolean;
+}
+export interface ICandidateEducation {
+    degreeType: "associate" | "bachelor" | "master" | "doctorate" | "other";
+
+    field: string;
+    institution?: string;
+    completed: boolean;
+}
 
 export interface ICandidateProfile {
     id: string;
@@ -107,11 +119,8 @@ export interface ICandidateProfile {
     currentTitle?: string;
 
     totalYearsExperience: number;
-
-    education?: {
-        degree?: string;
-        field?: string;
-    };
+    workAuthorization: IWorkAuthorization;
+    education: ICandidateEducation[];
 
     skills: ISkill[];
 
