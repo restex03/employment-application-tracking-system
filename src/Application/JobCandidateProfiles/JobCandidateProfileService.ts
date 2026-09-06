@@ -112,9 +112,9 @@ export class JobCandidateProfileService implements IJobCandidateProfileService {
     }
 
     public async seedCandidateProfilesWithDefault(): Promise<void> {
-        const profilePath = process.env.CANDIDATE_PROFILE_PATH;
+        const profilePath = process.env.CANDIDATE_PROFILE;
         if (!profilePath) {
-            throw new Error("CANDIDATE_PROFILE_PATH environment variable is not set.");
+            throw new Error("CANDIDATE_PROFILE environment variable is not set.");
         }
         const json = readFileSync(profilePath, "utf-8");
         const defaultProfile = JSON.parse(json) as ICandidateProfile;
