@@ -10,9 +10,9 @@ export class JobSourceService implements IJobSourceService {
         private readonly logger: ILogger
     ) {}
     async seedDefaultWorkdayJobSources(): Promise<void> {
-        const jsonPath = process.env.WORKDAY_SOURCES_JSON_PATH;
+        const jsonPath = process.env.WORKDAY_SOURCES;
         if (!jsonPath) {
-            throw new Error("WORKDAY_SOURCES_JSON_PATH environment variable is not set");
+            throw new Error("WORKDAY_SOURCES environment variable is not set");
         }
 
         this.logger.info(
