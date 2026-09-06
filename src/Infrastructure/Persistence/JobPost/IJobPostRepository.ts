@@ -3,6 +3,7 @@ import { IJobPost } from "../../../Domain/JobPosts/IJobPost";
 export interface IJobPostRepository {
     add(jobPost: IJobPost): Promise<void>;
     addMany(jobPosts: IJobPost[]): Promise<void>;
+    update(jobPost: IJobPost): Promise<void>;
     getAll(): Promise<IJobPost[]>;
     getById(id: string): Promise<IJobPost | undefined>;
     getByIdOrThrow(id: string): Promise<IJobPost>;

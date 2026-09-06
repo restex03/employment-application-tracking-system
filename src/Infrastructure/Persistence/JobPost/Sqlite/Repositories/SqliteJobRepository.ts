@@ -241,6 +241,15 @@ export class SqliteJobRepository implements IJobPostRepository {
             LIMIT 1
         `);
     }
+    public async update(jobPost: IJobPost): Promise<void> {
+        const persist = this.connection.transaction((jobPost: IJobPost) => {
+            this.persist(jobPost);
+        });
+
+        persist(jobPost);
+
+        this.logger.debug(`[SqliteJobRepository.update] Updated job post: ${jobPost.id}`);
+    }
 
     public async add(jobPost: IJobPost): Promise<void> {
         const persist = this.connection.transaction((jobPost: IJobPost) => {

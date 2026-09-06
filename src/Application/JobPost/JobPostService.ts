@@ -8,6 +8,10 @@ export class JobPostService implements IJobPostService {
         private readonly jobRepository: IJobPostRepository,
         private readonly logger: ILogger
     ) {}
+    public async update(job: IJobPost): Promise<void> {
+        this.logger.info(`[JobPostService.update] ` + `Updating job ${job.id}...`);
+        await this.jobRepository.update(job);
+    }
 
     public async addMany(jobs: IJobPost[]): Promise<void> {
         this.logger.info(`[JobPostService.addMany] ` + `Storing ${jobs.length} jobs...`);

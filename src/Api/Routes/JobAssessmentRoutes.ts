@@ -29,7 +29,6 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
                     `[POST /job-posts/${jobPostId}/assessments/${candidateProfileId}] Assessment requested`
                 );
                 const result = await this.jobAssessmentService.runAssessment(candidateProfileId, jobPostId);
-                await this.jobAssessmentService.storeAssessment(result);
                 return reply.code(200).send({
                     result,
                 });

@@ -26,11 +26,14 @@ export class JobAssessmentService implements IJobAssessmentService {
         const result = await this.jobAssessmentRepo.getByIdOrThrow(id);
         return result;
     }
-    public async storeAssessment(result: IJobAssessmentResult): Promise<IJobAssessment> {
+    private async updateDatabase(result: IJobAssessmentResult): Promise<void> {
         const mapped = this.mapPipelineResultToDomain(result);
         const assessmentResult = await this.jobAssessmentRepo.storeAssessment(mapped);
-        return assessmentResult;
+
+        // hydrate job detail
+        await this.jobPostRepo.update(result.job);
     }
+
     private mapPipelineResultToDomain(result: IJobAssessmentResult): IJobAssessment {
         return new JobAssessment({
             id: randomUUID(),
@@ -49,6 +52,13 @@ export class JobAssessmentService implements IJobAssessmentService {
         });
     }
 
+    /**
+     * Runs a complete assessment pipeline for a given candidate profile and job post.
+     *
+     * TODO: Refactor to separate concerns:
+     * - Job detail fetching should be decoupled from assessment execution
+     * - Job post updates should be handled as a separate side effect, not inline
+     */
     public async runAssessment(candidateProfileId: string, jobPostId: string): Promise<IJobAssessmentResult> {
         this.logger.info(`[JobAssessmentService.runAssessment] Running assessment for job post: ${jobPostId}`);
 
@@ -74,7 +84,7 @@ export class JobAssessmentService implements IJobAssessmentService {
         }
 
         const assessmentResult = this.createAssessmentResult(context, pipelineResult.status);
-
+        await this.updateDatabase(assessmentResult);
         if (pipelineResult.status === PipelineStepStatus.Stopped) {
             this.logger.info("Assessment stopped successfully.");
         } else {
