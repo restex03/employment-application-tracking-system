@@ -22,34 +22,55 @@ export class JobSourceRoutes implements IRouteRegistrar {
     public register(server: FastifyInstance): void {
         server.get<{
             Querystring: JobSourceQuery;
-        }>("/job-sources", async request => {
-            const { companyName } = request.query;
+        }>("/job-sources", async (request, reply) => {
+            try {
+                const { companyName } = request.query;
 
-            if (companyName) {
-                this.logger.debug(`[GET /job-sources] companyName=${companyName}`);
+                if (companyName) {
+                    this.logger.debug(`[GET /job-sources] companyName=${companyName}`);
 
-                const source = await this.jobSourceRepository.getByCompanyName(companyName);
+                    const source = await this.jobSourceRepository.getByCompanyName(companyName);
 
-                return source ? [source] : [];
+                    return source ? [source] : [];
+                }
+
+                this.logger.debug("[GET /job-sources] Retrieving all job sources");
+
+                const sources = await this.jobSourceRepository.getAll();
+                return sources;
+            } catch (error) {
+                const errMsg = error instanceof Error ? error.message : String(error);
+                this.logger.error(`[GET /job-sources] Failed to retrieve job sources: ${errMsg}`);
+                return reply.code(500).send({
+                    error: `Failed to retrieve job sources: ${errMsg}`
+                });
             }
-
-            this.logger.debug("[GET /job-sources] Retrieving all job sources");
-
-            return this.jobSourceRepository.getAll();
         });
 
         server.get<{
             Params: JobSourceParams;
         }>("/job-sources/:sourceId", async (request, reply) => {
-            const source = await this.jobSourceRepository.getById(request.params.sourceId);
+            try {
+                const { sourceId } = request.params;
+                this.logger.debug(`[GET /job-sources/${sourceId}] Retrieving job source`);
 
-            if (!source) {
-                return reply.code(404).send({
-                    message: "Job source not found.",
+                const source = await this.jobSourceRepository.getById(sourceId);
+
+                if (!source) {
+                    this.logger.debug(`[GET /job-sources/${sourceId}] Job source not found`);
+                    return reply.code(404).send({
+                        message: "Job source not found.",
+                    });
+                }
+
+                return source;
+            } catch (error) {
+                const errMsg = error instanceof Error ? error.message : String(error);
+                this.logger.error(`[GET /job-sources/${request.params.sourceId}] Failed to retrieve job source: ${errMsg}`);
+                return reply.code(500).send({
+                    error: `Failed to retrieve job source: ${errMsg}`
                 });
             }
-
-            return source;
         });
     }
 }
