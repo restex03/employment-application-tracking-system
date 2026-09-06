@@ -513,3 +513,35 @@ regressionDescribe("Job requirement matching LLM regression", () => {
         });
     });
 });
+
+// TODO:
+
+/** 
+ * 1. Clear classification bug: “Programming Languages or Technologies”
+
+The requirement says the candidate needs at least 3 of:
+
+Java, J2EE, Python, Go, Perl, Ruby, C, C++, Microservices, JMS, XML, Kubernetes, Chef, Terraform, Cassandra, or Postgres.
+
+The model's evidence says:
+
+“C# and .NET ... directly aligns ... which are explicitly named in the list”
+
+They are not in the list. That's a hallucination.
+
+Ironically, your profile actually appears to satisfy this requirement legitimately:
+
+C++
+Kubernetes
+PostgreSQL/Postgres
+
+That's three.
+
+So I would classify this as:
+
+direct
+
+but for completely different evidence than the model gave.
+
+This is exactly the kind of error your benchmark should catch: correct-ish outcome for incorrect reasoning/evidence.
+ */
