@@ -8,9 +8,9 @@ import { IJobRequirementMatch } from "./IJobRequirementMatch";
 import { IJobRequirementsMatchingService } from "./IJobRequirementMatchingService";
 import { JobRequirementMatchMapper } from "./Mappers/JobRequirementMatchMapper";
 import { IJobRequirementMatchingContext } from "./Pipeline/IJobRequirementMatchingContext";
-import { AssessDirectMatch } from "./Pipeline/Steps/AssessDirectMatch/AssessDirectMatch";
-import { AssessTransferableMatch } from "./Pipeline/Steps/AssessTransferableMatch/AssessTransferableMatch";
-import { MapRequirementMatch } from "./Pipeline/Steps/MapRequirementMatch/MapRequirementMatch";
+import { AssessDirectMatch } from "../Pipeline/Steps/AssessDirectMatch/AssessDirectMatch";
+import { AssessTransferableMatch } from "../Pipeline/Steps/AssessTransferableMatch/AssessTransferableMatch";
+import { MapRequirementMatch } from "../Pipeline/Steps/MapRequirementMatch/MapRequirementMatch";
 import { IJobRequirementTransferableMatchingService } from "./TransferableMatching/IJobRequirementTransferableMatchingService";
 
 export class JobRequirementsMatchingService implements IJobRequirementsMatchingService {

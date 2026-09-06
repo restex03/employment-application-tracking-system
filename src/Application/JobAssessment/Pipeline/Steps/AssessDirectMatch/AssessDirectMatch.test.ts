@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ICandidateProfile } from "../../../../../../Domain/Candidates/ICandidateProfile";
-import { PipelineStepStatus } from "../../../../../Pipelines/IPipelineStepResult";
-import { IClassifiedJobRequirement } from "../../../../RquirementClassification/IClassifiedJobRequirement";
-import { IJobRequirementDirectMatchingService } from "../../../DirectMatching/IJobRequirementDirectMatchingService";
+import { ICandidateProfile } from "../../../../../Domain/Candidates/ICandidateProfile";
+import { PipelineStepStatus } from "../../../../Pipelines/IPipelineStepResult";
+import { IClassifiedJobRequirement } from "../../../RquirementClassification/IClassifiedJobRequirement";
+import { IJobRequirementDirectMatchingService } from "../../../RequirementMatching/DirectMatching/IJobRequirementDirectMatchingService";
 import { AssessDirectMatch } from "./AssessDirectMatch";
-import { IJobRequirementMatchingContext } from "../../IJobRequirementMatchingContext";
+import { IJobRequirementMatchingContext } from "../../../RequirementMatching/Pipeline/IJobRequirementMatchingContext";
 
 describe("AssessDirectMatch", () => {
     let directMatchingService: IJobRequirementDirectMatchingService;

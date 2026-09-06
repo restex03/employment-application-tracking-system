@@ -1,7 +1,7 @@
-import { IPipelineStep } from "../../../../../Pipelines/IPipelineStep";
-import { IPipelineStepResult, PipelineStepStatus } from "../../../../../Pipelines/IPipelineStepResult";
-import { IJobRequirementTransferableMatchingService } from "../../../TransferableMatching/IJobRequirementTransferableMatchingService";
-import { IJobRequirementMatchingContext } from "../../IJobRequirementMatchingContext";
+import { IPipelineStep } from "../../../../Pipelines/IPipelineStep";
+import { IPipelineStepResult, PipelineStepStatus } from "../../../../Pipelines/IPipelineStepResult";
+import { IJobRequirementTransferableMatchingService } from "../../../RequirementMatching/TransferableMatching/IJobRequirementTransferableMatchingService";
+import { IJobRequirementMatchingContext } from "../../../RequirementMatching/Pipeline/IJobRequirementMatchingContext";
 
 export class AssessTransferableMatch implements IPipelineStep<IJobRequirementMatchingContext> {
     constructor(private readonly transferableMatchingService: IJobRequirementTransferableMatchingService) {}

@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ICandidateProfile } from "../../../../../../Domain/Candidates/ICandidateProfile";
-import { PipelineStepStatus } from "../../../../../Pipelines/IPipelineStepResult";
-import { IClassifiedJobRequirement } from "../../../../RquirementClassification/IClassifiedJobRequirement";
-import { IJobRequirementMatch } from "../../../IJobRequirementMatch";
-import { JobRequirementMatchMapper } from "../../../Mappers/JobRequirementMatchMapper";
+import { ICandidateProfile } from "../../../../../Domain/Candidates/ICandidateProfile";
+import { PipelineStepStatus } from "../../../../Pipelines/IPipelineStepResult";
+import { IClassifiedJobRequirement } from "../../../RquirementClassification/IClassifiedJobRequirement";
+import { IJobRequirementMatch } from "../../../RequirementMatching/IJobRequirementMatch";
+import { JobRequirementMatchMapper } from "../../../RequirementMatching/Mappers/JobRequirementMatchMapper";
 
 import { MapRequirementMatch } from "./MapRequirementMatch";
-import { IJobRequirementMatchingContext } from "../../IJobRequirementMatchingContext";
+import { IJobRequirementMatchingContext } from "../../../RequirementMatching/Pipeline/IJobRequirementMatchingContext";
 
 describe("MapRequirementMatch", () => {
     let mapper: JobRequirementMatchMapper;
