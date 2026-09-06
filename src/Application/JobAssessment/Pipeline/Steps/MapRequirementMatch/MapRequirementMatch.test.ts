@@ -4,9 +4,8 @@ import { PipelineStepStatus } from "../../../../Pipelines/IPipelineStepResult";
 import { IClassifiedJobRequirement } from "../../../RquirementClassification/IClassifiedJobRequirement";
 import { IJobRequirementMatch } from "../../../RequirementMatching/IJobRequirementMatch";
 import { JobRequirementMatchMapper } from "../../../RequirementMatching/Mappers/JobRequirementMatchMapper";
-
 import { MapRequirementMatch } from "./MapRequirementMatch";
-import { IJobRequirementMatchingContext } from "../../../RequirementMatching/Pipeline/IJobRequirementMatchingContext";
+import { IJobRequirementMatchingContext } from "../../IJobRequirementMatchingContext";
 
 describe("MapRequirementMatch", () => {
     let mapper: JobRequirementMatchMapper;

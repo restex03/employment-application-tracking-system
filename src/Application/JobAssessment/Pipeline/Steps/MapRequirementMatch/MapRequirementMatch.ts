@@ -1,7 +1,7 @@
 import { IPipelineStep } from "../../../../Pipelines/IPipelineStep";
 import { IPipelineStepResult, PipelineStepStatus } from "../../../../Pipelines/IPipelineStepResult";
 import { JobRequirementMatchMapper } from "../../../RequirementMatching/Mappers/JobRequirementMatchMapper";
-import { IJobRequirementMatchingContext } from "../../../RequirementMatching/Pipeline/IJobRequirementMatchingContext";
+import { IJobRequirementMatchingContext } from "../../IJobRequirementMatchingContext";
 
 export class MapRequirementMatch implements IPipelineStep<IJobRequirementMatchingContext> {
     constructor(private readonly mapper: JobRequirementMatchMapper) {}

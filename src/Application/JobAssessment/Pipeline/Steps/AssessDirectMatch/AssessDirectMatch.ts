@@ -1,7 +1,7 @@
 import { IPipelineStep } from "../../../../Pipelines/IPipelineStep";
 import { IPipelineStepResult, PipelineStepStatus } from "../../../../Pipelines/IPipelineStepResult";
 import { IJobRequirementDirectMatchingService } from "../../../RequirementMatching/DirectMatching/IJobRequirementDirectMatchingService";
-import { IJobRequirementMatchingContext } from "../../../RequirementMatching/Pipeline/IJobRequirementMatchingContext";
+import { IJobRequirementMatchingContext } from "../../IJobRequirementMatchingContext";
 
 export class AssessDirectMatch implements IPipelineStep<IJobRequirementMatchingContext> {
     constructor(private readonly directMatchingService: IJobRequirementDirectMatchingService) {}

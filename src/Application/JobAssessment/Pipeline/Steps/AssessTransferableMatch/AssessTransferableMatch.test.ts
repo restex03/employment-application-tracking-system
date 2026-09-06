@@ -4,7 +4,7 @@ import { PipelineStepStatus } from "../../../../Pipelines/IPipelineStepResult";
 import { IClassifiedJobRequirement } from "../../../RquirementClassification/IClassifiedJobRequirement";
 import { IJobRequirementTransferableMatchingService } from "../../../RequirementMatching/TransferableMatching/IJobRequirementTransferableMatchingService";
 import { AssessTransferableMatch } from "./AssessTransferableMatch";
-import { IJobRequirementMatchingContext } from "../../../RequirementMatching/Pipeline/IJobRequirementMatchingContext";
+import { IJobRequirementMatchingContext } from "../../IJobRequirementMatchingContext";
 
 describe("AssessTransferableMatch", () => {
     let transferableMatchingService: IJobRequirementTransferableMatchingService;
