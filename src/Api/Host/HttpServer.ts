@@ -21,7 +21,7 @@ export class HttpServer {
 
         this.routes = [
             new JobSourceRoutes(this.dependencies.jobSourceRepository, this.dependencies.logger),
-            new JobCandidateProfileRoutes(this.dependencies.jobCandidateProfile, this.dependencies.logger),
+            new JobCandidateProfileRoutes(this.dependencies.jobCandidateProfileService, this.dependencies.logger),
             new JobPostRoutes(
                 this.dependencies.jobPostService,
                 this.dependencies.jobPostSyncService,

@@ -1,19 +1,19 @@
 import Database from "better-sqlite3";
 
-export class SqliteDatabase {
-    public readonly connection: Database.Database;
+export class SqliteDatabaseConnection {
+    public readonly db: Database.Database;
 
     constructor(databasePath: string) {
-        this.connection = new Database(databasePath);
+        this.db = new Database(databasePath);
 
-        this.connection.pragma("journal_mode = WAL");
-        this.connection.pragma("foreign_keys = ON");
+        this.db.pragma("journal_mode = WAL");
+        this.db.pragma("foreign_keys = ON");
 
         this.initialize();
     }
 
     public close(): void {
-        this.connection.close();
+        this.db.close();
     }
 
     private initialize(): void {
@@ -28,7 +28,7 @@ export class SqliteDatabase {
     }
 
     private createWorkdayJobSourcesTable(): void {
-        this.connection.exec(`
+        this.db.exec(`
             CREATE TABLE IF NOT EXISTS workday_job_sources (
                 id TEXT PRIMARY KEY NOT NULL,
                 company_name TEXT NOT NULL,
@@ -41,7 +41,7 @@ export class SqliteDatabase {
     }
 
     private createJobPostsTable(): void {
-        this.connection.exec(`
+        this.db.exec(`
             CREATE TABLE IF NOT EXISTS job_posts (
                 id TEXT PRIMARY KEY NOT NULL,
                 source_id TEXT NOT NULL,
@@ -62,7 +62,7 @@ export class SqliteDatabase {
     }
 
     private createJobPostDetailsTable(): void {
-        this.connection.exec(`
+        this.db.exec(`
             CREATE TABLE IF NOT EXISTS job_post_details (
                 id TEXT PRIMARY KEY NOT NULL,
                 job_post_id TEXT NOT NULL UNIQUE,
@@ -84,7 +84,7 @@ export class SqliteDatabase {
     }
 
     private createCandidateProfilesTable(): void {
-        this.connection.exec(`
+        this.db.exec(`
             CREATE TABLE IF NOT EXISTS candidate_profiles (
                 id TEXT PRIMARY KEY NOT NULL,
                 current_title TEXT,

@@ -1,5 +1,6 @@
 import { ICandidateProfile } from "../../Domain/Candidates/ICandidateProfile";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
+import { IJobCandidateProfileRepository } from "../../Infrastructure/Persistence/JobCandidateProfiles/IJobCandidateProfileRepository";
 import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
 import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
 import { PipelineStepStatus } from "../Pipelines/IPipelineStepResult";
@@ -10,18 +11,19 @@ import { IJobRequirementMatch } from "./RequirementMatching/IJobRequirementMatch
 
 export class JobAssessmentService implements IJobAssessmentService {
     constructor(
-        private readonly candidateProfile: ICandidateProfile,
+        private readonly candidateProfileRepo: IJobCandidateProfileRepository,
         private readonly pipeline: PipelineRunner<IJobAssessmentContext>,
         private readonly jobSourceRepository: IJobSourceRepository,
         private readonly jobPostRepo: IJobPostRepository,
         private readonly logger: ILogger
     ) {}
 
-    async runAssessment(jobPostId: string): Promise<void> {
+    async runAssessment(candidateProfileId: string, jobPostId: string): Promise<void> {
         this.logger.info(`[JobAssessmentService.runAssessment] Running assessment for job post: ${jobPostId}`);
         const jobPost = await this.jobPostRepo.getByIdOrThrow(jobPostId);
         const jobSource = await this.jobSourceRepository.getByIdOrThrow(jobPost.sourceId);
-        const ctx = new JobAssessmentContext(this.candidateProfile, jobPost, jobSource);
+        const candidateProfile = await this.candidateProfileRepo.getCandidateProfileByIdOrThrow(candidateProfileId);
+        const ctx = new JobAssessmentContext(candidateProfile, jobPost, jobSource);
 
         const result = await this.pipeline.run(ctx);
 
@@ -60,12 +62,12 @@ export class JobAssessmentService implements IJobAssessmentService {
         this.printRequirementMatches(ctx.requirementMatches ?? []);
     }
     private printRequirementMatches(matches: IJobRequirementMatch[]): void {
-        console.log("\nRequirement Analysis");
+        this.logger.info("\nRequirement Analysis");
 
         if (matches.length === 0) {
             throw new Error(`Expected RequirementMatches, but received empty array.`);
         }
-        console.table(
+        this.logger.table(
             matches.map((match, index) => ({
                 "#": index + 1,
                 Requirement: match.requirement.area,

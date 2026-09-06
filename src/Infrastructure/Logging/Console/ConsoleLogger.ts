@@ -3,6 +3,9 @@ import { LogLevel } from "../LogLevel";
 
 export class ConsoleLogger implements ILogger {
     constructor(private readonly logLevel: LogLevel = LogLevel.Info) {}
+    table(tabularData?: any, properties?: string[] | undefined): void {
+        console.table(tabularData, properties);
+    }
 
     trace(message: string, context?: Record<string, unknown>): void {
         if (this.logLevel > LogLevel.Trace) return;

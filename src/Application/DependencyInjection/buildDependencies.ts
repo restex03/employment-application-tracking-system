@@ -1,5 +1,5 @@
 import { SqliteJobRepository } from "../../Infrastructure/Persistence/JobPost/Sqlite/Repositories/SqliteJobRepository";
-import { SqliteDatabase } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteDatabase";
+import { SqliteDatabaseConnection } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteDatabaseConnection";
 import { ConsoleLogger } from "../../Infrastructure/Logging/Console/ConsoleLogger";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { LogLevel } from "../../Infrastructure/Logging/LogLevel";
@@ -40,6 +40,12 @@ import { FetchJobDetails } from "../JobAssessment/Pipeline/Steps/FetchJobDetail"
 import { MatchJobRequirements } from "../JobAssessment/Pipeline/Steps/MatchJobRequirements";
 import { PipelineRunner } from "../Pipelines/PipelineRunner";
 import { ICandidateProfile } from "../../Domain/Candidates/ICandidateProfile";
+import { JobCandidateProfileRepository } from "../../Infrastructure/Persistence/JobCandidateProfiles/JobCandidateProfileRepository";
+import { IJobCandidateProfileRepository } from "../../Infrastructure/Persistence/JobCandidateProfiles/IJobCandidateProfileRepository";
+import { IJobCandidateProfileService } from "../JobCandidateProfiles/IJobCandidateProfileService";
+import { JobCandidateProfileService } from "../JobCandidateProfiles/JobCandidateProfileService";
+import { IJobSourceService } from "../JobSources/IJobSourceService";
+import { JobSourceService } from "../JobSources/JobSourceService";
 
 export function buildDependencies(logLevel: LogLevel): IApplicationDependencies {
     const logger: ILogger = new ConsoleLogger(logLevel);
@@ -47,11 +53,22 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
     /*
      * Persistence
      */
-    const sqlite = createSqliteDatabase();
+    const sqliteConnection = createSqliteConnection();
 
-    const jobPostRepository: IJobPostRepository = new SqliteJobRepository(sqlite.connection, logger);
+    const jobPostRepository: IJobPostRepository = new SqliteJobRepository(sqliteConnection.db, logger);
 
-    const jobSourceRepository: IJobSourceRepository = new WorkdayJobSourceRepository(sqlite.connection, logger);
+    const jobSourceRepository: IJobSourceRepository = new WorkdayJobSourceRepository(sqliteConnection.db, logger);
+
+    const jobSourceService: IJobSourceService = new JobSourceService(jobSourceRepository, logger);
+
+    const jobCandidateProfileRepo: IJobCandidateProfileRepository = new JobCandidateProfileRepository(
+        sqliteConnection.db,
+        logger
+    );
+    const jobCandidateProfileService: IJobCandidateProfileService = new JobCandidateProfileService(
+        jobCandidateProfileRepo,
+        logger
+    );
 
     /*
      * Inference
@@ -103,7 +120,6 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         jobPostService,
         logger
     );
-    const jobCandidateProfile: ICandidateProfile = readCandidateProfile();
     const jobAssessmentPipeline = new PipelineRunner<IJobAssessmentContext>([
         new ScreenJob(screeningService),
         new FetchJobDetails(jobPostDiscoveryServiceFactory),
@@ -112,7 +128,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         new MatchJobRequirements(requirementsMatchingService),
     ]);
     const jobAssessmentService: IJobAssessmentService = new JobAssessmentService(
-        jobCandidateProfile,
+        jobCandidateProfileRepo,
         jobAssessmentPipeline,
         jobSourceRepository,
         jobPostRepository,
@@ -120,16 +136,16 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
     );
     logger.debug("[buildDependencies] Application dependencies initialized");
 
-    logger.debug(`[buildDependencies] DB Connection Path: ${sqlite.connection.name}`);
+    logger.debug(`[buildDependencies] Using DB Path: ${sqliteConnection.db.name}`);
 
     return {
         logger,
-        sqlite,
+        sqliteConnection,
         llm,
-        jobCandidateProfile,
         jobPostRepository,
         jobSourceRepository,
-
+        jobSourceService,
+        jobCandidateProfileService,
         jobPostService,
         jobPostSyncService,
 
@@ -142,22 +158,12 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
     };
 }
 
-function createSqliteDatabase(): SqliteDatabase {
+function createSqliteConnection(): SqliteDatabaseConnection {
     const dbPath = process.env.DB_PATH;
 
     if (!dbPath) {
         throw new Error("DB_PATH environment variable is not set.");
     }
 
-    return new SqliteDatabase(dbPath);
-}
-
-function readCandidateProfile(): ICandidateProfile {
-    const profilePath = process.env.CANDIDATE_PROFILE_PATH;
-    if (!profilePath) {
-        throw new Error("CANDIDATE_PROFILE_PATH environment variable is not set.");
-    }
-    console.log(`[buildDependencies] Reading candidate profile from: ${profilePath}`);
-    const profileData = readFileSync(profilePath, "utf-8");
-    return JSON.parse(profileData) as ICandidateProfile;
+    return new SqliteDatabaseConnection(dbPath);
 }

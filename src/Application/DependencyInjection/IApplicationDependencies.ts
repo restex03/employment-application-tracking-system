@@ -1,28 +1,29 @@
-import { ICandidateProfile } from "../../Domain/Candidates/ICandidateProfile";
 import { ILlmInferenceProvider } from "../../Infrastructure/Inference/ILlmInferenceProvider";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
-import { SqliteDatabase } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteDatabase";
+import { SqliteDatabaseConnection } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteDatabaseConnection";
 import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
 import { IJobAssessmentService } from "../JobAssessment/IJobAssessmentService";
 import { IJobRequirementsMatchingService } from "../JobAssessment/RequirementMatching/IJobRequirementMatchingService";
 import { IJobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/IJobRequirementsExtractionService";
 import { IJobRequirementClassificationService } from "../JobAssessment/RquirementClassification/IJobRequirementClassificationService";
 import { IJobScreeningService } from "../JobAssessment/Screening/IJobScreeningService";
+import { IJobCandidateProfileService } from "../JobCandidateProfiles/IJobCandidateProfileService";
 import { IJobPostService } from "../JobPost/IJobPostService";
 import { IJobPostDiscoveryServiceFactory } from "../JobPostDiscovery/IJobPostDiscoveryServiceFactory";
 import { IJobPostSyncService } from "../JobPostSync/IJobPostSyncService";
+import { IJobSourceService } from "../JobSources/IJobSourceService";
 
 export interface IApplicationDependencies {
     jobAssessmentService: IJobAssessmentService;
     logger: ILogger;
-    sqlite: SqliteDatabase;
+    sqliteConnection: SqliteDatabaseConnection;
     jobPostRepository: IJobPostRepository;
     jobSourceRepository: IJobSourceRepository;
     jobPostService: IJobPostService;
     jobPostSyncService: IJobPostSyncService;
-    // TODO: Move to db
-    jobCandidateProfile: ICandidateProfile;
+    jobCandidateProfileService: IJobCandidateProfileService;
+    jobSourceService: IJobSourceService;
     llm: ILlmInferenceProvider;
     screeningService: IJobScreeningService;
     requirementsExtractionService: IJobRequirementsExtractionService;
