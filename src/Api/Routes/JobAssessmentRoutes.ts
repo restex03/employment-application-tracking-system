@@ -21,26 +21,41 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
     public register(server: FastifyInstance): void {
         server.post<{
             Params: JobPostParams;
-        }>("/job-posts/:jobPostId/run-assessment/:candidateProfileId", async (request, reply) => {
+        }>("/job-posts/:jobPostId/assessments/:candidateProfileId", async (request, reply) => {
             const { jobPostId, candidateProfileId } = request.params;
 
-            this.logger.debug(`[POST /job-posts/${jobPostId}/run-assessment/${candidateProfileId}] Assessment requested`);
-            await this.jobAssessmentService.runAssessment(candidateProfileId, jobPostId);
-            return reply.code(501).send({
-                message: "Job assessment endpoint is not implemented yet.",
-            });
+            try {
+                this.logger.debug(`[POST /job-posts/${jobPostId}/assessments/${candidateProfileId}] Assessment requested`);
+                await this.jobAssessmentService.runAssessment(candidateProfileId, jobPostId);
+                return reply.code(200).send({
+                    message: "Job assessment complete.",
+                });
+            } catch (error) {
+                const errMsg = error instanceof Error ? error.message : String(error);
+                this.logger.error(`[POST /job-posts/${jobPostId}/assessments/${candidateProfileId}] Assessment failed: ${errMsg}`);
+                return reply.code(500).send({
+                    error: `Failed to run assessment: ${errMsg}`
+                });
+            }
         });
 
-        server.post<{
-            Body: JobAssessmentRunBody;
-        }>("/job-assessment-runs", async (request, reply) => {
-            const { sourceId } = request.body ?? {};
+        server.get<{
+            Params: JobPostParams;
+        }>("/job-posts/:jobPostId/assessments/:candidateProfileId", async (request, reply) => {
+            const { jobPostId, candidateProfileId } = request.params;
 
-            this.logger.debug(`[POST /job-assessment-runs] sourceId=${sourceId ?? "all"}`);
-
-            return reply.code(501).send({
-                message: "Job assessment runs are not implemented yet.",
-            });
+            try {
+                this.logger.debug(`[GET /job-posts/${jobPostId}/assessment/${candidateProfileId}] Assessment requested`);
+                return reply.code(501).send({
+                    message: "Method not implemented.",
+                });
+            } catch (error) {
+                const errMsg = error instanceof Error ? error.message : String(error);
+                this.logger.error(`[GET /job-posts/${jobPostId}/assessment/${candidateProfileId}] Failed: ${errMsg}`);
+                return reply.code(500).send({
+                    error: `Failed to get assessment: ${errMsg}`
+                });
+            }
         });
     }
 }
