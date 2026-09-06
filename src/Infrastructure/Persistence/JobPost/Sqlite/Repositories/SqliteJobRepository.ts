@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import { randomUUID } from "node:crypto";
 
-import { IJobPost } from "../../../../../Domain/JobPosts/IJobPost";
+import { IJobPost, JobPost } from "../../../../../Domain/JobPosts/IJobPost";
 import { IJobLocation, IJobPostDetail } from "../../../../../Domain/JobPosts/IJobPostDetail";
 import { IJobPostRepository } from "../../IJobPostRepository";
 import { ILogger } from "../../../../Logging/ILogger";
@@ -353,7 +353,7 @@ export class SqliteJobRepository implements IJobPostRepository {
     }
 
     private mapJobPost(row: JobPostRow): IJobPost {
-        return {
+        const result = new JobPost({
             id: row.id,
             sourceId: row.source_id,
             requisitionId: row.requisition_id ?? undefined,
@@ -362,9 +362,12 @@ export class SqliteJobRepository implements IJobPostRepository {
             locations: this.parseJson<string[]>(row.locations),
             postedDate: row.posted_date ?? undefined,
             createdAt: new Date(row.created_at),
-
-            detail: row.detail_id ? this.mapJobPostDetail(row) : undefined,
-        };
+        });
+        if (row.detail_id) {
+            const detail = this.mapJobPostDetail(row);
+            result.hydrateDetail(detail);
+        }
+        return result;
     }
 
     private mapJobPostDetail(row: JobPostRow): IJobPostDetail {

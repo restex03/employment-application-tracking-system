@@ -1,4 +1,5 @@
 import { ICandidateProfile } from "../../../Domain/Candidates/ICandidateProfile";
+import { IJobMatchScore } from "../../../Domain/JobAssessment/Scoring/IJobMatchScore";
 import { IJobPost } from "../../../Domain/JobPosts/IJobPost";
 import { IJobPostDetail } from "../../../Domain/JobPosts/IJobPostDetail";
 import { IWorkdayJobSource } from "../../../Infrastructure/JobSources/Workday/IWorkdayJobSource";
@@ -16,6 +17,7 @@ export interface IJobAssessmentContext {
     requirements: IJobRequirement[] | undefined;
     classifiedRequirements: IClassifiedJobRequirement[] | undefined;
     requirementMatches: IJobRequirementMatch[] | undefined;
+    jobMatchScore: IJobMatchScore | undefined;
 }
 
 export class JobAssessmentContext implements IJobAssessmentContext {
@@ -24,6 +26,7 @@ export class JobAssessmentContext implements IJobAssessmentContext {
         this.job = jobLookup;
         this.jobSource = jobSource;
     }
+    jobMatchScore: IJobMatchScore | undefined;
     public readonly candidateProfile: ICandidateProfile;
     public readonly job: IJobPost;
     public readonly jobSource: IWorkdayJobSource;
@@ -31,5 +34,5 @@ export class JobAssessmentContext implements IJobAssessmentContext {
     public jobDetail: IJobPostDetail | undefined;
     public requirements: IJobRequirement[] | undefined;
     public classifiedRequirements: IClassifiedJobRequirement[] | undefined;
-    requirementMatches: IJobRequirementMatch[] | undefined;
+    public requirementMatches: IJobRequirementMatch[] | undefined;
 }

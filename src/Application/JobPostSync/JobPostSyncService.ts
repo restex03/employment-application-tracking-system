@@ -6,7 +6,7 @@ import { IWorkdayJobSource } from "../../Infrastructure/JobSources/Workday/IWork
 import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
 import { IJobPostDiscovery } from "../../Domain/JobPosts/IJobPostDiscovery";
 import { randomUUID } from "crypto";
-import { IJobPost } from "../../Domain/JobPosts/IJobPost";
+import { IJobPost, JobPost } from "../../Domain/JobPosts/IJobPost";
 
 export class JobPostSyncService implements IJobPostSyncService {
     constructor(
@@ -53,16 +53,18 @@ export class JobPostSyncService implements IJobPostSyncService {
         return [source];
     }
 
-    private createJobPost(discovery: IJobPostDiscovery): IJobPost {
-        return {
+    private createJobPost(disco: IJobPostDiscovery): IJobPost {
+        const result = new JobPost({
             id: randomUUID(),
-            sourceId: discovery.sourceId,
-            requisitionId: discovery.requisitionId,
-            title: discovery.title,
-            detailPath: discovery.detailPath,
-            locations: discovery.locations,
-            postedDate: discovery.postedDate,
+            sourceId: disco.sourceId,
+            requisitionId: disco.requisitionId,
+            title: disco.title,
+            detailPath: disco.detailPath,
+            locations: disco.locations,
+            postedDate: disco.postedDate,
             createdAt: new Date(),
-        };
+        });
+
+        return result;
     }
 }

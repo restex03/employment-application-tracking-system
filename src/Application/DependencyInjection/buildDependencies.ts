@@ -46,6 +46,11 @@ import { IJobCandidateProfileService } from "../JobCandidateProfiles/IJobCandida
 import { JobCandidateProfileService } from "../JobCandidateProfiles/JobCandidateProfileService";
 import { IJobSourceService } from "../JobSources/IJobSourceService";
 import { JobSourceService } from "../JobSources/JobSourceService";
+import { CalculateJobMatchScore } from "../JobAssessment/Pipeline/Steps/CalculateJobScore";
+import { JobMatchScoreCalculator } from "../../Domain/JobAssessment/Scoring/JobMatchScoreCalculator";
+import { IJobMatchScoreCalculator } from "../../Domain/JobAssessment/Scoring/IJobMatchScoreCalculator";
+import { IJobAssessmentRepository } from "../../Infrastructure/Persistence/JobAssessments/IJobAssessmentRepository";
+import { JobAssessmentRepository } from "../../Infrastructure/Persistence/JobAssessments/JobAssessmentRepository";
 
 export function buildDependencies(logLevel: LogLevel): IApplicationDependencies {
     const logger: ILogger = new ConsoleLogger(logLevel);
@@ -69,6 +74,8 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         jobCandidateProfileRepo,
         logger
     );
+
+    const jobAssessmentRepo: IJobAssessmentRepository = new JobAssessmentRepository(sqliteConnection.db, logger);
 
     /*
      * Inference
@@ -120,18 +127,21 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         jobPostService,
         logger
     );
+    const scoreCalculator: IJobMatchScoreCalculator = new JobMatchScoreCalculator();
     const jobAssessmentPipeline = new PipelineRunner<IJobAssessmentContext>([
         new ScreenJob(screeningService),
         new FetchJobDetails(jobPostDiscoveryServiceFactory),
         new ExtractJobRequirements(requirementsExtractionService),
         new ClassifyJobRequirements(requirementsClassificationService),
         new MatchJobRequirements(requirementsMatchingService),
+        new CalculateJobMatchScore(scoreCalculator),
     ]);
     const jobAssessmentService: IJobAssessmentService = new JobAssessmentService(
         jobCandidateProfileRepo,
         jobAssessmentPipeline,
         jobSourceRepository,
         jobPostRepository,
+        jobAssessmentRepo,
         logger
     );
     logger.debug("[buildDependencies] Application dependencies initialized");

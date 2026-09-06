@@ -25,6 +25,7 @@ export class SqliteDatabaseConnection {
         this.createJobPostsTable();
         this.createJobPostDetailsTable();
         this.createCandidateProfilesTable();
+        this.createJobAssessmentsTable();
     }
 
     private createWorkdayJobSourcesTable(): void {
@@ -164,6 +165,37 @@ export class SqliteDatabaseConnection {
                     REFERENCES candidate_profiles(id)
                     ON DELETE CASCADE
             );
+        `);
+    }
+
+    private createJobAssessmentsTable(): void {
+        this.db.exec(`
+            CREATE TABLE IF NOT EXISTS job_assessments (
+                id TEXT PRIMARY KEY NOT NULL,
+                candidate_profile_id TEXT NOT NULL,
+                job_post_id TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                status TEXT NOT NULL,
+                review_status TEXT NOT NULL,
+                screen_result_json TEXT,
+                requirements_json TEXT,
+                requirement_matches_json TEXT,
+                job_match_score_json TEXT,
+
+                FOREIGN KEY (candidate_profile_id)
+                    REFERENCES candidate_profiles(id),
+                FOREIGN KEY (job_post_id)
+                    REFERENCES job_posts(id)
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_job_assessments_candidate_profile
+            ON job_assessments(candidate_profile_id);
+
+            CREATE INDEX IF NOT EXISTS idx_job_assessments_job_post
+            ON job_assessments(job_post_id);
+
+            CREATE INDEX IF NOT EXISTS idx_job_assessments_created_at
+            ON job_assessments(created_at);
         `);
     }
 }

@@ -25,16 +25,21 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
             const { jobPostId, candidateProfileId } = request.params;
 
             try {
-                this.logger.debug(`[POST /job-posts/${jobPostId}/assessments/${candidateProfileId}] Assessment requested`);
-                await this.jobAssessmentService.runAssessment(candidateProfileId, jobPostId);
+                this.logger.debug(
+                    `[POST /job-posts/${jobPostId}/assessments/${candidateProfileId}] Assessment requested`
+                );
+                const result = await this.jobAssessmentService.runAssessment(candidateProfileId, jobPostId);
+                await this.jobAssessmentService.storeAssessment(result);
                 return reply.code(200).send({
-                    message: "Job assessment complete.",
+                    result,
                 });
             } catch (error) {
                 const errMsg = error instanceof Error ? error.message : String(error);
-                this.logger.error(`[POST /job-posts/${jobPostId}/assessments/${candidateProfileId}] Assessment failed: ${errMsg}`);
+                this.logger.error(
+                    `[POST /job-posts/${jobPostId}/assessments/${candidateProfileId}] Assessment failed: ${errMsg}`
+                );
                 return reply.code(500).send({
-                    error: `Failed to run assessment: ${errMsg}`
+                    error: `Failed to run assessment: ${errMsg}`,
                 });
             }
         });
@@ -45,7 +50,9 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
             const { jobPostId, candidateProfileId } = request.params;
 
             try {
-                this.logger.debug(`[GET /job-posts/${jobPostId}/assessment/${candidateProfileId}] Assessment requested`);
+                this.logger.debug(
+                    `[GET /job-posts/${jobPostId}/assessment/${candidateProfileId}] Assessment requested`
+                );
                 return reply.code(501).send({
                     message: "Method not implemented.",
                 });
@@ -53,7 +60,7 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
                 const errMsg = error instanceof Error ? error.message : String(error);
                 this.logger.error(`[GET /job-posts/${jobPostId}/assessment/${candidateProfileId}] Failed: ${errMsg}`);
                 return reply.code(500).send({
-                    error: `Failed to get assessment: ${errMsg}`
+                    error: `Failed to get assessment: ${errMsg}`,
                 });
             }
         });

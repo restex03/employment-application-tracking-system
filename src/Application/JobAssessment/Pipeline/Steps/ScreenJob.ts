@@ -14,7 +14,7 @@ export class ScreenJob implements IPipelineStep<IJobAssessmentContext> {
 
             if (result.disposition === "reject") {
                 return {
-                    status: PipelineStepStatus.Failed,
+                    status: PipelineStepStatus.Stopped,
                     reason: result.reason,
                 };
             }
