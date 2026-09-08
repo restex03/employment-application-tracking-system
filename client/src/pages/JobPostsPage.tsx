@@ -7,7 +7,7 @@ import JobPostModal from "../components/JobPostModal";
 import SyncModal from "../components/SyncModal";
 import "./JobPostsPage.css";
 
-type SortableColumn = "company" | "requisitionId" | "title" | "locations" | "createdAt" | null;
+type SortableColumn = "company" | "requisitionId" | "title" | "locations" | "postedDaysAgo" | "createdAt" | null;
 type SortDirection = "asc" | "desc" | null;
 
 interface FilterState {
@@ -88,6 +88,12 @@ function JobPostsPage() {
         // Apply sorting
         if (sortColumn) {
             result.sort((a, b) => {
+                if (sortColumn === "postedDaysAgo") {
+                    const aValue = formatDaysAgoSort(a.postedDaysAgo);
+                    const bValue = formatDaysAgoSort(b.postedDaysAgo);
+                    return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+                }
+
                 let aValue: string;
                 let bValue: string;
 
@@ -334,7 +340,12 @@ function JobPostsPage() {
                                         <span className="sort-icon">{getSortIndicator("locations")}</span>
                                     </div>
                                 </th>
-                                <th>Date Posted</th>
+                                <th onClick={() => handleSort("postedDaysAgo")}>
+                                    <div className="sortable-header">
+                                        <span>Date Posted</span>
+                                        <span className="sort-icon">{getSortIndicator("postedDaysAgo")}</span>
+                                    </div>
+                                </th>
                                 <th onClick={() => handleSort("createdAt")}>
                                     <div className="sortable-header">
                                         <span>Created At</span>
@@ -422,3 +433,13 @@ function JobPostsPage() {
 }
 
 export default JobPostsPage;
+
+function formatDaysAgoSort(value: string | undefined): number {
+    if (!value || value === "Unknown") {
+        return Infinity;
+    }
+    if (value === "30+") {
+        return 1000;
+    }
+    return parseInt(value, 10);
+}
