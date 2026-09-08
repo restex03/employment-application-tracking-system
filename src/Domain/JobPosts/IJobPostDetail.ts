@@ -2,6 +2,10 @@ export interface IJobPostDetail {
     id?: string;
     requisitionId?: string;
 
+    /** deorecated - use jobPost.title
+     * TODO: Remove
+     */
+
     title: string;
     description: string;
 

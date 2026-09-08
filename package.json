@@ -14,7 +14,11 @@
         "format:check": "prettier . --check",
         "test": "vitest",
         "test:run": "vitest run",
-        "verify": "npm run typecheck && npm run test:run"
+        "verify": "npm run typecheck && npm run test:run",
+        "frontend:dev": "cd client && npm run dev",
+        "frontend:build": "cd client && npm run build",
+        "frontend:preview": "cd client && npm run preview",
+        "dev:full": "concurrently \"npm run dev\" \"npm run frontend:dev\""
     },
     "knip": {
         "ignoreDependencies": [
@@ -25,6 +29,7 @@
         "@types/better-sqlite3": "^9.6.0",
         "@types/node": "^26.2.0",
         "@types/uuid": "^10.0.0",
+        "concurrently": "^8.2.2",
         "knip": "^6.33.0",
         "prettier": "3.9.6",
         "tsx": "^4.23.12",

@@ -67,3 +67,8 @@ data/
 output.txt
 candidateProfile.json
 
+# Frontend client
+client/node_modules/
+client/dist/
+client/build/
+
