@@ -4,5 +4,5 @@ export interface IJobPostSyncResult {
 }
 
 export interface IJobPostSyncService {
-    sync(sourceId?: string): Promise<IJobPostSyncResult>;
+    sync(sourceIds: string[]): Promise<IJobPostSyncResult>;
 }

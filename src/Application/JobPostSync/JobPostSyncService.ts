@@ -16,9 +16,9 @@ export class JobPostSyncService implements IJobPostSyncService {
         private readonly logger: ILogger
     ) {}
 
-    public async sync(sourceId?: string): Promise<IJobPostSyncResult> {
-        const sources = sourceId ? await this.getSource(sourceId) : await this.jobSourceRepository.getAll();
-
+    public async sync(sourceIds: string[]): Promise<IJobPostSyncResult> {
+        const sourcePromises = sourceIds.map(async x => this.getSource(x));
+        const sources = await Promise.all(sourcePromises);
         let jobsDiscovered = 0;
 
         for (const source of sources) {
@@ -43,14 +43,14 @@ export class JobPostSyncService implements IJobPostSyncService {
         };
     }
 
-    private async getSource(sourceId: string): Promise<IWorkdayJobSource[]> {
+    private async getSource(sourceId: string): Promise<IWorkdayJobSource> {
         const source = await this.jobSourceRepository.getById(sourceId);
 
         if (!source) {
             throw new Error(`Job source not found: ${sourceId}`);
         }
 
-        return [source];
+        return source;
     }
 
     private createJobPost(disco: IJobPostDiscovery): IJobPost {

@@ -10,7 +10,7 @@ interface JobPostParams {
 }
 
 interface SyncJobPostsBody {
-    sourceId?: string;
+    sourceIds: string[];
 }
 
 export class JobPostRoutes implements IRouteRegistrar {
@@ -30,7 +30,7 @@ export class JobPostRoutes implements IRouteRegistrar {
                 const errMsg = error instanceof Error ? error.message : String(error);
                 this.logger.error(`[GET /job-posts] Failed to retrieve job posts: ${errMsg}`);
                 return reply.code(500).send({
-                    error: `Failed to retrieve job posts: ${errMsg}`
+                    error: `Failed to retrieve job posts: ${errMsg}`,
                 });
             }
         });
@@ -41,7 +41,7 @@ export class JobPostRoutes implements IRouteRegistrar {
             try {
                 const { jobPostId } = request.params;
                 this.logger.debug(`[GET /job-posts/${jobPostId}] Retrieving job post`);
-                
+
                 const jobPost = await this.jobPostService.getById(jobPostId);
 
                 if (!jobPost) {
@@ -56,7 +56,7 @@ export class JobPostRoutes implements IRouteRegistrar {
                 const errMsg = error instanceof Error ? error.message : String(error);
                 this.logger.error(`[GET /job-posts] Failed to retrieve job post: ${errMsg}`);
                 return reply.code(500).send({
-                    error: `Failed to retrieve job post: ${errMsg}`
+                    error: `Failed to retrieve job post: ${errMsg}`,
                 });
             }
         });
@@ -68,13 +68,13 @@ export class JobPostRoutes implements IRouteRegistrar {
                 // TODO: Update this endpoint to accept a list of source IDs instead of just one.
                 // TODO: Update this endpoint to run job in background and return a job ID for tracking progress.
                 this.logger.debug("[POST /job-posts/sync] Sync requested");
-                const result = await this.jobPostSyncService.sync(request.body?.sourceId);
+                const result = await this.jobPostSyncService.sync(request.body?.sourceIds);
 
                 this.logger.info("[POST /job-posts/sync] Sync completed successfully");
                 return reply.code(200).send(result);
             } catch (error) {
                 const errMsg = error instanceof Error ? error.message : String(error);
-                
+
                 if (error instanceof Error && error.message.startsWith("Job source not found:")) {
                     this.logger.warn(`[POST /job-posts/sync] Job source not found: ${errMsg}`);
                     return reply.code(404).send({
@@ -84,7 +84,7 @@ export class JobPostRoutes implements IRouteRegistrar {
 
                 this.logger.error(`[POST /job-posts/sync] Sync failed: ${errMsg}`);
                 return reply.code(500).send({
-                    error: `Failed to sync job posts: ${errMsg}`
+                    error: `Failed to sync job posts: ${errMsg}`,
                 });
             }
         });
