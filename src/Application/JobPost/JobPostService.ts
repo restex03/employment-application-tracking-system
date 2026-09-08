@@ -19,8 +19,8 @@ export class JobPostService implements IJobPostService {
         await this.jobRepository.addMany(jobs);
     }
 
-    public async getAll(): Promise<IJobPost[]> {
-        return this.jobRepository.getAll();
+    public async getAll(pageCount: number, pageNumber: number): Promise<{ data: IJobPost[]; totalCount: number }> {
+        return this.jobRepository.getAll(pageCount, pageNumber);
     }
 
     public async getById(id: string): Promise<IJobPost | undefined> {

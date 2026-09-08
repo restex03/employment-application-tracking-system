@@ -64,6 +64,7 @@ export class SqliteJobRepository implements IJobPostRepository {
     private readonly upsertDetailStatement: Database.Statement;
 
     private readonly getAllStatement: Database.Statement;
+    private readonly getAllCountStatement: Database.Statement;
     private readonly getByIdStatement: Database.Statement;
 
     constructor(
@@ -210,6 +211,11 @@ export class SqliteJobRepository implements IJobPostRepository {
                 ON jpd.job_post_id = jp.id
 
             ORDER BY jp.created_at DESC
+            LIMIT @pageCount OFFSET @offset
+        `);
+
+        this.getAllCountStatement = this.connection.prepare(`
+            SELECT COUNT(*) as totalCount FROM job_posts
         `);
 
         this.getByIdStatement = this.connection.prepare(`
@@ -271,12 +277,19 @@ export class SqliteJobRepository implements IJobPostRepository {
         this.logger.debug(`[SqliteJobRepository.addMany] Processed ${jobPosts.length} job posts`);
     }
 
-    public async getAll(): Promise<IJobPost[]> {
-        const rows = this.getAllStatement.all() as JobPostRow[];
+    public async getAll(pageCount: number, pageNumber: number): Promise<{ data: IJobPost[]; totalCount: number }> {
+        const offset = (pageNumber - 1) * pageCount;
+        const rows = this.getAllStatement.all({ pageCount, offset }) as JobPostRow[];
 
-        this.logger.debug(`[SqliteJobRepository.getAll] Retrieved ${rows.length} job posts`);
+        const countRow = this.getAllCountStatement.get() as { totalCount: number };
+        const totalCount = countRow.totalCount;
 
-        return rows.map(row => this.mapJobPost(row));
+        this.logger.debug(`[SqliteJobRepository.getAll] Retrieved ${rows.length} job posts (page ${pageNumber}, total: ${totalCount})`);
+
+        return {
+            data: rows.map(row => this.mapJobPost(row)),
+            totalCount
+        };
     }
 
     public async getById(id: string): Promise<IJobPost | undefined> {

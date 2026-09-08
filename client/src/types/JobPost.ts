@@ -36,3 +36,13 @@ export interface IJobPost {
     createdAt: string;
     detail?: IJobPostDetail;
 }
+
+export interface IJobPostsResponse {
+    data: IJobPost[];
+    totalCount: number;
+}
+
+export interface PaginationParams {
+    pageNumber: number;
+    pageCount: number;
+}

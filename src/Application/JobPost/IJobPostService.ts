@@ -4,7 +4,7 @@ export interface IJobPostService {
     addMany(jobs: IJobPost[]): Promise<void>;
     update(job: IJobPost): Promise<void>;
 
-    getAll(): Promise<IJobPost[]>;
+    getAll(pageCount: number, pageNumber: number): Promise<{ data: IJobPost[]; totalCount: number }>;
 
     getById(id: string): Promise<IJobPost | undefined>;
 }

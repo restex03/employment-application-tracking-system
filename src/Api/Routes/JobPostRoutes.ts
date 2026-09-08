@@ -24,8 +24,10 @@ export class JobPostRoutes implements IRouteRegistrar {
         server.get("/job-posts", async (request, reply) => {
             try {
                 this.logger.debug("[GET /job-posts] Retrieving job posts");
-                const jobPosts = await this.jobPostService.getAll();
-                return jobPosts;
+                const pageCount = parseInt(request.query.pageCount as string) || 10;
+                const pageNumber = parseInt(request.query.pageNumber as string) || 1;
+                const result = await this.jobPostService.getAll(pageCount, pageNumber);
+                return result;
             } catch (error) {
                 const errMsg = error instanceof Error ? error.message : String(error);
                 this.logger.error(`[GET /job-posts] Failed to retrieve job posts: ${errMsg}`);
