@@ -122,7 +122,7 @@ export class JobAssessmentService implements IJobAssessmentService {
         const reqId = context.jobDetail?.requisitionId ?? "Unknown";
 
         const title = context.job.title;
-        const postedDate = context.job.postedDate;
+        const postedDate = context.job.postedDaysAgo;
 
         const locations =
             context.jobDetail?.locations

@@ -297,3 +297,17 @@
     color: var(--text-secondary);
     white-space: nowrap;
 }
+
+.job-posts-table th.row-count {
+    text-align: right;
+    width: 40px;
+}
+
+.row-count {
+    width: 40px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+    padding: 1rem;
+    background-color: #f8fafc;
+}

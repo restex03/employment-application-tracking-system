@@ -9,6 +9,11 @@ interface JobPostParams {
     jobPostId: string;
 }
 
+interface JobPostQuery {
+    pageCount?: string;
+    pageNumber?: string;
+}
+
 interface SyncJobPostsBody {
     sourceIds: string[];
 }
@@ -21,11 +26,13 @@ export class JobPostRoutes implements IRouteRegistrar {
     ) {}
 
     public register(server: FastifyInstance): void {
-        server.get("/job-posts", async (request, reply) => {
+        server.get<{
+            Querystring: JobPostQuery;
+        }>("/job-posts", async (request, reply) => {
             try {
                 this.logger.debug("[GET /job-posts] Retrieving job posts");
-                const pageCount = parseInt(request.query.pageCount as string) || 10;
-                const pageNumber = parseInt(request.query.pageNumber as string) || 1;
+                const pageCount = parseInt(request.query.pageCount || "10");
+                const pageNumber = parseInt(request.query.pageNumber || "1");
                 const result = await this.jobPostService.getAll(pageCount, pageNumber);
                 return result;
             } catch (error) {

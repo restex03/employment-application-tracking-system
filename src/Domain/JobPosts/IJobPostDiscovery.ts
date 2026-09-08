@@ -32,7 +32,7 @@ export interface IJobPostDiscovery {
     locations?: string[];
 
     /**
-     * Date from the search result if available.
+     * Normalized number of days as a string (e.g., "0", "2", "30+", "Unknown")
      */
-    postedDate?: string;
+    postedDaysAgo?: string;
 }

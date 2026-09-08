@@ -19,8 +19,25 @@ export class WorkdayJobsResponseMapper implements IWorkdayJobsApiResponseMapper 
             detailPath: posting.externalPath,
             ...(requisitionId === undefined ? {} : { requisitionId }),
             ...(posting.locationsText ? { locations: [posting.locationsText] } : {}),
-            ...(posting.postedOn ? { postedDate: posting.postedOn } : {}),
+            ...(posting.postedOn ? { postedDaysAgo: this.normalizeDaysAgo(posting.postedOn) } : {}),
         };
+    }
+    normalizeDaysAgo(postedOn: string): string {
+        if (postedOn === "Posted Today") {
+            return "0";
+        }
+
+        const match = postedOn.match(/^Posted (\d+) Days Ago$/);
+        if (match) {
+            return match[1];
+        }
+
+        // For "30+ Days Ago", return "30+"
+        if (postedOn.includes("30+ Days Ago")) {
+            return "30+";
+        }
+
+        return "Unknown";
     }
 
     private getRequisitionId(externalPath: string): string | undefined {

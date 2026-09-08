@@ -41,7 +41,7 @@ describe("WorkdayJobsResponseMapper", () => {
             title: "Senior Software Engineer",
             detailPath: "/job/USA-GA-Atlanta/Senior-Software-Engineer_R-51887",
             locations: ["Atlanta, GA"],
-            postedDate: "Posted 2 Days Ago",
+            postedDaysAgo: "2",
         });
     });
 
@@ -95,11 +95,61 @@ describe("WorkdayJobsResponseMapper", () => {
         expect(result.locations).toBeUndefined();
     });
 
-    it("omits postedDate when postedOn is empty", () => {
+    it("omits postedDate when postedDaysAgo is empty", () => {
         const mapper = new WorkdayJobsResponseMapper(jobSourceId);
 
         const result = mapper.map(createPosting({ postedOn: "" }));
 
-        expect(result.postedDate).toBeUndefined();
+        expect(result.postedDaysAgo).toBeUndefined();
+    });
+
+    describe("normalizeDaysAgo", () => {
+        const mapper = new WorkdayJobsResponseMapper(jobSourceId);
+
+        it("returns '0' for 'Posted Today'", () => {
+            const result = mapper.normalizeDaysAgo("Posted Today");
+
+            expect(result).toBe("0");
+        });
+
+        it.each([
+            ["4", "Posted 4 Days Ago"],
+            ["7", "Posted 7 Days Ago"],
+            ["11", "Posted 11 Days Ago"],
+            ["12", "Posted 12 Days Ago"],
+            ["14", "Posted 14 Days Ago"],
+            ["15", "Posted 15 Days Ago"],
+            ["18", "Posted 18 Days Ago"],
+            ["19", "Posted 19 Days Ago"],
+            ["20", "Posted 20 Days Ago"],
+            ["21", "Posted 21 Days Ago"],
+            ["25", "Posted 25 Days Ago"],
+            ["26", "Posted 26 Days Ago"],
+            ["27", "Posted 27 Days Ago"],
+            ["28", "Posted 28 Days Ago"],
+            ["29", "Posted 29 Days Ago"],
+        ])("returns '%s' for '%s'", (expected, postedDaysAgo) => {
+            const result = mapper.normalizeDaysAgo(postedDaysAgo);
+
+            expect(result).toBe(expected);
+        });
+
+        it("returns '30+' for 'Posted 30+ Days Ago'", () => {
+            const result = mapper.normalizeDaysAgo("Posted 30+ Days Ago");
+
+            expect(result).toBe("30+");
+        });
+
+        it("returns 'Unknown' for unrecognized format", () => {
+            const result = mapper.normalizeDaysAgo("Invalid format");
+
+            expect(result).toBe("Unknown");
+        });
+
+        it("returns 'Unknown' for empty string", () => {
+            const result = mapper.normalizeDaysAgo("");
+
+            expect(result).toBe("Unknown");
+        });
     });
 });

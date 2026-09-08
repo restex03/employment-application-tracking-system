@@ -284,11 +284,13 @@ export class SqliteJobRepository implements IJobPostRepository {
         const countRow = this.getAllCountStatement.get() as { totalCount: number };
         const totalCount = countRow.totalCount;
 
-        this.logger.debug(`[SqliteJobRepository.getAll] Retrieved ${rows.length} job posts (page ${pageNumber}, total: ${totalCount})`);
+        this.logger.debug(
+            `[SqliteJobRepository.getAll] Retrieved ${rows.length} job posts (page ${pageNumber}, total: ${totalCount})`
+        );
 
         return {
             data: rows.map(row => this.mapJobPost(row)),
-            totalCount
+            totalCount,
         };
     }
 
@@ -347,7 +349,7 @@ export class SqliteJobRepository implements IJobPostRepository {
             title: jobPost.title,
             detailPath: jobPost.detailPath,
             locations: jobPost.locations ? JSON.stringify(jobPost.locations) : null,
-            postedDate: jobPost.postedDate ?? null,
+            postedDate: jobPost.postedDaysAgo ?? null,
             createdAt: jobPost.createdAt.toISOString(),
         };
     }
@@ -382,7 +384,7 @@ export class SqliteJobRepository implements IJobPostRepository {
             title: row.title,
             detailPath: row.detail_path,
             locations: this.parseJson<string[]>(row.locations),
-            postedDate: row.posted_date ?? undefined,
+            postedDaysAgo: row.posted_date ?? undefined,
             createdAt: new Date(row.created_at),
         });
         if (row.detail_id) {

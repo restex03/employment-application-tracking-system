@@ -32,7 +32,7 @@ export interface IJobPost {
     title: string;
     detailPath: string;
     locations?: unknown[];
-    postedDate?: string;
+    postedDaysAgo?: string;
     createdAt: string;
     detail?: IJobPostDetail;
 }

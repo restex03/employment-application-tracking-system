@@ -7,7 +7,7 @@ export interface IJobPost {
     title: string;
     detailPath: string;
     locations?: unknown[];
-    postedDate?: string;
+    postedDaysAgo?: string;
     createdAt: Date;
     detail?: IJobPostDetail;
 
@@ -21,7 +21,7 @@ export interface JobPostProps {
     title: string;
     detailPath: string;
     locations?: unknown[];
-    postedDate?: string;
+    postedDaysAgo?: string;
     createdAt: Date;
     detail?: IJobPostDetail;
 }
@@ -33,7 +33,7 @@ export class JobPost implements IJobPost {
     public readonly title: string;
     public readonly detailPath: string;
     public readonly locations?: unknown[];
-    public readonly postedDate?: string;
+    public readonly postedDaysAgo?: string;
     public readonly createdAt: Date;
 
     private _detail?: IJobPostDetail;
@@ -45,7 +45,7 @@ export class JobPost implements IJobPost {
         this.title = props.title;
         this.detailPath = props.detailPath;
         this.locations = props.locations;
-        this.postedDate = props.postedDate;
+        this.postedDaysAgo = props.postedDaysAgo;
         this.createdAt = props.createdAt;
         this._detail = props.detail;
     }
