@@ -10,18 +10,20 @@ export function useSyncJobPosts() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<boolean>(false);
 
-    const sync = async (sourceId?: string): Promise<SyncResult> => {
+    const sync = async (sourceIds?: string[]): Promise<SyncResult> => {
         try {
             setLoading(true);
             setError(null);
             setSuccess(false);
+
+            const body = sourceIds && sourceIds.length > 0 ? { sourceIds } : {};
 
             const response = await fetch('/api/v1/job-posts/sync', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(sourceId ? { sourceId } : {}),
+                body: JSON.stringify(body),
             });
 
             if (!response.ok) {
@@ -55,5 +57,9 @@ export function useSyncJobPosts() {
         setSuccess(false);
     };
 
-    return { sync, loading, error, success, reset };
+    const clearError = () => {
+        setError(null);
+    };
+
+    return { sync, loading, error, success, reset, clearError };
 }

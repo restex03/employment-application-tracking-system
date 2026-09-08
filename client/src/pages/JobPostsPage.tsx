@@ -1,16 +1,23 @@
-import React, { useState } from 'react';
-import { useJobPosts } from '../hooks/useJobPosts';
-import { useJobSources } from '../hooks/useJobSources';
-import { useSyncJobPosts } from '../hooks/useSyncJobPosts';
-import { IJobPost } from '../types/JobPost';
-import JobPostModal from '../components/JobPostModal';
-import SyncModal from '../components/SyncModal';
-import './JobPostsPage.css';
+import React, { useState } from "react";
+import { useJobPosts } from "../hooks/useJobPosts";
+import { useJobSources } from "../hooks/useJobSources";
+import { useSyncJobPosts } from "../hooks/useSyncJobPosts";
+import { IJobPost } from "../types/JobPost";
+import JobPostModal from "../components/JobPostModal";
+import SyncModal from "../components/SyncModal";
+import "./JobPostsPage.css";
 
 function JobPostsPage() {
     const { jobPosts, loading: jobPostsLoading, error: jobPostsError } = useJobPosts();
     const { jobSources, getCompanyName, loading: sourcesLoading, error: sourcesError } = useJobSources();
-    const { sync, loading: syncLoading, error: syncError, success: syncSuccess, reset: resetSync } = useSyncJobPosts();
+    const {
+        sync,
+        loading: syncLoading,
+        error: syncError,
+        success: syncSuccess,
+        reset: resetSync,
+        clearError: clearSyncError,
+    } = useSyncJobPosts();
     const [selectedJobPost, setSelectedJobPost] = useState<IJobPost | null>(null);
     const [isJobPostModalOpen, setIsJobPostModalOpen] = useState<boolean>(false);
     const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
@@ -18,8 +25,8 @@ function JobPostsPage() {
     // Check if either is loading
     const loading = jobPostsLoading || sourcesLoading;
 
-    const handleSync = async (sourceId?: string) => {
-        await sync(sourceId);
+    const handleSync = async (sourceIds?: string[]) => {
+        await sync(sourceIds);
     };
 
     const openSyncModal = () => {
@@ -42,13 +49,13 @@ function JobPostsPage() {
     };
 
     const formatDate = (dateString: string | undefined) => {
-        if (!dateString) return 'N/A';
+        if (!dateString) return "N/A";
         try {
             const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
+            return date.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
             });
         } catch {
             return dateString;
@@ -56,24 +63,20 @@ function JobPostsPage() {
     };
 
     const formatLocations = (locations: unknown[] | undefined) => {
-        if (!locations || locations.length === 0) return 'N/A';
-        
+        if (!locations || locations.length === 0) return "N/A";
+
         // Try to extract location info
         const locationStrings = locations.map(loc => {
-            if (typeof loc === 'string') return loc;
-            if (typeof loc === 'object' && loc !== null) {
+            if (typeof loc === "string") return loc;
+            if (typeof loc === "object" && loc !== null) {
                 const obj = loc as Record<string, unknown>;
-                const parts = [
-                    obj.city as string,
-                    obj.state as string,
-                    obj.country as string
-                ].filter(Boolean);
-                return parts.length > 0 ? parts.join(', ') : 'Unknown';
+                const parts = [obj.city as string, obj.state as string, obj.country as string].filter(Boolean);
+                return parts.length > 0 ? parts.join(", ") : "Unknown";
             }
             return String(loc);
         });
-        
-        return locationStrings.join('; ');
+
+        return locationStrings.join("; ");
     };
 
     if (loading) {
@@ -100,15 +103,11 @@ function JobPostsPage() {
         <div className="job-posts-page">
             <div className="page-header">
                 <h2>Job Posts ({jobPosts.length})</h2>
-                <button 
-                    onClick={openSyncModal}
-                    className="update-button"
-                    disabled={jobSources.length === 0}
-                >
+                <button onClick={openSyncModal} className="update-button" disabled={jobSources.length === 0}>
                     Update
                 </button>
             </div>
-            
+
             {jobPosts.length === 0 ? (
                 <p className="no-data">No job posts found.</p>
             ) : (
@@ -126,7 +125,7 @@ function JobPostsPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {jobPosts.map((jobPost) => (
+                            {jobPosts.map(jobPost => (
                                 <tr
                                     key={jobPost.id}
                                     onClick={() => handleRowClick(jobPost)}
@@ -134,7 +133,7 @@ function JobPostsPage() {
                                     title="Click to view details"
                                 >
                                     <td>{getCompanyName(jobPost.sourceId)}</td>
-                                    <td>{jobPost.requisitionId || 'N/A'}</td>
+                                    <td>{jobPost.requisitionId || "N/A"}</td>
                                     <td>{jobPost.title}</td>
                                     <td className="detail-path">{jobPost.detailPath}</td>
                                     <td>{formatLocations(jobPost.locations)}</td>
@@ -154,12 +153,13 @@ function JobPostsPage() {
                     jobPost={selectedJobPost}
                 />
             )}
-            
+
             <SyncModal
                 isOpen={isSyncModalOpen}
                 onClose={closeSyncModal}
                 jobSources={jobSources}
                 onSync={handleSync}
+                onClearError={clearSyncError}
                 syncLoading={syncLoading}
                 syncError={syncError}
                 syncSuccess={syncSuccess}
