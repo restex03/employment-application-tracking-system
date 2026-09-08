@@ -156,7 +156,6 @@
 .sources-table th {
     padding: 0;
     font-weight: 600;
-    font-size: 0.75rem;
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -176,10 +175,6 @@
 .sources-table th:last-child {
     text-align: left;
     padding: 0 0.75rem;
-}
-
-.sortable-header {
-    display: inline;
 }
 
 .sort-icon {
