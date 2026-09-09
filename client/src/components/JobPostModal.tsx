@@ -1,4 +1,5 @@
 import React from "react";
+import DOMPurify from "dompurify";
 import { IJobPost, IJobPostDetail } from "../types/JobPost";
 import "./JobPostModal.css";
 
@@ -52,9 +53,14 @@ function JobPostModal({ isOpen, onClose, jobPost }: JobPostModalProps) {
 
                                 <div className="detail-section">
                                     <h4>Description</h4>
-                                    <p className="detail-description">
-                                        {detail.description || "No description available"}
-                                    </p>
+                                    <div 
+                                        className="detail-description"
+                                        dangerouslySetInnerHTML={{
+                                            __html: detail.description 
+                                                ? DOMPurify.sanitize(detail.description)
+                                                : "No description available"
+                                        }}
+                                    />
                                 </div>
 
                                 <div className="detail-grid">
