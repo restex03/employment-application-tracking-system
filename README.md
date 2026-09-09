@@ -1,4 +1,4 @@
-# Employment Application Tracking System (EATS)
+# Employment Application & Alignment Tracking System (EATS)
 
 A candidate-side job discovery, evaluation, and application tracking system built with TypeScript.
 
