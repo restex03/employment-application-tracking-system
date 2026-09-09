@@ -19,7 +19,7 @@ export interface IWorkdayJobPostingInfo {
 
     location?: string;
     country?: IWorkdayCountry;
-
+    remoteType?: string;
     externalUrl: string;
 }
 

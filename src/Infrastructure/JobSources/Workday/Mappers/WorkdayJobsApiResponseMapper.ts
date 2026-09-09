@@ -20,6 +20,7 @@ export class WorkdayJobsResponseMapper implements IWorkdayJobsApiResponseMapper 
             ...(requisitionId === undefined ? {} : { requisitionId }),
             ...(posting.locationsText ? { locations: [posting.locationsText] } : {}),
             ...(posting.postedOn ? { postedDaysAgo: this.normalizeDaysAgo(posting.postedOn) } : {}),
+            ...(posting.remoteType ? { remoteType: posting.remoteType } : {}),
         };
     }
     normalizeDaysAgo(postedOn: string): string {

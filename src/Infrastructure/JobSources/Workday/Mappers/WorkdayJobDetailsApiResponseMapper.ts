@@ -33,6 +33,7 @@ export class WorkdayJobDetailsApiResponseMapper implements IWorkdayJobDetailsApi
             datePosted: jobPostingInfo.postedOn,
             employmentType: jobPostingInfo.timeType,
             locations: uniqueLocations,
+            remoteType: jobPostingInfo.remoteType,
         };
     }
 

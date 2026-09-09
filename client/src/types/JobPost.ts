@@ -30,6 +30,7 @@ export interface IJobPost {
     sourceId: string;
     requisitionId?: string;
     title: string;
+    remoteType?: string;
     detailPath: string;
     locations?: unknown[];
     postedDaysAgo?: string;

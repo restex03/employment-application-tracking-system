@@ -73,12 +73,12 @@ function JobPostModal({ isOpen, onClose, jobPost }: JobPostModalProps) {
 
                                 <div className="detail-section">
                                     <h4>Description</h4>
-                                    <div 
+                                    <div
                                         className="detail-description"
                                         dangerouslySetInnerHTML={{
-                                            __html: detail.description 
+                                            __html: detail.description
                                                 ? DOMPurify.sanitize(detail.description)
-                                                : "No description available"
+                                                : "No description available",
                                         }}
                                     />
                                 </div>
@@ -86,7 +86,7 @@ function JobPostModal({ isOpen, onClose, jobPost }: JobPostModalProps) {
                                 <div className="detail-grid">
                                     <div className="detail-item">
                                         <span className="detail-label">Remote Type:</span>
-                                        <span className="detail-value">{detail.remoteType || "Not specified"}</span>
+                                        <span className="detail-value">{detail.remoteType || "N/A"}</span>
                                     </div>
 
                                     <div className="detail-item">
@@ -98,17 +98,17 @@ function JobPostModal({ isOpen, onClose, jobPost }: JobPostModalProps) {
 
                                     <div className="detail-item">
                                         <span className="detail-label">Employment Type:</span>
-                                        <span className="detail-value">{detail.employmentType || "Not specified"}</span>
+                                        <span className="detail-value">{detail.employmentType || "N/A"}</span>
                                     </div>
 
                                     <div className="detail-item">
                                         <span className="detail-label">Date Posted:</span>
-                                        <span className="detail-value">{detail.datePosted || "Not specified"}</span>
+                                        <span className="detail-value">{detail.datePosted || "N/A"}</span>
                                     </div>
 
                                     <div className="detail-item">
                                         <span className="detail-label">Valid Through:</span>
-                                        <span className="detail-value">{detail.validThrough || "Not specified"}</span>
+                                        <span className="detail-value">{detail.validThrough || "N/A"}</span>
                                     </div>
 
                                     <div className="detail-item full-width">

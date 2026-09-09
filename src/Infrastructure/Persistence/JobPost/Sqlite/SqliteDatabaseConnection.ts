@@ -23,6 +23,7 @@ export class SqliteDatabaseConnection {
     private createSchema(): void {
         this.createWorkdayJobSourcesTable();
         this.createJobPostsTable();
+        this.addJobPostRemoteTypeColumn();
         this.createJobPostDetailsTable();
         this.createCandidateProfilesTable();
         this.createJobAssessmentsTable();
@@ -51,6 +52,7 @@ export class SqliteDatabaseConnection {
                 detail_path TEXT NOT NULL,
                 locations TEXT,
                 posted_date TEXT,
+                remote_type TEXT,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
                 FOREIGN KEY (source_id)
@@ -60,6 +62,13 @@ export class SqliteDatabaseConnection {
             CREATE UNIQUE INDEX IF NOT EXISTS ux_job_posts_source_detail_path
             ON job_posts(source_id, detail_path);
         `);
+    }
+
+    private addJobPostRemoteTypeColumn(): void {
+        const columns = this.db.pragma("table_info(job_posts)") as Array<{ name: string }>;
+        if (!columns.some(column => column.name === "remote_type")) {
+            this.db.exec("ALTER TABLE job_posts ADD COLUMN remote_type TEXT");
+        }
     }
 
     private createJobPostDetailsTable(): void {

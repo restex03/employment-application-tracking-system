@@ -10,6 +10,8 @@ export interface IJobPost {
     postedDaysAgo?: string;
     createdAt: Date;
     detail?: IJobPostDetail;
+    remoteType?: string;
+    score?: number;
 
     hydrateDetail(detail: IJobPostDetail): void;
 }
@@ -23,6 +25,7 @@ export interface JobPostProps {
     locations?: unknown[];
     postedDaysAgo?: string;
     createdAt: Date;
+    remoteType?: string;
     detail?: IJobPostDetail;
 }
 
@@ -36,6 +39,7 @@ export class JobPost implements IJobPost {
     public readonly postedDaysAgo?: string;
     public readonly createdAt: Date;
     public detail?: IJobPostDetail;
+    public readonly remoteType?: string;
 
     constructor(props: JobPostProps) {
         this.id = props.id;
@@ -46,6 +50,7 @@ export class JobPost implements IJobPost {
         this.locations = props.locations;
         this.postedDaysAgo = props.postedDaysAgo;
         this.createdAt = props.createdAt;
+        this.remoteType = props.remoteType;
         this.detail = props.detail;
     }
 

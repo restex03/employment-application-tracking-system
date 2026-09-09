@@ -73,6 +73,7 @@ export class JobPostSyncService implements IJobPostSyncService {
             locations: disco.locations,
             postedDaysAgo: disco.postedDaysAgo,
             createdAt: new Date(),
+            remoteType: disco.remoteType,
         });
 
         return result;

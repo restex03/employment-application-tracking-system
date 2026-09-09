@@ -183,6 +183,7 @@ function JobPostsPage() {
 
     const handleSync = async (sourceIds?: string[]) => {
         await sync(sourceIds);
+        window.location.reload();
     };
 
     const openSyncModal = () => {
@@ -422,6 +423,7 @@ function JobPostsPage() {
                                         <span className="sort-icon">{getSortIndicator("title")}</span>
                                     </div>
                                 </th>
+                                <th>Remote Type</th>
                                 <th>Detail Path</th>
                                 <th onClick={() => handleSort("locations")}>
                                     <div className="sortable-header">
@@ -457,6 +459,7 @@ function JobPostsPage() {
                                     <td>{getCompanyName(jobPost.sourceId)}</td>
                                     <td>{jobPost.requisitionId || "N/A"}</td>
                                     <td>{jobPost.title}</td>
+                                    <td>{jobPost.remoteType || "N/A"}</td>
                                     <td className="detail-path">{jobPost.detailPath}</td>
                                     <td>{formatLocations(jobPost.locations)}</td>
                                     <td>{jobPost.postedDaysAgo || "N/A"}</td>

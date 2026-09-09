@@ -14,6 +14,7 @@ interface JobPostParameters {
     detailPath: string;
     locations: string | null;
     postedDate: string | null;
+    remoteType: string | null;
     createdAt: string;
 }
 
@@ -33,6 +34,7 @@ interface JobPostDetailHydrationParameters {
     requisitionId: string | null;
     title: string;
     datePosted: string | null;
+    remoteType: string | null;
 }
 
 interface JobPostIdRow {
@@ -47,6 +49,7 @@ interface JobPostRow {
     detail_path: string;
     locations: string | null;
     posted_date: string | null;
+    remote_type: string | null;
     created_at: string;
 
     detail_id: string | null;
@@ -89,6 +92,7 @@ export class SqliteJobRepository implements IJobPostRepository {
                 detail_path,
                 locations,
                 posted_date,
+                remote_type,
                 created_at
             )
             VALUES (
@@ -99,6 +103,7 @@ export class SqliteJobRepository implements IJobPostRepository {
                 @detailPath,
                 @locations,
                 @postedDate,
+                @remoteType,
                 @createdAt
             )
             ON CONFLICT(source_id, detail_path)
@@ -133,6 +138,16 @@ export class SqliteJobRepository implements IJobPostRepository {
                     )
                     THEN job_posts.posted_date
                     ELSE COALESCE(excluded.posted_date, job_posts.posted_date)
+                END,
+
+                remote_type = CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM job_post_details
+                        WHERE job_post_id = job_posts.id
+                    )
+                    THEN job_posts.remote_type
+                    ELSE COALESCE(excluded.remote_type, job_posts.remote_type)
                 END
             RETURNING id
         `);
@@ -147,7 +162,8 @@ export class SqliteJobRepository implements IJobPostRepository {
             SET
                 requisition_id = COALESCE(@requisitionId, requisition_id),
                 title = @title,
-                posted_date = COALESCE(@datePosted, posted_date)
+                posted_date = COALESCE(@datePosted, posted_date),
+                remote_type = COALESCE(@remoteType, remote_type)
             WHERE id = @jobPostId
         `);
 
@@ -195,6 +211,7 @@ export class SqliteJobRepository implements IJobPostRepository {
                 jp.detail_path,
                 jp.locations,
                 jp.posted_date,
+                jp.remote_type,
                 jp.created_at,
 
                 jpd.id AS detail_id,
@@ -227,6 +244,7 @@ export class SqliteJobRepository implements IJobPostRepository {
                 jp.detail_path,
                 jp.locations,
                 jp.posted_date,
+                jp.remote_type,
                 jp.created_at,
 
                 jpd.id AS detail_id,
@@ -350,6 +368,7 @@ export class SqliteJobRepository implements IJobPostRepository {
             detailPath: jobPost.detailPath,
             locations: jobPost.locations ? JSON.stringify(jobPost.locations) : null,
             postedDate: jobPost.postedDaysAgo ?? null,
+            remoteType: jobPost.remoteType ?? null,
             createdAt: jobPost.createdAt.toISOString(),
         };
     }
@@ -360,6 +379,7 @@ export class SqliteJobRepository implements IJobPostRepository {
             requisitionId: detail.requisitionId ?? null,
             title: detail.title,
             datePosted: detail.datePosted ?? null,
+            remoteType: detail.remoteType ?? null,
         };
     }
 
@@ -386,6 +406,7 @@ export class SqliteJobRepository implements IJobPostRepository {
             locations: this.parseJson<string[]>(row.locations),
             postedDaysAgo: row.posted_date ?? undefined,
             createdAt: new Date(row.created_at),
+            remoteType: row.remote_type ?? undefined,
         });
         if (row.detail_id) {
             const detail = this.mapJobPostDetail(row);
