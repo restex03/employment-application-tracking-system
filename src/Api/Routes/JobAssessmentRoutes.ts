@@ -52,8 +52,10 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
                 this.logger.debug(
                     `[GET /job-posts/${jobPostId}/assessment/${candidateProfileId}] Assessment requested`
                 );
-                return reply.code(501).send({
-                    message: "Method not implemented.",
+                const result = await this.jobAssessmentService.getAssessment(jobPostId, candidateProfileId);
+
+                return reply.code(200).send({
+                    result,
                 });
             } catch (error) {
                 const errMsg = error instanceof Error ? error.message : String(error);

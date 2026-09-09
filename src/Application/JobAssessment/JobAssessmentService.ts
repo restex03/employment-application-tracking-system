@@ -22,8 +22,14 @@ export class JobAssessmentService implements IJobAssessmentService {
         private readonly jobAssessmentRepo: IJobAssessmentRepository,
         private readonly logger: ILogger
     ) {}
-    public async getAssessment(id: string): Promise<IJobAssessment> {
+
+    public async getAssessmentByIdOrThrow(id: string): Promise<IJobAssessment> {
         const result = await this.jobAssessmentRepo.getByIdOrThrow(id);
+        return result;
+    }
+
+    public async getAssessment(jobPostId: string, candidateProfileId: string): Promise<IJobAssessment | undefined> {
+        const result = await this.jobAssessmentRepo.getByJobPostAndCandidateId(jobPostId, candidateProfileId);
         return result;
     }
     private async updateDatabase(result: IJobAssessmentResult): Promise<void> {

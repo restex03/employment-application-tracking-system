@@ -20,6 +20,7 @@ interface JobAssessmentRow {
 export class JobAssessmentRepository implements IJobAssessmentRepository {
     private readonly insertAssessmentStatement: Database.Statement;
     private readonly getAssessmentByIdStatement: Database.Statement;
+    private readonly getAssessmentByJobPostIdAndCandidateProfileIdStatement: Database.Statement;
 
     constructor(
         private readonly connection: Database.Database,
@@ -38,28 +39,50 @@ export class JobAssessmentRepository implements IJobAssessmentRepository {
         this.getAssessmentByIdStatement = this.connection.prepare(`
             SELECT * FROM job_assessments WHERE id = @id LIMIT 1
         `);
+
+        this.getAssessmentByJobPostIdAndCandidateProfileIdStatement = this.connection.prepare(`
+            SELECT * FROM job_assessments WHERE job_post_id = @jobPostId AND candidate_profile_id = @candidateProfileId LIMIT 1
+        `);
+    }
+    public async getByJobPostAndCandidateId(
+        jobPostId: string,
+        candidateProfileId: string
+    ): Promise<IJobAssessment | undefined> {
+        this.logger.info(
+            `[JobAssessmentRepository.getByJobPostAndCandidate] Fetching assessment for job post ${jobPostId} / candidate ${candidateProfileId}`
+        );
+        const row = this.getAssessmentByJobPostIdAndCandidateProfileIdStatement.get({
+            jobPostId,
+            candidateProfileId,
+        }) as JobAssessmentRow | undefined;
+
+        if (!row) {
+            this.logger.debug(
+                `[JobAssessmentRepository.getByJobPostAndCandidateId] Assessment not found: ${jobPostId}, ${candidateProfileId}`
+            );
+            return undefined;
+        }
+
+        const assessment = this.mapRowToAssessment(row);
+        this.logger.debug(
+            `[JobAssessmentRepository.getByJobPostAndCandidateId] Retrieved assessment: ${jobPostId}, ${candidateProfileId}`
+        );
+        return assessment;
     }
 
-    public async storeAssessment(result: IJobAssessment): Promise<IJobAssessment> {
-        this.logger.debug(`[JobAssessmentRepository.storeAssessment] Storing assessment: ${result.id}`);
-
-        const params = {
-            id: result.id,
-            candidateProfileId: result.candidateProfileId,
-            jobPostId: result.jobPostId,
-            createdAt: result.createdAt.toISOString(),
-            status: result.status,
-            reviewStatus: result.reviewStatus,
-            screenResultJson: result.screenResult ? JSON.stringify(result.screenResult) : null,
-            requirementsJson: result.requirements.length > 0 ? JSON.stringify(result.requirements) : null,
-            requirementMatchesJson:
-                result.requirementMatches.length > 0 ? JSON.stringify(result.requirementMatches) : null,
-            jobMatchScoreJson: result.jobMatchScore ? JSON.stringify(result.jobMatchScore) : null,
-        };
-
-        this.insertAssessmentStatement.run(params);
-
-        this.logger.info(`[JobAssessmentRepository.storeAssessment] Stored assessment: ${result.id}`);
+    public async getByJobPostAndCandidateIdOrThrow(
+        jobPostId: string,
+        candidateProfileId: string
+    ): Promise<IJobAssessment> {
+        const result = await this.getByJobPostAndCandidateId(jobPostId, candidateProfileId);
+        if (!result) {
+            this.logger.error(
+                `[JobAssessmentRepository.getByJobPostAndCandidateIdOrThrow] Assessment with ID ${jobPostId} / ${candidateProfileId} does not exist.`
+            );
+            throw new Error(
+                `[JobAssessmentRepository.getByJobPostAndCandidateIdOrThrow] Assessment with ID ${jobPostId} / ${candidateProfileId} does not exist.`
+            );
+        }
         return result;
     }
 
@@ -84,6 +107,29 @@ export class JobAssessmentRepository implements IJobAssessmentRepository {
             this.logger.error(`[JobAssessmentRepository.getByIdOrThrow] Assessment with ID ${id} does not exist.`);
             throw new Error(`[JobAssessmentRepository.getByIdOrThrow] Assessment with ID ${id} does not exist.`);
         }
+        return result;
+    }
+
+    public async storeAssessment(result: IJobAssessment): Promise<IJobAssessment> {
+        this.logger.debug(`[JobAssessmentRepository.storeAssessment] Storing assessment: ${result.id}`);
+
+        const params = {
+            id: result.id,
+            candidateProfileId: result.candidateProfileId,
+            jobPostId: result.jobPostId,
+            createdAt: result.createdAt.toISOString(),
+            status: result.status,
+            reviewStatus: result.reviewStatus,
+            screenResultJson: result.screenResult ? JSON.stringify(result.screenResult) : null,
+            requirementsJson: result.requirements.length > 0 ? JSON.stringify(result.requirements) : null,
+            requirementMatchesJson:
+                result.requirementMatches.length > 0 ? JSON.stringify(result.requirementMatches) : null,
+            jobMatchScoreJson: result.jobMatchScore ? JSON.stringify(result.jobMatchScore) : null,
+        };
+
+        this.insertAssessmentStatement.run(params);
+
+        this.logger.info(`[JobAssessmentRepository.storeAssessment] Stored assessment: ${result.id}`);
         return result;
     }
 

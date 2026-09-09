@@ -4,6 +4,7 @@ import { useJobSources } from "../hooks/useJobSources";
 import { useSyncJobPosts } from "../hooks/useSyncJobPosts";
 import { IJobPost } from "../types/JobPost";
 import JobPostModal from "../components/JobPostModal";
+import JobMatchDetailsModal from "../components/JobMatchDetailsModal";
 import SyncModal from "../components/SyncModal";
 import "./JobPostsPage.css";
 
@@ -43,6 +44,10 @@ function JobPostsPage() {
     const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
     const [detailLoading, setDetailLoading] = useState<boolean>(false);
     const [detailError, setDetailError] = useState<string | null>(null);
+    const [selectedJobPostForAssessment, setSelectedJobPostForAssessment] = useState<IJobPost | null>(null);
+    const [isJobMatchModalOpen, setIsJobMatchModalOpen] = useState<boolean>(false);
+    const [assessmentLoading, setAssessmentLoading] = useState<boolean>(false);
+    const [assessmentError, setAssessmentError] = useState<string | null>(null);
     const [filters, setFilters] = useState<FilterState>({
         company: "",
         requisitionId: "",
@@ -274,7 +279,13 @@ function JobPostsPage() {
     };
 
     const handleRowClick = async (jobPost: IJobPost) => {
-        // Fetch the job detail
+        // Open JobMatchDetailsModal for row clicks
+        setSelectedJobPostForAssessment(jobPost);
+        setIsJobMatchModalOpen(true);
+    };
+
+    const handleDetailsButtonClick = async (jobPost: IJobPost) => {
+        // Fetch the job detail and open JobPostModal for Details button clicks
         const jobPostWithDetail = await fetchJobDetail(jobPost);
         setSelectedJobPost(jobPostWithDetail);
         setIsJobPostModalOpen(true);
@@ -481,7 +492,7 @@ function JobPostsPage() {
                         </thead>
                         <tbody>
                             {filteredAndSortedPosts.map((jobPost, index) => (
-                                <tr key={jobPost.id} className="job-post-row">
+                                <tr key={jobPost.id} className="job-post-row" onClick={() => handleRowClick(jobPost)}>
                                     <td className="row-count">
                                         {(pagination.pageNumber - 1) * pagination.pageCount + index + 1}
                                     </td>
@@ -495,11 +506,11 @@ function JobPostsPage() {
                                     <td>{jobPost.postedDaysAgo || "N/A"}</td>
                                     <td>{formatDate(jobPost.createdAt)}</td>
                                     <td>
-                                        <button 
+                                        <button
                                             className="details-button"
-                                            onClick={(e) => {
+                                            onClick={e => {
                                                 e.stopPropagation();
-                                                handleRowClick(jobPost);
+                                                handleDetailsButtonClick(jobPost);
                                             }}
                                         >
                                             Details
@@ -549,6 +560,19 @@ function JobPostsPage() {
                     isOpen={isJobPostModalOpen}
                     onClose={closeModal}
                     jobPost={selectedJobPost}
+                />
+            )}
+
+            {selectedJobPostForAssessment && (
+                <JobMatchDetailsModal
+                    key={selectedJobPostForAssessment.id}
+                    isOpen={isJobMatchModalOpen}
+                    onClose={() => {
+                        setIsJobMatchModalOpen(false);
+                        setSelectedJobPostForAssessment(null);
+                        setAssessmentError(null);
+                    }}
+                    jobPostId={selectedJobPostForAssessment.id}
                 />
             )}
 

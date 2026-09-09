@@ -240,12 +240,11 @@
 }
 
 .job-post-row:hover {
-    cursor: default;
-    background-color: #f9fafb;
+    background-color: #fcfcfc;
 }
 
 .job-post-row:hover .row-count {
-    background-color: #e2e8f0; /* lighter/slate-200 */
+    background-color: #f1f5f9; /* lighter/slate-100 - more subtle */
 }
 
 .job-post-row:hover .details-button {

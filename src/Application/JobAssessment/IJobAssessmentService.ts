@@ -3,5 +3,6 @@ import { IJobAssessmentResult } from "./IJobAssessmentResult";
 
 export interface IJobAssessmentService {
     runAssessment(candidateProfileId: string, jobPostId: string): Promise<IJobAssessmentResult>;
-    getAssessment(id: string): Promise<IJobAssessment>;
+    getAssessmentByIdOrThrow(id: string): Promise<IJobAssessment>;
+    getAssessment(jobPostId: string, candidateProfileId: string): Promise<IJobAssessment | undefined>;
 }
