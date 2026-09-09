@@ -41,6 +41,8 @@ function JobPostsPage() {
     const [selectedJobPost, setSelectedJobPost] = useState<IJobPost | null>(null);
     const [isJobPostModalOpen, setIsJobPostModalOpen] = useState<boolean>(false);
     const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
+    const [detailLoading, setDetailLoading] = useState<boolean>(false);
+    const [detailError, setDetailError] = useState<string | null>(null);
     const [filters, setFilters] = useState<FilterState>({
         company: "",
         requisitionId: "",
@@ -192,14 +194,95 @@ function JobPostsPage() {
         setIsSyncModalOpen(false);
     };
 
-    const handleRowClick = (jobPost: IJobPost) => {
-        setSelectedJobPost(jobPost);
+    const fetchJobDetail = async (jobPost: IJobPost): Promise<IJobPost> => {
+        setDetailLoading(true);
+        setDetailError(null);
+
+        try {
+            // Try to get the job by ID first
+            const getUrl = `/api/v1/job-posts/${jobPost.id}`;
+            const getResponse = await fetch(getUrl);
+
+            if (getResponse.ok) {
+                const data: IJobPost = await getResponse.json();
+                
+                // If detail is undefined, sync the job detail
+                if (!data.detail) {
+                    const syncUrl = `/api/v1/job-posts/${jobPost.id}/sync`;
+                    const syncResponse = await fetch(syncUrl, {
+                        method: "POST",
+                    });
+
+                    if (!syncResponse.ok) {
+                        throw new Error(`Failed to sync job detail: ${syncResponse.status}`);
+                    }
+
+                    // After successful sync, try to get the job again with a retry
+                    const retryData = await fetchWithRetry(getUrl, 3, 1000);
+                    return retryData;
+                }
+                
+                return data;
+            }
+
+            // If 404, try to sync the job detail
+            if (getResponse.status === 404) {
+                const syncUrl = `/api/v1/job-posts/${jobPost.id}/sync`;
+                const syncResponse = await fetch(syncUrl, {
+                    method: "POST",
+                });
+
+                if (!syncResponse.ok) {
+                    throw new Error(`Failed to sync job detail: ${syncResponse.status}`);
+                }
+
+                // After successful sync, try to get the job again with a retry
+                const retryData = await fetchWithRetry(getUrl, 3, 1000);
+                return retryData;
+            }
+
+            throw new Error(`Failed to fetch job detail: ${getResponse.status}`);
+        } catch (err) {
+            setDetailError(err instanceof Error ? err.message : "Failed to fetch job detail");
+            // Return the original jobPost without detail
+            return jobPost;
+        } finally {
+            setDetailLoading(false);
+        }
+    };
+
+    const fetchWithRetry = async (url: string, maxRetries: number, delayMs: number): Promise<IJobPost> => {
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            const response = await fetch(url);
+            if (response.ok) {
+                const data: IJobPost = await response.json();
+                if (data.detail) {
+                    return data;
+                }
+            }
+            if (attempt < maxRetries - 1) {
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+            }
+        }
+        // If all retries fail, return the last response or throw
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch after retries: ${response.status}`);
+        }
+        return await response.json();
+    };
+
+    const handleRowClick = async (jobPost: IJobPost) => {
+        // Fetch the job detail
+        const jobPostWithDetail = await fetchJobDetail(jobPost);
+        setSelectedJobPost(jobPostWithDetail);
         setIsJobPostModalOpen(true);
     };
 
     const closeModal = () => {
         setIsJobPostModalOpen(false);
         setSelectedJobPost(null);
+        setDetailError(null);
     };
 
     const formatDate = (dateString: string | undefined) => {
@@ -255,6 +338,12 @@ function JobPostsPage() {
 
     return (
         <div className="job-posts-page">
+            {detailLoading && (
+                <div className="loading-overlay">
+                    <div className="spinner"></div>
+                    <p>Loading job details...</p>
+                </div>
+            )}
             <div className="page-header">
                 <h2>Job Posts ({totalCount})</h2>
                 <button onClick={openSyncModal} className="update-button" disabled={jobSources.length === 0}>
@@ -412,8 +501,9 @@ function JobPostsPage() {
 
             {selectedJobPost && (
                 <JobPostModal
+                    key={selectedJobPost.id + (selectedJobPost.detail ? "-with-detail" : "")}
                     isOpen={isJobPostModalOpen}
-                    onClose={() => setIsJobPostModalOpen(false)}
+                    onClose={closeModal}
                     jobPost={selectedJobPost}
                 />
             )}

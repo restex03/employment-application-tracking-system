@@ -35,8 +35,7 @@ export class JobPost implements IJobPost {
     public readonly locations?: unknown[];
     public readonly postedDaysAgo?: string;
     public readonly createdAt: Date;
-
-    private _detail?: IJobPostDetail;
+    public detail?: IJobPostDetail;
 
     constructor(props: JobPostProps) {
         this.id = props.id;
@@ -47,14 +46,10 @@ export class JobPost implements IJobPost {
         this.locations = props.locations;
         this.postedDaysAgo = props.postedDaysAgo;
         this.createdAt = props.createdAt;
-        this._detail = props.detail;
-    }
-
-    public get detail(): IJobPostDetail | undefined {
-        return this._detail;
+        this.detail = props.detail;
     }
 
     public hydrateDetail(detail: IJobPostDetail): void {
-        this._detail = detail;
+        this.detail = detail;
     }
 }
