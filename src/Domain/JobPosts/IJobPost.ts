@@ -25,8 +25,9 @@ export interface JobPostProps {
     locations?: unknown[];
     postedDaysAgo?: string;
     createdAt: Date;
-    remoteType?: string;
     detail?: IJobPostDetail;
+    remoteType?: string;
+    score?: number;
 }
 
 export class JobPost implements IJobPost {
@@ -40,6 +41,7 @@ export class JobPost implements IJobPost {
     public readonly createdAt: Date;
     public detail?: IJobPostDetail;
     public readonly remoteType?: string;
+    public readonly score?: number;
 
     constructor(props: JobPostProps) {
         this.id = props.id;
@@ -51,6 +53,7 @@ export class JobPost implements IJobPost {
         this.postedDaysAgo = props.postedDaysAgo;
         this.createdAt = props.createdAt;
         this.remoteType = props.remoteType;
+        this.score = props.score;
         this.detail = props.detail;
     }
 

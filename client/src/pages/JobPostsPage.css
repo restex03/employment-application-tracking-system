@@ -336,3 +336,52 @@
     padding: 1rem;
     background-color: #f8fafc;
 }
+
+.score-column {
+    width: 100px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.score-cell {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.score-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.score-circle {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.score-circle.score-high {
+    background-color: #22c55e; /* green-500 */
+}
+
+.score-circle.score-fair {
+    background-color: #facc15; /* yellow-400 */
+}
+
+.score-circle.score-poor {
+    background-color: #ef4444; /* red-500 */
+}
+
+.score-circle.score-missing {
+    background-color: #9ca3af; /* gray-400 */
+}
+
+.score-label {
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}

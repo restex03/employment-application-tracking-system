@@ -206,7 +206,7 @@ function JobPostsPage() {
 
             if (getResponse.ok) {
                 const data: IJobPost = await getResponse.json();
-                
+
                 // If detail is undefined, sync the job detail
                 if (!data.detail) {
                     const syncUrl = `/api/v1/job-posts/${jobPost.id}/sync`;
@@ -222,7 +222,7 @@ function JobPostsPage() {
                     const retryData = await fetchWithRetry(getUrl, 3, 1000);
                     return retryData;
                 }
-                
+
                 return data;
             }
 
@@ -317,6 +317,38 @@ function JobPostsPage() {
         return locationStrings.join("; ");
     };
 
+    const renderScoreIndicator = (score: number | undefined): React.ReactNode => {
+        if (score === undefined) {
+            return (
+                <div className="score-indicator">
+                    <div className="score-circle score-missing"></div>
+                    <div className="score-label">Run</div>
+                </div>
+            );
+        }
+
+        let circleClass = "";
+        let label = "";
+
+        if (score >= 75) {
+            circleClass = "score-circle score-high";
+            label = "Good";
+        } else if (score >= 50) {
+            circleClass = "score-circle score-fair";
+            label = "Fair";
+        } else {
+            circleClass = "score-circle score-poor";
+            label = "Poor";
+        }
+
+        return (
+            <div className="score-indicator">
+                <div className={circleClass}></div>
+                <div className="score-label">{label}</div>
+            </div>
+        );
+    };
+
     if (loading) {
         return (
             <div className="loading-container">
@@ -405,6 +437,7 @@ function JobPostsPage() {
                         <thead>
                             <tr>
                                 <th className="row-count">#</th>
+                                <th className="score-column">Job Match</th>
                                 <th onClick={() => handleSort("company")}>
                                     <div className="sortable-header">
                                         <span>Company</span>
@@ -456,6 +489,7 @@ function JobPostsPage() {
                                     <td className="row-count">
                                         {(pagination.pageNumber - 1) * pagination.pageCount + index + 1}
                                     </td>
+                                    <td className="score-cell">{renderScoreIndicator(jobPost.score)}</td>
                                     <td>{getCompanyName(jobPost.sourceId)}</td>
                                     <td>{jobPost.requisitionId || "N/A"}</td>
                                     <td>{jobPost.title}</td>
