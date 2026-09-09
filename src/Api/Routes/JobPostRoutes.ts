@@ -77,7 +77,7 @@ export class JobPostRoutes implements IRouteRegistrar {
                 // TODO: Update this endpoint to accept a list of source IDs instead of just one.
                 // TODO: Update this endpoint to run job in background and return a job ID for tracking progress.
                 this.logger.debug("[POST /job-posts/sync] Sync requested");
-                const result = await this.jobPostSyncService.sync(request.body?.sourceIds);
+                const result = await this.jobPostSyncService.syncJobs(request.body?.sourceIds);
 
                 this.logger.info("[POST /job-posts/sync] Sync completed successfully");
                 return reply.code(200).send(result);
@@ -94,6 +94,26 @@ export class JobPostRoutes implements IRouteRegistrar {
                 this.logger.error(`[POST /job-posts/sync] Sync failed: ${errMsg}`);
                 return reply.code(500).send({
                     error: `Failed to sync job posts: ${errMsg}`,
+                });
+            }
+        });
+
+        server.post<{
+            Params: JobPostParams;
+        }>("/job-posts/:jobPostId/sync", async (request, reply) => {
+            try {
+                const { jobPostId } = request.params;
+                this.logger.debug(`[POST /job-posts/:jobPostId/sync] Sync requested for job ${jobPostId}`);
+                await this.jobPostSyncService.syncJobDetails(jobPostId);
+
+                this.logger.info(`[POST /job-posts/:jobPostId/sync] Sync completed successfully`);
+                return reply.code(200).send();
+            } catch (error) {
+                const errMsg = error instanceof Error ? error.message : String(error);
+
+                this.logger.error(`[POST /job-posts/sync] Sync job post detail failed: ${errMsg}`);
+                return reply.code(500).send({
+                    error: `Failed to sync job post details: ${errMsg}`,
                 });
             }
         });

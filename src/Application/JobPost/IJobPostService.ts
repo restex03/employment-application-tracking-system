@@ -7,4 +7,5 @@ export interface IJobPostService {
     getAll(pageCount: number, pageNumber: number): Promise<{ data: IJobPost[]; totalCount: number }>;
 
     getById(id: string): Promise<IJobPost | undefined>;
+    getByIdOrThrow(id: string): Promise<IJobPost>;
 }

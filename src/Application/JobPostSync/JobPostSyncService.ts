@@ -16,7 +16,7 @@ export class JobPostSyncService implements IJobPostSyncService {
         private readonly logger: ILogger
     ) {}
 
-    public async sync(sourceIds: string[]): Promise<IJobPostSyncResult> {
+    public async syncJobs(sourceIds: string[]): Promise<IJobPostSyncResult> {
         const sourcePromises = sourceIds.map(async x => this.getSource(x));
         const sources = await Promise.all(sourcePromises);
         let jobsDiscovered = 0;
@@ -41,6 +41,16 @@ export class JobPostSyncService implements IJobPostSyncService {
             sourcesProcessed: sources.length,
             jobsDiscovered,
         };
+    }
+
+    public async syncJobDetails(jobPostId: string): Promise<void> {
+        this.logger.debug(`[JobPostSyncService.sync] Syncing job details for job post: ${jobPostId}`);
+        const jobPost = await this.jobPostService.getByIdOrThrow(jobPostId);
+        const source = await this.getSource(jobPost.sourceId);
+        const discoveryService = this.discoveryServiceFactory.create(source);
+        const detail = await discoveryService.fetchDetail(jobPost);
+        jobPost.hydrateDetail(detail);
+        await this.jobPostService.update(jobPost);
     }
 
     private async getSource(sourceId: string): Promise<IWorkdayJobSource> {
