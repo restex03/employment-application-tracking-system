@@ -476,16 +476,12 @@ function JobPostsPage() {
                                         <span className="sort-icon">{getSortIndicator("createdAt")}</span>
                                     </div>
                                 </th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredAndSortedPosts.map((jobPost, index) => (
-                                <tr
-                                    key={jobPost.id}
-                                    onClick={() => handleRowClick(jobPost)}
-                                    className="job-post-row"
-                                    title="Click to view details"
-                                >
+                                <tr key={jobPost.id} className="job-post-row">
                                     <td className="row-count">
                                         {(pagination.pageNumber - 1) * pagination.pageCount + index + 1}
                                     </td>
@@ -498,6 +494,17 @@ function JobPostsPage() {
                                     <td>{formatLocations(jobPost.locations)}</td>
                                     <td>{jobPost.postedDaysAgo || "N/A"}</td>
                                     <td>{formatDate(jobPost.createdAt)}</td>
+                                    <td>
+                                        <button 
+                                            className="details-button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleRowClick(jobPost);
+                                            }}
+                                        >
+                                            Details
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>

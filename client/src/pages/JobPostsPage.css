@@ -50,7 +50,9 @@
     background-color: var(--card-background);
     color: var(--text-secondary);
     cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
 }
 
 .clear-filters-button:hover {
@@ -238,12 +240,16 @@
 }
 
 .job-post-row:hover {
-    background-color: #f8fafc;
-    transform: translateY(-1px);
+    cursor: default;
+    background-color: #f9fafb;
 }
 
-.job-post-row:active {
-    transform: translateY(0);
+.job-post-row:hover .row-count {
+    background-color: #e2e8f0; /* lighter/slate-200 */
+}
+
+.job-post-row:hover .details-button {
+    background-color: var(--primary-color);
 }
 
 .detail-path {
@@ -302,7 +308,9 @@
     background-color: var(--card-background);
     color: var(--text-primary);
     cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
 }
 
 .page-nav-button:hover:not(:disabled) {
@@ -384,4 +392,20 @@
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+}
+
+.details-button {
+    background-color: #60a5fa; /* blue-400 - lighter blue */
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.details-button:hover {
+    background-color: var(--primary-color);
 }
