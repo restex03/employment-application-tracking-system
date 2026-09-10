@@ -56,11 +56,11 @@ function JobPostsPage() {
     const [isJobPostModalOpen, setIsJobPostModalOpen] = useState<boolean>(false);
     const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
     const [detailLoading, setDetailLoading] = useState<boolean>(false);
-    const [detailError, setDetailError] = useState<string | null>(null);
+    const [_detailError, setDetailError] = useState<string | null>(null);
     const [selectedJobPostForAssessment, setSelectedJobPostForAssessment] = useState<IJobPost | null>(null);
     const [isJobMatchModalOpen, setIsJobMatchModalOpen] = useState<boolean>(false);
-    const [assessmentLoading, setAssessmentLoading] = useState<boolean>(false);
-    const [assessmentError, setAssessmentError] = useState<string | null>(null);
+    const [_assessmentLoading, _setAssessmentLoading] = useState<boolean>(false);
+    const [_assessmentError, setAssessmentError] = useState<string | null>(null);
     const [isToolsModalOpen, setIsToolsModalOpen] = useState<boolean>(false);
     const [sortColumn, setSortColumn] = useState<SortableColumn>(null);
     const [sortDirection, setSortDirection] = useState<SortDirection>("asc");

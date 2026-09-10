@@ -1,4 +1,3 @@
-import React from "react";
 import JobPostsPage from "./pages/JobPostsPage";
 import "./App.css";
 

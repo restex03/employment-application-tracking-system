@@ -1,6 +1,6 @@
 import React from "react";
 import DOMPurify from "dompurify";
-import { IJobPost, IJobPostDetail } from "../types/JobPost";
+import { IJobPost } from "../types/JobPost";
 import "./JobPostModal.css";
 
 interface JobPostModalProps {
@@ -13,22 +13,6 @@ function JobPostModal({ isOpen, onClose, jobPost }: JobPostModalProps) {
     if (!isOpen) return null;
 
     const detail = jobPost.detail;
-
-    const formatLocations = (locations: unknown[] | undefined) => {
-        if (!locations || locations.length === 0) return "N/A";
-
-        const locationStrings = locations.map(loc => {
-            if (typeof loc === "string") return loc;
-            if (typeof loc === "object" && loc !== null) {
-                const obj = loc as Record<string, unknown>;
-                const parts = [obj.city as string, obj.state as string, obj.country as string].filter(Boolean);
-                return parts.length > 0 ? parts.join(", ") : "Unknown";
-            }
-            return String(loc);
-        });
-
-        return locationStrings.join("; ");
-    };
 
     const formatLocationsAsList = (locations: unknown[] | undefined): React.ReactNode => {
         if (!locations || locations.length === 0) return "N/A";

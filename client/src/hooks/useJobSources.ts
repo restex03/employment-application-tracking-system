@@ -1,40 +1,21 @@
-import { useEffect, useState } from 'react';
-import { IJobSource } from '../types/JobPost';
+import { IJobSource } from "../types/JobPost";
+import { useAbortableFetch } from "./useAbortableFetch";
 
 export function useJobSources() {
-    const [jobSources, setJobSources] = useState<IJobSource[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        const fetchJobSources = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                
-                const response = await fetch('/api/v1/job-sources');
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                setJobSources(data);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to fetch job sources');
-                setJobSources([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchJobSources();
+    const { data, loading, error } = useAbortableFetch<IJobSource[]>(async signal => {
+        const response = await fetch("/api/v1/job-sources", { signal });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
     }, []);
+
+    const jobSources = data ?? [];
 
     // Create a lookup map for quick access
     const getCompanyName = (sourceId: string): string => {
         const source = jobSources.find(s => s.id === sourceId);
-        return source ? source.companyName : 'Unknown';
+        return source ? source.companyName : "Unknown";
     };
 
     return { jobSources, loading, error, getCompanyName };
