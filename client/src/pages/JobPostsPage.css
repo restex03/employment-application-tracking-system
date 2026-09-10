@@ -82,7 +82,7 @@
     color: var(--error-color);
 }
 
-.update-button {
+.sync-button {
     background-color: var(--primary-color);
     color: white;
     border: none;
@@ -94,11 +94,11 @@
     transition: background-color 0.2s ease;
 }
 
-.update-button:hover:not(:disabled) {
+.sync-button:hover:not(:disabled) {
     background-color: var(--primary-hover);
 }
 
-.update-button:disabled {
+.sync-button:disabled {
     background-color: #93c5fd;
     cursor: not-allowed;
 }
@@ -283,17 +283,17 @@
     background-color: #f1f5f9; /* lighter/slate-100 - more subtle */
 }
 
-.job-post-row:hover .icon-button {
+.job-post-row:hover .details-button {
     color: var(--primary-color);
     transform: scale(1.35);
 }
 
-.job-post-row:hover .run-assessment-button {
+.job-post-row:hover .assessment-button {
     color: var(--primary-color);
     transform: scale(1.35);
 }
 
-.icon-button {
+.details-button {
     width: 36px;
     height: 28px;
     display: inline-flex;
@@ -312,11 +312,11 @@
     cursor: pointer;
 }
 
-.icon-button:hover {
+.details-button:hover {
     filter: brightness(140%);
 }
 
-.icon-eye {
+.details-icon {
     width: 18px;
     height: 18px;
 
@@ -469,7 +469,7 @@
     letter-spacing: 0.05em;
 }
 
-.run-assessment-button {
+.assessment-button {
     background: transparent;
     color: var(--secondary-color);
     border: none;
@@ -483,6 +483,6 @@
         transform 0.15s ease;
 }
 
-.run-assessment-button:hover {
+.assessment-button:hover {
     filter: brightness(140%);
 }

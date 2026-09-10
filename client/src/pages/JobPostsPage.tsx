@@ -355,7 +355,7 @@ function JobPostsPage() {
             <div className="page-header">
                 <h2>Job Posts ({totalCount})</h2>
                 <div className="header-actions">
-                    <button onClick={openSyncModal} className="update-button" disabled={jobSources.length === 0}>
+                    <button onClick={openSyncModal} className="sync-button" disabled={jobSources.length === 0}>
                         Sync
                     </button>
                     <button onClick={() => setIsToolsModalOpen(true)} className="tools-button">
@@ -488,7 +488,7 @@ function JobPostsPage() {
                                     <td>
                                         <button
                                             type="button"
-                                            className="icon-button"
+                                            className="details-button"
                                             title="View job details"
                                             aria-label="View job details"
                                             onClick={e => {
@@ -496,7 +496,7 @@ function JobPostsPage() {
                                                 handleDetailsButtonClick(jobPost);
                                             }}
                                         >
-                                            <svg className="icon-eye" viewBox="0 0 24 24" aria-hidden="true">
+                                            <svg className="details-icon" viewBox="0 0 24 24" aria-hidden="true">
                                                 <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
                                                 <circle cx="12" cy="12" r="3" />
                                             </svg>
@@ -504,7 +504,7 @@ function JobPostsPage() {
                                     </td>
                                     <td>
                                         <button
-                                            className="run-assessment-button"
+                                            className="assessment-button"
                                             onClick={e => {
                                                 e.stopPropagation();
                                                 handleRunAssessment(jobPost);

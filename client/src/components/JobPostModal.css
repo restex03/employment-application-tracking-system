@@ -130,7 +130,7 @@
     gap: 0.25rem;
 }
 
-.detail-item.full-width {
+.detail-item.detail-item-full-width {
     grid-column: span 2;
 }
 
@@ -197,7 +197,7 @@
         grid-template-columns: 1fr;
     }
     
-    .detail-item.full-width {
+    .detail-item.detail-item-full-width {
         grid-column: span 1;
     }
     

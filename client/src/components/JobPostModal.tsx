@@ -111,7 +111,7 @@ function JobPostModal({ isOpen, onClose, jobPost }: JobPostModalProps) {
                                         <span className="detail-value">{detail.validThrough || "N/A"}</span>
                                     </div>
 
-                                    <div className="detail-item full-width">
+                                    <div className="detail-item detail-item-full-width">
                                         <span className="detail-label">Locations:</span>
                                         <span className="detail-value">
                                             {formatLocationsAsList(detail.locations || jobPost.locations)}

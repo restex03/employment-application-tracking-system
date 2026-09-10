@@ -131,7 +131,7 @@
 .filter-input::placeholder {
     color: var(--text-secondary);
 }
-.update-job-posts-table-container {
+.sources-table-container {
     overflow-y: auto;
     max-height: 300px;
     border: 1px solid var(--border-color);

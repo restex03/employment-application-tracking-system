@@ -153,7 +153,7 @@ function SyncModal({
                                         className="filter-input"
                                     />
                                 </div>
-                                <div className="update-job-posts-table-container">
+                                <div className="sources-table-container">
                                     <table className="sources-table">
                                         <thead>
                                             <tr>
