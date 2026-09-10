@@ -179,7 +179,6 @@ function mapToResponse(result: IJobAssessment): IJobAssessmentResponse {
         status: result.status,
         reviewStatus: result.reviewStatus,
         screenResult: result.screenResult,
-        requirements: [...result.requirements],
         requirementMatches: [...result.requirementMatches],
         jobMatchScore: result.jobMatchScore,
     };

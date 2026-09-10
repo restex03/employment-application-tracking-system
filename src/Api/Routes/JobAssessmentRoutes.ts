@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IRouteRegistrar } from "../Host/IRouteRegistrar";
 import { IJobAssessmentService } from "../../Application/JobAssessment/IJobAssessmentService";
-import { NotFoundError } from "../../Application/Common/NotFoundError";
+import { NotFoundError } from "../../Application/Common/Errors/NotFoundError";
 
 interface JobPostParams {
     jobPostId: string;

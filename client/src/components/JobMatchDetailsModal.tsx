@@ -80,11 +80,11 @@ function waitForRetry(delayMs: number, signal: AbortSignal): Promise<void> {
 }
 
 function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsModalProps) {
-    const { data: assessment, loading, error } = useAbortableFetch(
-        signal => fetchAssessment(jobPostId, signal),
-        [jobPostId],
-        isOpen && Boolean(jobPostId)
-    );
+    const {
+        data: assessment,
+        loading,
+        error,
+    } = useAbortableFetch(signal => fetchAssessment(jobPostId, signal), [jobPostId], isOpen && Boolean(jobPostId));
 
     if (!isOpen) return null;
 
@@ -289,84 +289,33 @@ function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsMod
                                 </div>
                             )}
 
-                            {/* Requirements Section */}
-                            <div className="requirements-section">
-                                <h3>Job Requirements</h3>
-                                {assessment.requirements.length > 0 ? (
-                                    <div className="requirements-grid">
-                                        {assessment.requirements.map((requirement, index) => {
-                                            // Find the matching requirement match for this requirement
-                                            const requirementMatch = assessment.requirementMatches.find(
-                                                rm =>
-                                                    rm.requirement.area === requirement.area &&
-                                                    rm.requirement.description === requirement.description
-                                            );
-
-                                            return (
-                                                <div key={index} className="requirement-card">
-                                                    <div className="requirement-header">
-                                                        <span className="requirement-category">
-                                                            {requirement.category}
-                                                        </span>
-                                                        <span
-                                                            className="requirement-match-badge"
-                                                            style={{
-                                                                backgroundColor: requirementMatch
-                                                                    ? getMatchTypeColor(requirementMatch.matchType)
-                                                                    : "#9ca3af",
-                                                            }}
-                                                        >
-                                                            {requirementMatch ? requirementMatch.matchType : "unknown"}
-                                                        </span>
-                                                    </div>
-                                                    <div className="requirement-body">
-                                                        <p className="requirement-area">
-                                                            <strong>{requirement.area}</strong>
-                                                        </p>
-                                                        <p className="requirement-description">
-                                                            {requirement.description}
-                                                        </p>
-                                                    </div>
-                                                    {requirementMatch?.evidence && (
-                                                        <div className="requirement-evidence">
-                                                            <span className="evidence-label">Evidence:</span>
-                                                            <p className="evidence-text">{requirementMatch.evidence}</p>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                ) : (
-                                    <p className="no-requirements">No requirements found for this job post.</p>
-                                )}
-                            </div>
-
                             {/* Requirement Matches Summary */}
                             <div className="matches-section">
                                 <h3>Requirement Matches Summary</h3>
                                 <div className="matches-grid">
-                                    {assessment.requirementMatches.map((match, index) => (
-                                        <div key={index} className="match-card">
-                                            <div
-                                                className="match-type"
-                                                style={{ color: getMatchTypeColor(match.matchType) }}
-                                            >
-                                                <strong>{match.matchType}</strong>
-                                            </div>
-                                            <div className="match-requirement">
-                                                <p>
-                                                    <strong>{match.requirement.area}</strong>
-                                                </p>
-                                                <p>{match.requirement.description}</p>
-                                            </div>
-                                            {match.evidence && (
-                                                <div className="match-evidence">
-                                                    <p>{match.evidence}</p>
+                                    {assessment.requirementMatches
+                                        .sort((a, b) => a.matchType.localeCompare(b.matchType))
+                                        .map((match, index) => (
+                                            <div key={index} className="match-card">
+                                                <div
+                                                    className="match-type"
+                                                    style={{ color: getMatchTypeColor(match.matchType) }}
+                                                >
+                                                    <strong>{match.matchType}</strong>
                                                 </div>
-                                            )}
-                                        </div>
-                                    ))}
+                                                <div className="match-requirement">
+                                                    <p>
+                                                        <strong>{match.requirement.area}</strong>
+                                                    </p>
+                                                    <p>{match.requirement.description}</p>
+                                                </div>
+                                                {match.evidence && (
+                                                    <div className="match-evidence">
+                                                        <p>{match.evidence}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
                                 </div>
                             </div>
                         </div>
