@@ -50,7 +50,9 @@
     padding: 0.5rem;
     line-height: 1;
     border-radius: var(--radius-md);
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
 }
 
 .close-button:hover {
@@ -178,9 +180,10 @@
     flex-wrap: wrap;
 }
 
-.score-circle {
+.match-score-circle {
     width: 100px;
     height: 100px;
+    flex: 0 0 100px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -195,7 +198,8 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    min-width: 200px;
+    min-width: 0;
+    flex: 1;
 }
 
 .score-stat {
@@ -350,7 +354,9 @@
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: 1rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .requirement-card:hover {
@@ -457,7 +463,9 @@
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: 1rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .match-card:hover {

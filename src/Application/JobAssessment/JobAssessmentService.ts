@@ -1,3 +1,4 @@
+import { IJobAssessmentResponse } from "../../Api/Contracts/JobAssessment/IJobAssessmentResponse";
 import { IJobAssessment, JobAssessment } from "../../Domain/JobAssessment/IJobAssessment";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IJobAssessmentRepository } from "../../Infrastructure/Persistence/JobAssessments/IJobAssessmentRepository";
@@ -13,6 +14,7 @@ import { IJobRequirementMatch } from "./RequirementMatching/IJobRequirementMatch
 import { randomUUID } from "crypto";
 
 export type AssessmentStatus = "complete" | "incomplete";
+
 export class JobAssessmentService implements IJobAssessmentService {
     constructor(
         private readonly candidateProfileRepo: IJobCandidateProfileRepository,
@@ -23,17 +25,14 @@ export class JobAssessmentService implements IJobAssessmentService {
         private readonly logger: ILogger
     ) {}
 
-    public async getAssessmentByIdOrThrow(id: string): Promise<IJobAssessment> {
+    public async getAssessmentByIdOrThrow(id: string): Promise<IJobAssessmentResponse> {
         const result = await this.jobAssessmentRepo.getByIdOrThrow(id);
-        return result;
+        return mapToResponse(result);
     }
 
-    public async getAssessmentOrThrow(
-        jobPostId: string,
-        candidateProfileId: string
-    ): Promise<IJobAssessment | undefined> {
+    public async getAssessmentOrThrow(jobPostId: string, candidateProfileId: string): Promise<IJobAssessmentResponse> {
         const result = await this.jobAssessmentRepo.getByJobPostAndCandidateIdOrThrow(jobPostId, candidateProfileId);
-        return result;
+        return mapToResponse(result);
     }
     private async updateDatabase(result: IJobAssessmentResult): Promise<void> {
         const mapped = this.mapPipelineResultToDomain(result);
@@ -170,4 +169,18 @@ export class JobAssessmentService implements IJobAssessmentService {
             }))
         );
     }
+}
+function mapToResponse(result: IJobAssessment): IJobAssessmentResponse {
+    return {
+        id: result.id,
+        candidateProfileId: result.candidateProfileId,
+        jobPostId: result.jobPostId,
+        createdAt: result.createdAt,
+        status: result.status,
+        reviewStatus: result.reviewStatus,
+        screenResult: result.screenResult,
+        requirements: [...result.requirements],
+        requirementMatches: [...result.requirementMatches],
+        jobMatchScore: result.jobMatchScore,
+    };
 }

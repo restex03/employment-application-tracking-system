@@ -45,9 +45,7 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
                 this.logger.info(`[${request.method}]  ${request.url}`);
                 const result = await this.jobAssessmentService.getAssessmentOrThrow(jobPostId, candidateProfileId);
 
-                return reply.code(200).send({
-                    result,
-                });
+                return reply.code(200).send(result);
             } catch (error) {
                 const errMsg = error instanceof Error ? error.message : String(error);
                 if (error instanceof NotFoundError) {

@@ -185,7 +185,7 @@ function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsMod
                                     <h3>Overall Job Match Score</h3>
                                     <div className="score-display">
                                         <div
-                                            className="score-circle"
+                                            className="match-score-circle"
                                             style={{
                                                 backgroundColor: getMatchTypeColor(
                                                     getScoreCategory(assessment.jobMatchScore.score)
@@ -264,10 +264,10 @@ function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsMod
                                 </div>
                             </div>
 
-                            {/* Screening Result Section */}
+                            {/* Pre-Screening Result Section */}
                             {assessment.screenResult && (
                                 <div className="screen-section">
-                                    <h3>Screening Result</h3>
+                                    <h3>Pre-Screening Result</h3>
                                     <div className="screen-display">
                                         <div className="screen-item">
                                             <span className="screen-label">Disposition:</span>
