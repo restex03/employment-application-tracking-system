@@ -49,7 +49,7 @@ function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsMod
                     });
 
                     if (!postResponse.ok) {
-                        throw new Error(`Failed to run assessment: ${postResponse.status}`);
+                        throw new Error(`Failed to run job assessment: ${postResponse.status}`);
                     }
 
                     // After running assessment, retry fetching with retry logic

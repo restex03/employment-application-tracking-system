@@ -243,8 +243,7 @@ function JobPostsPage() {
         return await response.json();
     };
 
-    const handleRowClick = async (jobPost: IJobPost) => {
-        // Open JobMatchDetailsModal for row clicks
+    const handleRunAssessment = (jobPost: IJobPost) => {
         setSelectedJobPostForAssessment(jobPost);
         setIsJobMatchModalOpen(true);
     };
@@ -298,7 +297,7 @@ function JobPostsPage() {
             return (
                 <div className="score-indicator">
                     <div className="score-circle score-missing"></div>
-                    <div className="score-label">Run</div>
+                    <div className="score-label">Not Run</div>
                 </div>
             );
         }
@@ -460,7 +459,7 @@ function JobPostsPage() {
                                     <span className="sort-icon">{getSortIndicator("createdAt")}</span>
                                 </div>
                             </th>
-                            <th>Actions</th>
+                            <th>Evaluate</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -472,7 +471,7 @@ function JobPostsPage() {
                             </tr>
                         ) : (
                             filteredAndSortedPosts.map((jobPost, index) => (
-                                <tr key={jobPost.id} className="job-post-row" onClick={() => handleRowClick(jobPost)}>
+                                <tr key={jobPost.id} className="job-post-row" onClick={() => handleDetailsButtonClick(jobPost)}>
                                     <td className="row-count">
                                         {(pagination.pageNumber - 1) * pagination.pageCount + index + 1}
                                     </td>
@@ -487,13 +486,13 @@ function JobPostsPage() {
                                     <td>{formatDate(jobPost.createdAt)}</td>
                                     <td>
                                         <button
-                                            className="details-button"
+                                            className="run-assessment-button"
                                             onClick={e => {
                                                 e.stopPropagation();
-                                                handleDetailsButtonClick(jobPost);
+                                                handleRunAssessment(jobPost);
                                             }}
                                         >
-                                            Details
+                                            &nbsp;▶&nbsp;
                                         </button>
                                     </td>
                                 </tr>
@@ -567,10 +566,7 @@ function JobPostsPage() {
                 syncSuccess={syncSuccess}
             />
 
-            <ToolsModal
-                isOpen={isToolsModalOpen}
-                onClose={() => setIsToolsModalOpen(false)}
-            />
+            <ToolsModal isOpen={isToolsModalOpen} onClose={() => setIsToolsModalOpen(false)} />
         </div>
     );
 }

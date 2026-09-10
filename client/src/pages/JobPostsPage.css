@@ -283,7 +283,7 @@
     background-color: #f1f5f9; /* lighter/slate-100 - more subtle */
 }
 
-.job-post-row:hover .details-button {
+.job-post-row:hover .run-assessment-button {
     background-color: var(--primary-color);
 }
 
@@ -429,11 +429,11 @@
     letter-spacing: 0.05em;
 }
 
-.details-button {
-    background-color: #60a5fa; /* blue-400 - lighter blue */
+.run-assessment-button {
+    background-color: #93c5fd; /* blue-300 - lighter blue */
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
+    padding: 0.25rem 0.5rem;
     border-radius: var(--radius-md);
     font-size: 0.875rem;
     font-weight: 500;
@@ -441,6 +441,6 @@
     transition: background-color 0.2s ease;
 }
 
-.details-button:hover {
+.run-assessment-button:hover {
     background-color: var(--primary-color);
 }

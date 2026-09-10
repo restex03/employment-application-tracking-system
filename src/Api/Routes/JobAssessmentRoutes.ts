@@ -34,7 +34,7 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
                 const errMsg = error instanceof Error ? error.message : String(error);
                 this.logger.error(`[${request.method}]  ${request.url} Assessment failed: ${errMsg}`);
                 return reply.code(500).send({
-                    error: `Failed to run assessment: ${errMsg}`,
+                    error: `Failed to run job assessment: ${errMsg}`,
                 });
             }
         });
