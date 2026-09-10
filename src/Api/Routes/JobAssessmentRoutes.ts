@@ -25,7 +25,7 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
             const { jobPostId, candidateProfileId } = request.params;
 
             try {
-                this.logger.debug(`[${request.method}]  ${request.url}`);
+                this.logger.info(`[${request.method}]  ${request.url}`);
                 const result = await this.jobAssessmentService.runAssessment(candidateProfileId, jobPostId);
                 return reply.code(200).send({
                     result,
@@ -45,7 +45,7 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
             const { jobPostId, candidateProfileId } = request.params;
 
             try {
-                this.logger.debug(`[${request.method}]  ${request.url}`);
+                this.logger.info(`[${request.method}]  ${request.url}`);
                 const result = await this.jobAssessmentService.getAssessment(jobPostId, candidateProfileId);
 
                 return reply.code(200).send({

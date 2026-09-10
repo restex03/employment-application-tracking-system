@@ -14,7 +14,7 @@ export class JobCandidateProfileRoutes implements IRouteRegistrar {
     public register(server: FastifyInstance): void {
         // GET endpoint to retrieve all candidate profiles
         server.get("/candidate-profiles", async (request: FastifyRequest, reply: FastifyReply) => {
-            this.logger.debug(`[${request.method}]  ${request.url}`);
+            this.logger.info(`[${request.method}]  ${request.url}`);
 
             try {
                 const result = await this.candidateProfileSvc.getCandidateProfiles();
@@ -29,7 +29,7 @@ export class JobCandidateProfileRoutes implements IRouteRegistrar {
         server.post(
             "/candidate-profiles",
             async (request: FastifyRequest<{ Body: ICandidateProfile }>, reply: FastifyReply) => {
-                this.logger.debug(`[${request.method}]  ${request.url}`);
+                this.logger.info(`[${request.method}]  ${request.url}`);
 
                 try {
                     const profileData = request.body;
@@ -62,7 +62,7 @@ export class JobCandidateProfileRoutes implements IRouteRegistrar {
             "/candidate-profiles/:id",
             async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
                 const { id } = request.params;
-                this.logger.debug(`[${request.method}]  ${request.url}`);
+                this.logger.info(`[${request.method}]  ${request.url}`);
 
                 try {
                     const result = await this.candidateProfileSvc.getCandidateProfileById(id);

@@ -27,14 +27,14 @@ export class JobSourceRoutes implements IRouteRegistrar {
                 const { companyName } = request.query;
 
                 if (companyName) {
-                    this.logger.debug(`[${request.method}]  ${request.url}`);
+                    this.logger.info(`[${request.method}]  ${request.url}`);
 
                     const source = await this.jobSourceRepository.getByCompanyName(companyName);
 
                     return source ? [source] : [];
                 }
 
-                this.logger.debug(`[${request.method}]  ${request.url}`);
+                this.logger.info(`[${request.method}]  ${request.url}`);
 
                 const sources = await this.jobSourceRepository.getAll();
                 return sources;
@@ -52,12 +52,12 @@ export class JobSourceRoutes implements IRouteRegistrar {
         }>("/job-sources/:sourceId", async (request, reply) => {
             try {
                 const { sourceId } = request.params;
-                this.logger.debug(`[${request.method}]  ${request.url}`);
+                this.logger.info(`[${request.method}]  ${request.url}`);
 
                 const source = await this.jobSourceRepository.getById(sourceId);
 
                 if (!source) {
-                    this.logger.debug(`[${request.method}]  ${request.url} Job source not found`);
+                    this.logger.info(`[${request.method}]  ${request.url} Job source not found`);
                     return reply.code(404).send({
                         message: "Job source not found.",
                     });

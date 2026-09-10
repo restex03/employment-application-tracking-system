@@ -36,7 +36,7 @@ export class JobPostRoutes implements IRouteRegistrar {
             Querystring: JobPostQuery;
         }>("/job-posts", async (request, reply) => {
             try {
-                this.logger.debug(`[${request.method}]  ${request.url} Retrieving job posts`);
+                this.logger.info(`[${request.method}]  ${request.url} Retrieving job posts`);
                 const pageCount = parseInt(request.query.pageCount || "10");
                 const pageNumber = parseInt(request.query.pageNumber || "1");
                 const queryFilters = {
@@ -63,12 +63,12 @@ export class JobPostRoutes implements IRouteRegistrar {
         }>("/job-posts/:jobPostId", async (request, reply) => {
             try {
                 const { jobPostId } = request.params;
-                this.logger.debug(`[${request.method}]  ${request.url}`);
+                this.logger.info(`[${request.method}]  ${request.url}`);
 
                 const jobPost = await this.jobPostService.getById(jobPostId);
 
                 if (!jobPost) {
-                    this.logger.debug(`[${request.method}]  ${request.url} Job post not found`);
+                    this.logger.info(`[${request.method}]  ${request.url} Job post not found`);
                     return reply.code(404).send({
                         message: "Job post not found.",
                     });
@@ -90,7 +90,7 @@ export class JobPostRoutes implements IRouteRegistrar {
             try {
                 // TODO: Update this endpoint to accept a list of source IDs instead of just one.
                 // TODO: Update this endpoint to run job in background and return a job ID for tracking progress.
-                this.logger.debug(`[${request.method}]  ${request.url}`);
+                this.logger.info(`[${request.method}]  ${request.url}`);
                 const result = await this.jobPostSyncService.syncJobs(request.body?.sourceIds);
 
                 this.logger.info(`[${request.method}]  ${request.url} Sync completed successfully`);
@@ -117,7 +117,7 @@ export class JobPostRoutes implements IRouteRegistrar {
         }>("/job-posts/:jobPostId/sync", async (request, reply) => {
             try {
                 const { jobPostId } = request.params;
-                this.logger.debug(`[${request.method}]  ${request.url}`);
+                this.logger.info(`[${request.method}]  ${request.url}`);
                 await this.jobPostSyncService.syncJobDetails(jobPostId);
 
                 this.logger.info(`[${request.method}]  ${request.url} Sync completed successfully`);
