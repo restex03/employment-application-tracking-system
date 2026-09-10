@@ -27,7 +27,7 @@ export class JobRequirementsExtractionService implements IJobRequirementsExtract
             validationSchema: JobRequirementsResponseValidationSchema,
 
             temperature: 0.1,
-            maxTokens: 800,
+            maxTokens: 1500,
         });
 
         this.logger.info(jobInfo);

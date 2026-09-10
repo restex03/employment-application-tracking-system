@@ -68,6 +68,7 @@ export class OllamaInferenceProvider implements ILlmInferenceProvider {
         try {
             json = JSON.parse(content);
         } catch (error) {
+            this.logger.trace(`Failed to parse JSON content: ${content}`);
             throw new Error(
                 `[OllamaInferenceProvider.generateStructured] Model returned invalid JSON: ${
                     error instanceof Error ? error.message : String(error)
