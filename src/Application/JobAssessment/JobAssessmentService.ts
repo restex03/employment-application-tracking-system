@@ -28,8 +28,11 @@ export class JobAssessmentService implements IJobAssessmentService {
         return result;
     }
 
-    public async getAssessment(jobPostId: string, candidateProfileId: string): Promise<IJobAssessment | undefined> {
-        const result = await this.jobAssessmentRepo.getByJobPostAndCandidateId(jobPostId, candidateProfileId);
+    public async getAssessmentOrThrow(
+        jobPostId: string,
+        candidateProfileId: string
+    ): Promise<IJobAssessment | undefined> {
+        const result = await this.jobAssessmentRepo.getByJobPostAndCandidateIdOrThrow(jobPostId, candidateProfileId);
         return result;
     }
     private async updateDatabase(result: IJobAssessmentResult): Promise<void> {

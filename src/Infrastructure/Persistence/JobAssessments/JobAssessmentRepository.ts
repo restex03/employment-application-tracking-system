@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 
 import { IJobAssessment, JobAssessment, JobAssessmentProps } from "../../../Domain/JobAssessment/IJobAssessment";
+import { NotFoundError } from "../../../Application/Common/NotFoundError";
 import { IJobAssessmentRepository } from "./IJobAssessmentRepository";
 import { ILogger } from "../../Logging/ILogger";
 
@@ -79,8 +80,9 @@ export class JobAssessmentRepository implements IJobAssessmentRepository {
             this.logger.error(
                 `[JobAssessmentRepository.getByJobPostAndCandidateIdOrThrow] Assessment with ID ${jobPostId} / ${candidateProfileId} does not exist.`
             );
-            throw new Error(
-                `[JobAssessmentRepository.getByJobPostAndCandidateIdOrThrow] Assessment with ID ${jobPostId} / ${candidateProfileId} does not exist.`
+            throw new NotFoundError(
+                `[JobAssessmentRepository.getByJobPostAndCandidateIdOrThrow] Assessment with ID ${jobPostId} / ${candidateProfileId} does not exist.`,
+                "jobPostId / candidateProfileId"
             );
         }
         return result;
@@ -105,7 +107,10 @@ export class JobAssessmentRepository implements IJobAssessmentRepository {
         const result = await this.getById(id);
         if (!result) {
             this.logger.error(`[JobAssessmentRepository.getByIdOrThrow] Assessment with ID ${id} does not exist.`);
-            throw new Error(`[JobAssessmentRepository.getByIdOrThrow] Assessment with ID ${id} does not exist.`);
+            throw new NotFoundError(
+                `[JobAssessmentRepository.getByIdOrThrow] Assessment with ID ${id} does not exist.`,
+                "id"
+            );
         }
         return result;
     }
