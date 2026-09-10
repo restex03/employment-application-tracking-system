@@ -25,18 +25,14 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
             const { jobPostId, candidateProfileId } = request.params;
 
             try {
-                this.logger.debug(
-                    `[POST /job-posts/${jobPostId}/assessments/${candidateProfileId}] Assessment requested`
-                );
+                this.logger.debug(`[${request.method}]  ${request.url}`);
                 const result = await this.jobAssessmentService.runAssessment(candidateProfileId, jobPostId);
                 return reply.code(200).send({
                     result,
                 });
             } catch (error) {
                 const errMsg = error instanceof Error ? error.message : String(error);
-                this.logger.error(
-                    `[POST /job-posts/${jobPostId}/assessments/${candidateProfileId}] Assessment failed: ${errMsg}`
-                );
+                this.logger.error(`[${request.method}]  ${request.url} Assessment failed: ${errMsg}`);
                 return reply.code(500).send({
                     error: `Failed to run assessment: ${errMsg}`,
                 });
@@ -49,9 +45,7 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
             const { jobPostId, candidateProfileId } = request.params;
 
             try {
-                this.logger.debug(
-                    `[GET /job-posts/${jobPostId}/assessment/${candidateProfileId}] Assessment requested`
-                );
+                this.logger.debug(`[${request.method}]  ${request.url}`);
                 const result = await this.jobAssessmentService.getAssessment(jobPostId, candidateProfileId);
 
                 return reply.code(200).send({
@@ -59,7 +53,7 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
                 });
             } catch (error) {
                 const errMsg = error instanceof Error ? error.message : String(error);
-                this.logger.error(`[GET /job-posts/${jobPostId}/assessment/${candidateProfileId}] Failed: ${errMsg}`);
+                this.logger.error(`[${request.method}]  ${request.url} Failed: ${errMsg}`);
                 return reply.code(500).send({
                     error: `Failed to get assessment: ${errMsg}`,
                 });

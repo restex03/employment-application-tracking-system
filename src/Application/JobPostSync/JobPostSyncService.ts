@@ -71,7 +71,7 @@ export class JobPostSyncService implements IJobPostSyncService {
             title: disco.title,
             detailPath: disco.detailPath,
             locations: disco.locations,
-            postedDaysAgo: disco.postedDaysAgo,
+            daysOld: disco.daysOld,
             createdAt: new Date(),
             remoteType: disco.remoteType,
         });

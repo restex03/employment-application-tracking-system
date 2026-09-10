@@ -5,6 +5,7 @@ import { IJobPost, JobPost } from "../../../../../Domain/JobPosts/IJobPost";
 import { IJobLocation, IJobPostDetail } from "../../../../../Domain/JobPosts/IJobPostDetail";
 import { IJobPostRepository } from "../../IJobPostRepository";
 import { ILogger } from "../../../../Logging/ILogger";
+import { JobPostQueryFilters } from "../../../../../Application/JobPost/IJobPostService";
 
 interface JobPostParameters {
     id: string;
@@ -48,7 +49,7 @@ interface JobPostRow {
     title: string;
     detail_path: string;
     locations: string | null;
-    posted_date: string | null;
+    days_old: string | null;
     remote_type: string | null;
     created_at: string;
 
@@ -91,7 +92,7 @@ export class SqliteJobRepository implements IJobPostRepository {
                 title,
                 detail_path,
                 locations,
-                posted_date,
+                days_old,
                 remote_type,
                 created_at
             )
@@ -130,14 +131,14 @@ export class SqliteJobRepository implements IJobPostRepository {
 
                 locations = excluded.locations,
 
-                posted_date = CASE
+                days_old = CASE
                     WHEN EXISTS (
                         SELECT 1
                         FROM job_post_details
                         WHERE job_post_id = job_posts.id
                     )
-                    THEN job_posts.posted_date
-                    ELSE COALESCE(excluded.posted_date, job_posts.posted_date)
+                    THEN job_posts.days_old
+                    ELSE COALESCE(excluded.days_old, job_posts.days_old)
                 END,
 
                 remote_type = CASE
@@ -162,7 +163,7 @@ export class SqliteJobRepository implements IJobPostRepository {
             SET
                 requisition_id = COALESCE(@requisitionId, requisition_id),
                 title = @title,
-                posted_date = COALESCE(@datePosted, posted_date),
+                days_old = COALESCE(@datePosted, days_old),
                 remote_type = COALESCE(@remoteType, remote_type)
             WHERE id = @jobPostId
         `);
@@ -210,7 +211,7 @@ export class SqliteJobRepository implements IJobPostRepository {
                 jp.title,
                 jp.detail_path,
                 jp.locations,
-                jp.posted_date,
+                jp.days_old,
                 jp.remote_type,
                 jp.created_at,
 
@@ -223,16 +224,35 @@ export class SqliteJobRepository implements IJobPostRepository {
                 jpd.applicant_locations AS detail_applicant_locations
 
             FROM job_posts jp
+            
+            JOIN workday_job_sources c
+                ON c.id = jp.source_id
 
             LEFT JOIN job_post_details jpd
                 ON jpd.job_post_id = jp.id
+
+                WHERE (UPPER(@companyName) = '' OR UPPER(c.company_name) LIKE '%' || UPPER(@companyName) || '%')
+                    AND (UPPER(@requisitionId) = '' OR UPPER(jp.requisition_id) LIKE '%' || UPPER(@requisitionId) || '%')
+                    AND (UPPER(@title) = '' OR UPPER(jp.title) LIKE '%' || UPPER(@title) || '%')
+                    AND (UPPER(@location) = '' OR UPPER(jp.locations) LIKE '%' || UPPER(@location) || '%')
+                    AND (COALESCE(TRIM(@daysOld), '') = '' OR UPPER(jp.days_old) LIKE '%' || UPPER(TRIM(@daysOld)) || '%')
 
             ORDER BY jp.created_at DESC
             LIMIT @pageCount OFFSET @offset
         `);
 
         this.getAllCountStatement = this.connection.prepare(`
-            SELECT COUNT(*) as totalCount FROM job_posts
+            SELECT COUNT(*) as totalCount
+            FROM job_posts jp
+
+            JOIN workday_job_sources c
+                ON c.id = jp.source_id
+
+                WHERE (UPPER(@companyName) = '' OR UPPER(c.company_name) LIKE '%' || UPPER(@companyName) || '%')
+                    AND (UPPER(@requisitionId) = '' OR UPPER(jp.requisition_id) LIKE '%' || UPPER(@requisitionId) || '%')
+                    AND (UPPER(@title) = '' OR UPPER(jp.title) LIKE '%' || UPPER(@title) || '%')
+                    AND (UPPER(@location) = '' OR UPPER(jp.locations) LIKE '%' || UPPER(@location) || '%')
+                    AND (COALESCE(TRIM(@daysOld), '') = '' OR UPPER(jp.days_old) LIKE '%' || UPPER(TRIM(@daysOld)) || '%')
         `);
 
         this.getByIdStatement = this.connection.prepare(`
@@ -243,7 +263,7 @@ export class SqliteJobRepository implements IJobPostRepository {
                 jp.title,
                 jp.detail_path,
                 jp.locations,
-                jp.posted_date,
+                jp.days_old,
                 jp.remote_type,
                 jp.created_at,
 
@@ -295,11 +315,25 @@ export class SqliteJobRepository implements IJobPostRepository {
         this.logger.debug(`[SqliteJobRepository.addMany] Processed ${jobPosts.length} job posts`);
     }
 
-    public async getAll(pageCount: number, pageNumber: number): Promise<{ data: IJobPost[]; totalCount: number }> {
+    public async getAll(
+        pageCount: number,
+        pageNumber: number,
+        queryFilters: JobPostQueryFilters
+    ): Promise<{ data: IJobPost[]; totalCount: number }> {
         const offset = (pageNumber - 1) * pageCount;
-        const rows = this.getAllStatement.all({ pageCount, offset }) as JobPostRow[];
+        const queryParams = {
+            pageCount,
+            offset,
+            companyName: queryFilters.companyName?.trim() ?? "",
+            requisitionId: queryFilters.requisitionId?.trim() ?? "",
+            title: queryFilters.title?.trim() ?? "",
+            location: queryFilters.location?.trim() ?? "",
+            daysOld: queryFilters.daysOld?.trim() ?? "",
+            jobScore: queryFilters.jobScore,
+        };
+        const rows = this.getAllStatement.all(queryParams) as JobPostRow[];
 
-        const countRow = this.getAllCountStatement.get() as { totalCount: number };
+        const countRow = this.getAllCountStatement.get(queryParams) as { totalCount: number };
         const totalCount = countRow.totalCount;
 
         this.logger.debug(
@@ -367,7 +401,7 @@ export class SqliteJobRepository implements IJobPostRepository {
             title: jobPost.title,
             detailPath: jobPost.detailPath,
             locations: jobPost.locations ? JSON.stringify(jobPost.locations) : null,
-            postedDate: jobPost.postedDaysAgo ?? null,
+            postedDate: jobPost.daysOld ?? null,
             remoteType: jobPost.remoteType ?? null,
             createdAt: jobPost.createdAt.toISOString(),
         };
@@ -404,7 +438,7 @@ export class SqliteJobRepository implements IJobPostRepository {
             title: row.title,
             detailPath: row.detail_path,
             locations: this.parseJson<string[]>(row.locations),
-            postedDaysAgo: row.posted_date ?? undefined,
+            daysOld: row.days_old ?? undefined,
             createdAt: new Date(row.created_at),
             remoteType: row.remote_type ?? undefined,
         });
@@ -423,7 +457,7 @@ export class SqliteJobRepository implements IJobPostRepository {
             title: row.title,
             description: row.detail_description!,
 
-            datePosted: row.posted_date ?? undefined,
+            datePosted: row.days_old ?? undefined,
             validThrough: row.detail_valid_through ?? undefined,
 
             employmentType: row.detail_employment_type ?? undefined,

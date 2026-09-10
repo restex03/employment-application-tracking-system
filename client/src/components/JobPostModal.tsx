@@ -102,8 +102,8 @@ function JobPostModal({ isOpen, onClose, jobPost }: JobPostModalProps) {
                                     </div>
 
                                     <div className="detail-item">
-                                        <span className="detail-label">Date Posted:</span>
-                                        <span className="detail-value">{detail.datePosted || "N/A"}</span>
+                                        <span className="detail-label">Days Old:</span>
+                                        <span className="detail-value">{detail.daysOld || "N/A"}</span>
                                     </div>
 
                                     <div className="detail-item">

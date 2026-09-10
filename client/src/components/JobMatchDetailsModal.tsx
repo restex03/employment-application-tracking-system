@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { 
-    IJobAssessment, 
-    JobAssessmentStatus, 
-    JobAssessmentReviewStatus
-} from "../types/JobAssessment";
+import { IJobAssessment, JobAssessmentStatus, JobAssessmentReviewStatus } from "../types/JobAssessment";
 import "./JobMatchDetailsModal.css";
 
 interface JobMatchDetailsModalProps {
@@ -33,7 +29,7 @@ function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsMod
             try {
                 // First, try to get existing assessment
                 let assessmentData: IJobAssessment | null = null;
-                
+
                 // Try to fetch existing assessment
                 const getUrl = `/api/v1/job-posts/${jobPostId}/assessments/${CANDIDATE_PROFILE_ID}`;
                 const getResponse = await fetch(getUrl);
@@ -62,7 +58,6 @@ function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsMod
                 } else {
                     throw new Error(`Failed to fetch assessment: ${getResponse.status}`);
                 }
-
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to load assessment data");
             } finally {
@@ -97,12 +92,12 @@ function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsMod
     const formatDate = (dateString: string) => {
         try {
             const date = new Date(dateString);
-            return date.toLocaleString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+            return date.toLocaleString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
             });
         } catch {
             return dateString;
@@ -111,36 +106,51 @@ function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsMod
 
     const getStatusColor = (status: JobAssessmentStatus) => {
         switch (status) {
-            case 'complete': return '#22c55e'; // green-500
-            case 'incomplete': return '#facc15'; // yellow-400
-            default: return '#9ca3af'; // gray-400
+            case "complete":
+                return "#22c55e"; // green-500
+            case "incomplete":
+                return "#facc15"; // yellow-400
+            default:
+                return "#9ca3af"; // gray-400
         }
     };
 
     const getReviewStatusColor = (status: JobAssessmentReviewStatus) => {
         switch (status) {
-            case 'accepted': return '#22c55e'; // green-500
-            case 'flagged': return '#ef4444'; // red-500
-            case 'unreviewed': return '#9ca3af'; // gray-400
-            default: return '#9ca3af';
+            case "accepted":
+                return "#22c55e"; // green-500
+            case "flagged":
+                return "#ef4444"; // red-500
+            case "unreviewed":
+                return "#9ca3af"; // gray-400
+            default:
+                return "#9ca3af";
         }
     };
 
     const getMatchTypeColor = (matchType: string) => {
         switch (matchType) {
-            case 'direct': return '#22c55e'; // green
-            case 'transferable': return '#facc15'; // yellow/orange
-            case 'missing': return '#ef4444'; // red
-            default: return '#9ca3af'; // gray
+            case "direct":
+                return "#22c55e"; // green
+            case "transferable":
+                return "#facc15"; // yellow/orange
+            case "missing":
+                return "#ef4444"; // red
+            default:
+                return "#9ca3af"; // gray
         }
     };
 
     const getScreenDispositionColor = (disposition: string) => {
         switch (disposition) {
-            case 'advance': return '#22c55e';
-            case 'reject': return '#ef4444';
-            case 'review': return '#facc15';
-            default: return '#9ca3af';
+            case "advance":
+                return "#22c55e";
+            case "reject":
+                return "#ef4444";
+            case "review":
+                return "#facc15";
+            default:
+                return "#9ca3af";
         }
     };
 
@@ -174,32 +184,49 @@ function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsMod
                                 <div className="score-section">
                                     <h3>Overall Job Match Score</h3>
                                     <div className="score-display">
-                                        <div 
-                                            className="score-circle" 
-                                            style={{ backgroundColor: getMatchTypeColor(getScoreCategory(assessment.jobMatchScore.score)) }}
+                                        <div
+                                            className="score-circle"
+                                            style={{
+                                                backgroundColor: getMatchTypeColor(
+                                                    getScoreCategory(assessment.jobMatchScore.score)
+                                                ),
+                                            }}
                                         >
-                                            <span className="score-value">{Math.round(assessment.jobMatchScore.score)}%</span>
+                                            <span className="score-value">
+                                                {Math.round(assessment.jobMatchScore.score)}%
+                                            </span>
                                         </div>
                                         <div className="score-breakdown">
                                             <div className="score-stat">
                                                 <span className="stat-label">Total Requirements:</span>
-                                                <span className="stat-value">{assessment.jobMatchScore.totalRequirements}</span>
+                                                <span className="stat-value">
+                                                    {assessment.jobMatchScore.totalRequirements}
+                                                </span>
                                             </div>
                                             <div className="score-stat">
                                                 <span className="stat-label">Direct Matches:</span>
-                                                <span className="stat-value" style={{ color: getMatchTypeColor('direct') }}>
+                                                <span
+                                                    className="stat-value"
+                                                    style={{ color: getMatchTypeColor("direct") }}
+                                                >
                                                     {assessment.jobMatchScore.directMatches}
                                                 </span>
                                             </div>
                                             <div className="score-stat">
                                                 <span className="stat-label">Transferable Matches:</span>
-                                                <span className="stat-value" style={{ color: getMatchTypeColor('transferable') }}>
+                                                <span
+                                                    className="stat-value"
+                                                    style={{ color: getMatchTypeColor("transferable") }}
+                                                >
                                                     {assessment.jobMatchScore.transferableMatches}
                                                 </span>
                                             </div>
                                             <div className="score-stat">
                                                 <span className="stat-label">Missing Matches:</span>
-                                                <span className="stat-value" style={{ color: getMatchTypeColor('missing') }}>
+                                                <span
+                                                    className="stat-value"
+                                                    style={{ color: getMatchTypeColor("missing") }}
+                                                >
                                                     {assessment.jobMatchScore.missingMatches}
                                                 </span>
                                             </div>
@@ -214,8 +241,8 @@ function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsMod
                                 <div className="status-display">
                                     <div className="status-item">
                                         <span className="status-label">Status:</span>
-                                        <span 
-                                            className="status-badge" 
+                                        <span
+                                            className="status-badge"
                                             style={{ backgroundColor: getStatusColor(assessment.status) }}
                                         >
                                             {assessment.status}
@@ -223,8 +250,8 @@ function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsMod
                                     </div>
                                     <div className="status-item">
                                         <span className="status-label">Review Status:</span>
-                                        <span 
-                                            className="status-badge" 
+                                        <span
+                                            className="status-badge"
                                             style={{ backgroundColor: getReviewStatusColor(assessment.reviewStatus) }}
                                         >
                                             {assessment.reviewStatus}
@@ -244,9 +271,13 @@ function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsMod
                                     <div className="screen-display">
                                         <div className="screen-item">
                                             <span className="screen-label">Disposition:</span>
-                                            <span 
-                                                className="screen-badge" 
-                                                style={{ backgroundColor: getScreenDispositionColor(assessment.screenResult.disposition) }}
+                                            <span
+                                                className="screen-badge"
+                                                style={{
+                                                    backgroundColor: getScreenDispositionColor(
+                                                        assessment.screenResult.disposition
+                                                    ),
+                                                }}
                                             >
                                                 {assessment.screenResult.disposition}
                                             </span>
@@ -267,26 +298,35 @@ function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsMod
                                         {assessment.requirements.map((requirement, index) => {
                                             // Find the matching requirement match for this requirement
                                             const requirementMatch = assessment.requirementMatches.find(
-                                                rm => rm.requirement.area === requirement.area && 
-                                                     rm.requirement.description === requirement.description
+                                                rm =>
+                                                    rm.requirement.area === requirement.area &&
+                                                    rm.requirement.description === requirement.description
                                             );
-                                            
+
                                             return (
                                                 <div key={index} className="requirement-card">
                                                     <div className="requirement-header">
-                                                        <span className="requirement-category">{requirement.category}</span>
-                                                        <span 
-                                                            className="requirement-match-badge" 
-                                                            style={{ 
-                                                                backgroundColor: requirementMatch ? getMatchTypeColor(requirementMatch.matchType) : '#9ca3af' 
+                                                        <span className="requirement-category">
+                                                            {requirement.category}
+                                                        </span>
+                                                        <span
+                                                            className="requirement-match-badge"
+                                                            style={{
+                                                                backgroundColor: requirementMatch
+                                                                    ? getMatchTypeColor(requirementMatch.matchType)
+                                                                    : "#9ca3af",
                                                             }}
                                                         >
-                                                            {requirementMatch ? requirementMatch.matchType : 'unknown'}
+                                                            {requirementMatch ? requirementMatch.matchType : "unknown"}
                                                         </span>
                                                     </div>
                                                     <div className="requirement-body">
-                                                        <p className="requirement-area"><strong>{requirement.area}</strong></p>
-                                                        <p className="requirement-description">{requirement.description}</p>
+                                                        <p className="requirement-area">
+                                                            <strong>{requirement.area}</strong>
+                                                        </p>
+                                                        <p className="requirement-description">
+                                                            {requirement.description}
+                                                        </p>
                                                     </div>
                                                     {requirementMatch?.evidence && (
                                                         <div className="requirement-evidence">
@@ -309,11 +349,16 @@ function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsMod
                                 <div className="matches-grid">
                                     {assessment.requirementMatches.map((match, index) => (
                                         <div key={index} className="match-card">
-                                            <div className="match-type" style={{ color: getMatchTypeColor(match.matchType) }}>
+                                            <div
+                                                className="match-type"
+                                                style={{ color: getMatchTypeColor(match.matchType) }}
+                                            >
                                                 <strong>{match.matchType}</strong>
                                             </div>
                                             <div className="match-requirement">
-                                                <p><strong>{match.requirement.area}</strong></p>
+                                                <p>
+                                                    <strong>{match.requirement.area}</strong>
+                                                </p>
                                                 <p>{match.requirement.description}</p>
                                             </div>
                                             {match.evidence && (
@@ -344,9 +389,9 @@ function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsMod
 }
 
 function getScoreCategory(score: number): string {
-    if (score >= 75) return 'direct';
-    if (score >= 50) return 'transferable';
-    return 'missing';
+    if (score >= 75) return "direct";
+    if (score >= 50) return "transferable";
+    return "missing";
 }
 
 export default JobMatchDetailsModal;

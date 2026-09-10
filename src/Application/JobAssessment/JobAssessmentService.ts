@@ -128,14 +128,14 @@ export class JobAssessmentService implements IJobAssessmentService {
         const reqId = context.jobDetail?.requisitionId ?? "Unknown";
 
         const title = context.job.title;
-        const postedDate = context.job.postedDaysAgo;
+        const daysOld = context.job.daysOld;
 
         const locations =
             context.jobDetail?.locations
                 ?.map(location => `\t- ${location.city ?? "Unknown"}, ${location.country ?? "Unknown"}`)
                 .join("\n") ?? "\t- None";
 
-        this.logger.info(`${reqId} - ${postedDate} ${title}`);
+        this.logger.info(`${reqId} - ${daysOld} days old - ${title}`);
 
         this.logger.info(`\t- Requisition ID: ${context.jobDetail?.requisitionId ?? "Unknown"}`);
 

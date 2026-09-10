@@ -17,7 +17,7 @@ export interface IJobPostDetail {
     requisitionId?: string;
     title: string;
     description: string;
-    datePosted?: string;
+    daysOld?: string;
     validThrough?: string;
     employmentType?: string;
     locations?: IJobLocation[];
@@ -28,12 +28,13 @@ export interface IJobPostDetail {
 export interface IJobPost {
     id: string;
     sourceId: string;
+    score: number;
     requisitionId?: string;
     title: string;
     remoteType?: string;
     detailPath: string;
     locations?: unknown[];
-    postedDaysAgo?: string;
+    daysOld?: string;
     createdAt: string;
     detail?: IJobPostDetail;
 }
@@ -46,4 +47,13 @@ export interface IJobPostsResponse {
 export interface PaginationParams {
     pageNumber: number;
     pageCount: number;
+}
+
+export interface QueryFilterParams {
+    companyName?: string;
+    requisitionId?: string;
+    title?: string;
+    location?: string;
+    daysOld?: string;
+    jobScore?: string;
 }

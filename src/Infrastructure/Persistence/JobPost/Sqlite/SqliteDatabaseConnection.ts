@@ -51,7 +51,7 @@ export class SqliteDatabaseConnection {
                 title TEXT NOT NULL,
                 detail_path TEXT NOT NULL,
                 locations TEXT,
-                posted_date TEXT,
+                days_old TEXT,
                 remote_type TEXT,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

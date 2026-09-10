@@ -34,7 +34,7 @@ export interface IJobPostDiscovery {
     /**
      * Normalized number of days as a string (e.g., "0", "2", "30+", "Unknown")
      */
-    postedDaysAgo?: string;
+    daysOld?: string;
 
     /**
      * Hybrid | Remote | Onsite (not sure if Onsite is a valid option)

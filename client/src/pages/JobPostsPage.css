@@ -190,10 +190,24 @@
 }
 
 .table-container {
+    position: relative;
     overflow-x: auto;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border-color);
+}
+
+.table-loading-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    background-color: rgba(255, 255, 255, 0.72);
+    color: var(--text-secondary);
+    pointer-events: none;
 }
 
 .job-posts-table {
