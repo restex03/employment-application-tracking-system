@@ -283,12 +283,52 @@
     background-color: #f1f5f9; /* lighter/slate-100 - more subtle */
 }
 
+.job-post-row:hover .icon-button {
+    color: var(--primary-color);
+    transform: scale(1.35);
+}
+
 .job-post-row:hover .run-assessment-button {
-    background-color: var(--primary-color);
+    color: var(--primary-color);
+    transform: scale(1.35);
+}
+
+.icon-button {
+    width: 36px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--secondary-color);
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: transparent;
+    transition:
+        color 0.2s ease,
+        transform 0.15s ease;
+    cursor: pointer;
+}
+
+.icon-button:hover {
+    filter: brightness(140%);
+}
+
+.icon-eye {
+    width: 18px;
+    height: 18px;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .detail-path {
-    font-family: monospace;
+    font-family: "SF Mono", "Cascadia Code", "Consolas", "Menlo", "Liberation Mono", monospace;
     font-size: 0.875rem;
     color: var(--secondary-color);
     word-break: break-word;
@@ -430,17 +470,19 @@
 }
 
 .run-assessment-button {
-    background-color: #93c5fd; /* blue-300 - lighter blue */
-    color: white;
+    background: transparent;
+    color: var(--secondary-color);
     border: none;
     padding: 0.25rem 0.5rem;
     border-radius: var(--radius-md);
     font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition:
+        color 0.2s ease,
+        transform 0.15s ease;
 }
 
 .run-assessment-button:hover {
-    background-color: var(--primary-color);
+    filter: brightness(140%);
 }

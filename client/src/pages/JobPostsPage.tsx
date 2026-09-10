@@ -459,19 +459,20 @@ function JobPostsPage() {
                                     <span className="sort-icon">{getSortIndicator("createdAt")}</span>
                                 </div>
                             </th>
+                            <th>Details</th>
                             <th>Evaluate</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredAndSortedPosts.length === 0 ? (
                             <tr>
-                                <td colSpan={11} className="no-data">
+                                <td colSpan={12} className="no-data">
                                     No job posts match your filters.
                                 </td>
                             </tr>
                         ) : (
                             filteredAndSortedPosts.map((jobPost, index) => (
-                                <tr key={jobPost.id} className="job-post-row" onClick={() => handleDetailsButtonClick(jobPost)}>
+                                <tr key={jobPost.id} className="job-post-row">
                                     <td className="row-count">
                                         {(pagination.pageNumber - 1) * pagination.pageCount + index + 1}
                                     </td>
@@ -484,6 +485,23 @@ function JobPostsPage() {
                                     <td>{formatLocations(jobPost.locations)}</td>
                                     <td>{jobPost.daysOld || "N/A"}</td>
                                     <td>{formatDate(jobPost.createdAt)}</td>
+                                    <td>
+                                        <button
+                                            type="button"
+                                            className="icon-button"
+                                            title="View job details"
+                                            aria-label="View job details"
+                                            onClick={e => {
+                                                e.stopPropagation();
+                                                handleDetailsButtonClick(jobPost);
+                                            }}
+                                        >
+                                            <svg className="icon-eye" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                                                <circle cx="12" cy="12" r="3" />
+                                            </svg>
+                                        </button>
+                                    </td>
                                     <td>
                                         <button
                                             className="run-assessment-button"
