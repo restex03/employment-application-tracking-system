@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
 import { IJobAssessment, JobAssessmentStatus, JobAssessmentReviewStatus } from "../types/JobAssessment";
+import { useAbortableFetch } from "../hooks/useAbortableFetch";
 import "./JobMatchDetailsModal.css";
 
 interface JobMatchDetailsModalProps {
@@ -10,82 +10,81 @@ interface JobMatchDetailsModalProps {
 
 const CANDIDATE_PROFILE_ID = "russell-estes";
 
-function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsModalProps) {
-    const [assessment, setAssessment] = useState<IJobAssessment | null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
+async function fetchAssessment(jobPostId: string, signal: AbortSignal): Promise<IJobAssessment> {
+    const getUrl = `/api/v1/job-posts/${jobPostId}/assessments/${CANDIDATE_PROFILE_ID}`;
+    const getResponse = await fetch(getUrl, { signal });
 
-    useEffect(() => {
-        if (!isOpen || !jobPostId) {
-            setAssessment(null);
-            setError(null);
+    if (getResponse.ok) {
+        return await getResponse.json();
+    }
+
+    if (getResponse.status !== 404) {
+        throw new Error(`Failed to fetch assessment: ${getResponse.status}`);
+    }
+
+    const postResponse = await fetch(getUrl, {
+        method: "POST",
+        signal,
+    });
+
+    if (!postResponse.ok) {
+        throw new Error(`Failed to run job assessment: ${postResponse.status}`);
+    }
+
+    return fetchAssessmentWithRetry(getUrl, 5, 1000, signal);
+}
+
+async function fetchAssessmentWithRetry(
+    url: string,
+    maxRetries: number,
+    delayMs: number,
+    signal: AbortSignal
+): Promise<IJobAssessment> {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+        const response = await fetch(url, { signal });
+        if (response.ok) {
+            return await response.json();
+        }
+
+        if (attempt < maxRetries - 1) {
+            await waitForRetry(delayMs, signal);
+        }
+    }
+
+    const response = await fetch(url, { signal });
+    if (!response.ok) {
+        throw new Error(`Failed to fetch assessment after retries: ${response.status}`);
+    }
+
+    return await response.json();
+}
+
+function waitForRetry(delayMs: number, signal: AbortSignal): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+            signal.removeEventListener("abort", abortHandler);
+            resolve();
+        }, delayMs);
+        const abortHandler = () => {
+            clearTimeout(timeoutId);
+            reject(new DOMException("The request was aborted", "AbortError"));
+        };
+
+        if (signal.aborted) {
+            abortHandler();
             return;
         }
 
-        const fetchAssessment = async () => {
-            setLoading(true);
-            setError(null);
+        signal.addEventListener("abort", abortHandler, { once: true });
+    });
+}
 
-            try {
-                // First, try to get existing assessment
-                let assessmentData: IJobAssessment | null = null;
-
-                // Try to fetch existing assessment
-                const getUrl = `/api/v1/job-posts/${jobPostId}/assessments/${CANDIDATE_PROFILE_ID}`;
-                const getResponse = await fetch(getUrl);
-
-                if (getResponse.ok) {
-                    assessmentData = await getResponse.json();
-                    setAssessment(assessmentData);
-                    setLoading(false);
-                    return;
-                }
-
-                // If assessment doesn't exist (404), run the assessment
-                if (getResponse.status === 404) {
-                    const postUrl = `/api/v1/job-posts/${jobPostId}/assessments/${CANDIDATE_PROFILE_ID}`;
-                    const postResponse = await fetch(postUrl, {
-                        method: "POST",
-                    });
-
-                    if (!postResponse.ok) {
-                        throw new Error(`Failed to run job assessment: ${postResponse.status}`);
-                    }
-
-                    // After running assessment, retry fetching with retry logic
-                    assessmentData = await fetchWithRetry(getUrl, 5, 1000);
-                    setAssessment(assessmentData);
-                } else {
-                    throw new Error(`Failed to fetch assessment: ${getResponse.status}`);
-                }
-            } catch (err) {
-                setError(err instanceof Error ? err.message : "Failed to load assessment data");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchAssessment();
-    }, [isOpen, jobPostId]);
-
-    const fetchWithRetry = async (url: string, maxRetries: number, delayMs: number): Promise<IJobAssessment> => {
-        for (let attempt = 0; attempt < maxRetries; attempt++) {
-            const response = await fetch(url);
-            if (response.ok) {
-                const data: IJobAssessment = await response.json();
-                return data;
-            }
-            if (attempt < maxRetries - 1) {
-                await new Promise(resolve => setTimeout(resolve, delayMs));
-            }
-        }
-        // If all retries fail, throw error
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Failed to fetch assessment after retries: ${response.status}`);
-        }
-        return await response.json();
-    };
+function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsModalProps) {
+    const { data: assessment, loading, error } = useAbortableFetch(
+        signal => fetchAssessment(jobPostId, signal),
+        [jobPostId],
+        isOpen && Boolean(jobPostId)
+    );
 
     if (!isOpen) return null;
 
