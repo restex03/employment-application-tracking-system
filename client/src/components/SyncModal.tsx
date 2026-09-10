@@ -6,7 +6,7 @@ interface SyncModalProps {
     isOpen: boolean;
     onClose: () => void;
     jobSources: IJobSource[];
-    onSync: (sourceIds?: string[]) => Promise<void>;
+    onSync: (sourceIds?: string[], searchText?: string) => Promise<void>;
     onClearError: () => void;
     syncLoading: boolean;
     syncError: string | null;
@@ -27,6 +27,7 @@ function SyncModal({
 }: SyncModalProps) {
     const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
     const [filterText, setFilterText] = useState<string>("");
+    const [searchText, setSearchText] = useState<string>("");
     const [sortOrder, setSortOrder] = useState<SortOrder>(null);
 
     // Filter and sort the sources
@@ -93,12 +94,13 @@ function SyncModal({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        await onSync(selectedSourceIds.length > 0 ? selectedSourceIds : undefined);
+        await onSync(selectedSourceIds.length > 0 ? selectedSourceIds : undefined, searchText || undefined);
     };
 
     const handleReset = () => {
         setSelectedSourceIds([]);
         setFilterText("");
+        setSearchText("");
         setSortOrder(null);
     };
 
@@ -121,6 +123,25 @@ function SyncModal({
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="sync-form">
+                            <div className="form-group">
+                                <label htmlFor="search-text">
+                                    Search Query:
+                                    <span
+                                        className="search-query-tooltip"
+                                        title="The search query is sent to each job source and filters results before they are fetched. Providing a query significantly reduces the number of jobs pulled from each source, which speeds up syncing and avoids pulling irrelevant listings."
+                                    >
+                                        &nbsp;(?)
+                                    </span>
+                                </label>
+                                <input
+                                    id="search-text"
+                                    type="text"
+                                    placeholder="Search query (e.g. software engineer)"
+                                    value={searchText}
+                                    onChange={e => setSearchText(e.target.value)}
+                                    className="filter-input search-query-input"
+                                />
+                            </div>
                             <div className="form-group">
                                 <label>Select Companies:</label>
                                 <div className="filter-row">

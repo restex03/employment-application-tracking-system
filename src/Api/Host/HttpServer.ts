@@ -3,6 +3,7 @@ import { IApplicationDependencies } from "../../Application/DependencyInjection/
 import { JobAssessmentRoutes } from "../Routes/JobAssessmentRoutes";
 import { JobPostRoutes } from "../Routes/JobPostRoutes";
 import { JobSourceRoutes } from "../Routes/JobSourceRoutes";
+import { ToolsRoutes } from "../Routes/ToolsRoutes";
 import { IRouteRegistrar } from "./IRouteRegistrar";
 import { IRouteDetails } from "./IRouteDetails";
 import { JobCandidateProfileRoutes } from "../Routes/JobCandidateProfileRoutes";
@@ -29,6 +30,13 @@ export class HttpServer {
             ),
 
             new JobAssessmentRoutes(this.dependencies.jobAssessmentService, this.dependencies.logger),
+
+            new ToolsRoutes(
+                this.dependencies.sqliteConnection,
+                this.dependencies.jobSourceService,
+                this.dependencies.jobCandidateProfileService,
+                this.dependencies.logger
+            ),
         ];
 
         this.registerRoutes();

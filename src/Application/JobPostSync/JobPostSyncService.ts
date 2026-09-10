@@ -16,7 +16,7 @@ export class JobPostSyncService implements IJobPostSyncService {
         private readonly logger: ILogger
     ) {}
 
-    public async syncJobs(sourceIds: string[]): Promise<IJobPostSyncResult> {
+    public async syncJobs(sourceIds: string[], searchText?: string): Promise<IJobPostSyncResult> {
         const sourcePromises = sourceIds.map(async x => this.getSource(x));
         const sources = await Promise.all(sourcePromises);
         let jobsDiscovered = 0;
@@ -26,7 +26,7 @@ export class JobPostSyncService implements IJobPostSyncService {
 
             // TODO: Incorporate batching
             const discoveryService = this.discoveryServiceFactory.create(source);
-            const discoveries = await discoveryService.fetchList("software engineer");
+            const discoveries = await discoveryService.fetchList(searchText);
             const jobPosts = discoveries.map(discovery => this.createJobPost(discovery));
             await this.jobPostService.addMany(jobPosts);
 

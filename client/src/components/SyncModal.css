@@ -97,9 +97,12 @@
 }
 
 .form-group label {
-    font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-primary);
+}
+
+.search-query-tooltip {
+    cursor: help;
 }
 
 .filter-row {

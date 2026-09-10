@@ -16,6 +16,22 @@ export class SqliteDatabaseConnection {
         this.db.close();
     }
 
+    public reset(): void {
+        this.db.pragma("foreign_keys = OFF");
+        this.db.exec(`
+            DELETE FROM job_assessments;
+            DELETE FROM job_post_details;
+            DELETE FROM job_posts;
+            DELETE FROM candidate_employment_types;
+            DELETE FROM candidate_location_preferences;
+            DELETE FROM candidate_experience;
+            DELETE FROM candidate_skills;
+            DELETE FROM candidate_profiles;
+            DELETE FROM workday_job_sources;
+        `);
+        this.db.pragma("foreign_keys = ON");
+    }
+
     private initialize(): void {
         this.createSchema();
     }

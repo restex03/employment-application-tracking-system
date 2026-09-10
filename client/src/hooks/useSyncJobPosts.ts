@@ -10,13 +10,19 @@ export function useSyncJobPosts() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<boolean>(false);
 
-    const sync = async (sourceIds?: string[]): Promise<SyncResult> => {
+    const sync = async (sourceIds?: string[], searchText?: string): Promise<SyncResult> => {
         try {
             setLoading(true);
             setError(null);
             setSuccess(false);
 
-            const body = sourceIds && sourceIds.length > 0 ? { sourceIds } : {};
+            const body: Record<string, unknown> = {};
+            if (sourceIds && sourceIds.length > 0) {
+                body.sourceIds = sourceIds;
+            }
+            if (searchText && searchText.trim()) {
+                body.searchText = searchText.trim();
+            }
 
             const response = await fetch('/api/v1/job-posts/sync', {
                 method: 'POST',

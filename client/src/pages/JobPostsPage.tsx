@@ -6,6 +6,7 @@ import { IJobPost } from "../types/JobPost";
 import JobPostModal from "../components/JobPostModal";
 import JobMatchDetailsModal from "../components/JobMatchDetailsModal";
 import SyncModal from "../components/SyncModal";
+import ToolsModal from "../components/ToolsModal";
 import "./JobPostsPage.css";
 
 type SortableColumn = "company" | "requisitionId" | "title" | "locations" | "daysOld" | "createdAt" | null;
@@ -60,6 +61,7 @@ function JobPostsPage() {
     const [isJobMatchModalOpen, setIsJobMatchModalOpen] = useState<boolean>(false);
     const [assessmentLoading, setAssessmentLoading] = useState<boolean>(false);
     const [assessmentError, setAssessmentError] = useState<string | null>(null);
+    const [isToolsModalOpen, setIsToolsModalOpen] = useState<boolean>(false);
     const [sortColumn, setSortColumn] = useState<SortableColumn>(null);
     const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
@@ -149,8 +151,8 @@ function JobPostsPage() {
         return "";
     };
 
-    const handleSync = async (sourceIds?: string[]) => {
-        await sync(sourceIds);
+    const handleSync = async (sourceIds?: string[], searchText?: string) => {
+        await sync(sourceIds, searchText);
         window.location.reload();
     };
 
@@ -353,9 +355,14 @@ function JobPostsPage() {
             )}
             <div className="page-header">
                 <h2>Job Posts ({totalCount})</h2>
-                <button onClick={openSyncModal} className="update-button" disabled={jobSources.length === 0}>
-                    Sync
-                </button>
+                <div className="header-actions">
+                    <button onClick={openSyncModal} className="update-button" disabled={jobSources.length === 0}>
+                        Sync
+                    </button>
+                    <button onClick={() => setIsToolsModalOpen(true)} className="tools-button">
+                        Tools
+                    </button>
+                </div>
             </div>
 
             <div className="table-container" aria-busy={jobPostsLoading}>
@@ -558,6 +565,11 @@ function JobPostsPage() {
                 syncLoading={syncLoading}
                 syncError={syncError}
                 syncSuccess={syncSuccess}
+            />
+
+            <ToolsModal
+                isOpen={isToolsModalOpen}
+                onClose={() => setIsToolsModalOpen(false)}
             />
         </div>
     );
