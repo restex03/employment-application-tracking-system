@@ -10,11 +10,11 @@ export class PipelineRunner<TContext> implements IPipelineRunner<TContext> {
         for (const step of this.steps) {
             const result = await step.execute(context);
 
-            if (result.status === PipelineStepStatus.Failed) {
+            if (result.status !== PipelineStepStatus.Succeeded) {
                 return {
-                    status: PipelineStepStatus.Failed,
+                    status: result.status,
                     context,
-                    failedStep: step.constructor.name,
+                    lastStepReached: step.constructor.name,
                     reason: result.reason,
                 };
             }

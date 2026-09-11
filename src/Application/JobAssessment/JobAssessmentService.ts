@@ -77,11 +77,11 @@ export class JobAssessmentService implements IJobAssessmentService {
         const pipelineResult = await this.pipeline.run(context);
 
         if (pipelineResult.status === PipelineStepStatus.Failed) {
-            this.logger.error(`Pipeline failure detected at step ${pipelineResult.failedStep}`);
+            this.logger.error(`Pipeline failure detected at step ${pipelineResult.lastStepReached}`);
             this.logger.error(`\t- Reason: ${pipelineResult.reason}`);
 
             throw new Error(
-                `Job assessment failed${pipelineResult.failedStep ? ` at ${pipelineResult.failedStep}` : ""}: ${
+                `Job assessment failed${pipelineResult.lastStepReached ? ` at ${pipelineResult.lastStepReached}` : ""}: ${
                     pipelineResult.reason ?? "Unknown pipeline failure."
                 }`
             );

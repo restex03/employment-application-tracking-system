@@ -3,6 +3,6 @@ import { PipelineStepStatus } from "./IPipelineStepResult";
 export interface IPipelineRunnerResult<TContext> {
     status: PipelineStepStatus;
     context: TContext;
-    failedStep?: string;
+    lastStepReached?: string;
     reason?: string;
 }

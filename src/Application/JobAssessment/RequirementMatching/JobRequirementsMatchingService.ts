@@ -61,7 +61,7 @@ export class JobRequirementsMatchingService implements IJobRequirementsMatchingS
         const result = await this.requirementMatchingPipeline.run(context);
 
         if (result.status === PipelineStepStatus.Failed) {
-            const step = result.failedStep ? ` at ${result.failedStep}` : "";
+            const step = result.lastStepReached ? ` at ${result.lastStepReached}` : "";
 
             const reason = result.reason ?? `Requirement matching failed for ${requirement.area}`;
 

@@ -106,7 +106,7 @@ describe("PipelineRunner", () => {
         expect(result).toEqual({
             status: PipelineStepStatus.Failed,
             context,
-            failedStep: "TestPipelineStep",
+            lastStepReached: "TestPipelineStep",
             reason: "Unable to process context",
         });
     });
@@ -181,7 +181,94 @@ describe("PipelineRunner", () => {
         const result = await runner.run(context);
 
         expect(result.status).toBe(PipelineStepStatus.Failed);
-        expect(result.failedStep).toBe("TestPipelineStep");
+        expect(result.lastStepReached).toBe("TestPipelineStep");
+        expect(result.reason).toBeUndefined();
+    });
+
+    it("stops executing when a step returns stopped", async () => {
+        const context: TestContext = { value: 0 };
+
+        const step1 = new TestPipelineStep({
+            status: PipelineStepStatus.Succeeded,
+        });
+
+        const stoppedStep = new TestPipelineStep({
+            status: PipelineStepStatus.Stopped,
+            reason: "Halted by screening",
+        });
+
+        const step3 = new TestPipelineStep({
+            status: PipelineStepStatus.Succeeded,
+        });
+
+        const runner = new PipelineRunner<TestContext>([step1, stoppedStep, step3]);
+
+        await runner.run(context);
+
+        expect(step1.execute).toHaveBeenCalledOnce();
+        expect(stoppedStep.execute).toHaveBeenCalledOnce();
+        expect(step3.execute).not.toHaveBeenCalled();
+    });
+
+    it("returns stopped status and information from the stopped step", async () => {
+        const context: TestContext = { value: 0 };
+
+        const stoppedStep = new TestPipelineStep({
+            status: PipelineStepStatus.Stopped,
+            reason: "Halted by screening",
+        });
+
+        const runner = new PipelineRunner<TestContext>([stoppedStep]);
+
+        const result = await runner.run(context);
+
+        expect(result).toEqual({
+            status: PipelineStepStatus.Stopped,
+            context,
+            lastStepReached: "TestPipelineStep",
+            reason: "Halted by screening",
+        });
+    });
+
+    it("preserves context changes made before a stop", async () => {
+        const context: TestContext = { value: 0 };
+
+        const step1 = new TestPipelineStep({ status: PipelineStepStatus.Succeeded }, ctx => {
+            ctx.value = 10;
+        });
+
+        const stoppedStep = new TestPipelineStep(
+            {
+                status: PipelineStepStatus.Stopped,
+                reason: "Stopped",
+            },
+            ctx => {
+                ctx.value = 20;
+            }
+        );
+
+        const runner = new PipelineRunner<TestContext>([step1, stoppedStep]);
+
+        const result = await runner.run(context);
+
+        expect(result.status).toBe(PipelineStepStatus.Stopped);
+        expect(result.context).toBe(context);
+        expect(result.context.value).toBe(20);
+    });
+
+    it("allows a stopped step to omit a reason", async () => {
+        const context: TestContext = { value: 0 };
+
+        const stoppedStep = new TestPipelineStep({
+            status: PipelineStepStatus.Stopped,
+        });
+
+        const runner = new PipelineRunner<TestContext>([stoppedStep]);
+
+        const result = await runner.run(context);
+
+        expect(result.status).toBe(PipelineStepStatus.Stopped);
+        expect(result.lastStepReached).toBe("TestPipelineStep");
         expect(result.reason).toBeUndefined();
     });
 });
