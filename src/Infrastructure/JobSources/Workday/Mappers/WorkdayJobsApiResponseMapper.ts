@@ -22,7 +22,7 @@ export class WorkdayJobsResponseMapper implements IWorkdayJobsApiResponseMapper 
             this.logger.warn(
                 `[WorkdayJobsResponseMapper] Job posting has missing or empty title or externalPath.` +
                     `\n\t- externalPath: ${posting.externalPath ?? "N/A"}` +
-                    `\n\t- json: ${JSON.stringify(posting)}`
+                    `\n\t- job post json: ${JSON.stringify(posting)}`
             );
             return null;
         }
