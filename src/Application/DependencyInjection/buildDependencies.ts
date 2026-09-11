@@ -51,6 +51,10 @@ import { IJobPostQueries } from "../../Infrastructure/Persistence/JobPost/IJobPo
 import { SqliteJobQueries } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteJobQueries";
 import { IJobPostResultService } from "../JobPost/IJobPostResultService";
 import { JobPostResultService } from "../JobPost/JobPostResultService";
+import { JobAssessmentQueueService } from "../JobAssessment/PipelineQueue/JobAssessmentQueueService";
+import { IJobAssessmentQueueService } from "../JobAssessment/PipelineQueue/IJobAssessmentQueueService";
+import { IJobAssessmentQueue } from "../../Infrastructure/Persistence/JobAssessmentQueue/IJobAssessmentQueue";
+import { SqliteJobAssessmentQueueRepository } from "../../Infrastructure/Persistence/JobAssessmentQueue/Sqlite/SqliteJobAssessmentQueueRepository";
 
 export function buildDependencies(logLevel: LogLevel): IApplicationDependencies {
     const logger: ILogger = new ConsoleLogger(logLevel);
@@ -78,6 +82,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
     const jobAssessmentRepo: IJobAssessmentRepository = new SqliteJobAssessmentRepository(sqliteConnection.db, logger);
 
     const jobPostQueries: IJobPostQueries = new SqliteJobQueries(sqliteConnection.db, logger);
+    const jobAssessmentQueue: IJobAssessmentQueue = new SqliteJobAssessmentQueueRepository(sqliteConnection.db, logger);
 
     /*
      * Inference
@@ -150,6 +155,11 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         jobAssessmentRepo,
         logger
     );
+
+    const jobAssessmentQueueService: IJobAssessmentQueueService = new JobAssessmentQueueService(
+        jobAssessmentQueue,
+        jobAssessmentService
+    );
     logger.debug("[buildDependencies] Application dependencies initialized");
 
     logger.debug(`[buildDependencies] Using DB Path: ${sqliteConnection.db.name}`);
@@ -167,7 +177,8 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         jobCandidateProfileService,
         jobPostResultService,
         jobPostSyncService,
-
+        jobAssessmentQueue,
+        jobAssessmentQueueService,
         screeningService,
         requirementsExtractionService,
         requirementsClassificationService,

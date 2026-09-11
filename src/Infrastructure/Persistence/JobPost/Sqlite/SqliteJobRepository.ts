@@ -225,7 +225,7 @@ export class SqliteJobRepository implements IJobPostRepository {
 
             FROM job_posts jp
             
-            JOIN workday_job_sources c
+            JOIN job_sources c
                 ON c.id = jp.source_id
 
             LEFT JOIN job_post_details jpd
@@ -245,7 +245,7 @@ export class SqliteJobRepository implements IJobPostRepository {
             SELECT COUNT(*) as totalCount
             FROM job_posts jp
 
-            JOIN workday_job_sources c
+            JOIN job_sources c
                 ON c.id = jp.source_id
 
                 WHERE (UPPER(@companyName) = '' OR UPPER(c.company_name) LIKE '%' || UPPER(@companyName) || '%')

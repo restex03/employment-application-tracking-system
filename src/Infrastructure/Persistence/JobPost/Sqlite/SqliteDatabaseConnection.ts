@@ -49,17 +49,27 @@ export class SqliteDatabaseConnection {
 
     private createJobAssessmentsJobQueueTable(): void {
         this.db.exec(`
-            CREATE TABLE IF NOT EXISTS job_assessment_job_queue (
-                id TEXT PRIMARY KEY NOT NULL,
-                job_assessment_id TEXT NOT NULL,
-                status TEXT NOT NULL,
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CREATE TABLE IF NOT EXISTS job_assessment_job_queue (
+            id TEXT PRIMARY KEY NOT NULL,
+            job_post_id TEXT NOT NULL,
+            candidate_profile_id TEXT NOT NULL,
+            status TEXT NOT NULL,
+            error TEXT,
+            warnings TEXT,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-                FOREIGN KEY (job_assessment_id)
-                    REFERENCES job_assessments(id)
-                    ON DELETE CASCADE
-            );
-        `);
+            FOREIGN KEY (job_post_id)
+                REFERENCES job_posts(id)
+                ON DELETE CASCADE,
+
+            FOREIGN KEY (candidate_profile_id)
+                REFERENCES candidate_profiles(id)
+                ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS ix_job_assessment_job_queue_status_created_at
+            ON job_assessment_job_queue(status, created_at);
+    `);
     }
 
     private createJobSourcesTable(): void {

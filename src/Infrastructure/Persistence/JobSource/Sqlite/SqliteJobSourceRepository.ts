@@ -30,7 +30,7 @@ export class SqliteJobSourceRepository implements IJobSourceRepository {
         private readonly logger: ILogger
     ) {
         this.upsertStatement = this.connection.prepare(`
-            INSERT INTO workday_job_sources (
+            INSERT INTO job_sources (
                 id,
                 company_name,
                 base_url,
@@ -59,7 +59,7 @@ export class SqliteJobSourceRepository implements IJobSourceRepository {
                 company_name,
                 base_url,
                 browser_base_url
-            FROM workday_job_sources
+            FROM job_sources
             WHERE id = ?
             LIMIT 1
         `);
@@ -70,7 +70,7 @@ export class SqliteJobSourceRepository implements IJobSourceRepository {
                 company_name,
                 base_url,
                 browser_base_url
-            FROM workday_job_sources
+            FROM job_sources
             WHERE company_name = ?
             LIMIT 1
         `);
@@ -81,7 +81,7 @@ export class SqliteJobSourceRepository implements IJobSourceRepository {
                 company_name,
                 base_url,
                 browser_base_url
-            FROM workday_job_sources
+            FROM job_sources
             ORDER BY company_name
         `);
     }
@@ -111,7 +111,7 @@ export class SqliteJobSourceRepository implements IJobSourceRepository {
 
         const results = upsertMany(sources);
 
-        this.logger.debug(`[JobSourceRepository.upsertMany] ` + `Processed ${results.length} Workday job sources`);
+        this.logger.debug(`[JobSourceRepository.upsertMany] ` + `Processed ${results.length} job sources`);
 
         return results;
     }
@@ -120,7 +120,7 @@ export class SqliteJobSourceRepository implements IJobSourceRepository {
         const row = this.getByIdStatement.get(id) as JobSourceRow | undefined;
 
         if (!row) {
-            this.logger.debug(`[JobSourceRepository.getById] ` + `No Workday job source found for id: ${id}`);
+            this.logger.debug(`[JobSourceRepository.getById] ` + `No job source found for id: ${id}`);
 
             return undefined;
         }
@@ -134,7 +134,7 @@ export class SqliteJobSourceRepository implements IJobSourceRepository {
     public async getByIdOrThrow(id: string): Promise<IJobSource> {
         const source = await this.getById(id);
         if (!source) {
-            throw new Error(`Workday job source not found for id: ${id}`);
+            throw new Error(`Job source not found for id: ${id}`);
         }
         return source;
     }
@@ -144,7 +144,7 @@ export class SqliteJobSourceRepository implements IJobSourceRepository {
 
         if (!row) {
             this.logger.debug(
-                `[JobSourceRepository.getByCompanyName] ` + `No Workday job source found for company: ${companyName}`
+                `[JobSourceRepository.getByCompanyName] ` + `No job source found for company: ${companyName}`
             );
 
             return undefined;

@@ -3,6 +3,8 @@ import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IRouteRegistrar } from "../Host/IRouteRegistrar";
 import { IJobAssessmentService } from "../../Application/JobAssessment/IJobAssessmentService";
 import { NotFoundError } from "../../Application/Common/Errors/NotFoundError";
+import { IJobAssessmentQueueService } from "../../Application/JobAssessment/PipelineQueue/IJobAssessmentQueueService";
+import { IJobAssessmentQueue } from "../../Infrastructure/Persistence/JobAssessmentQueue/IJobAssessmentQueue";
 
 interface JobPostParams {
     jobPostId: string;
@@ -12,6 +14,7 @@ interface JobPostParams {
 export class JobAssessmentRoutes implements IRouteRegistrar {
     constructor(
         private readonly jobAssessmentService: IJobAssessmentService,
+        private readonly jobAssessmentQueueService: IJobAssessmentQueueService,
         private readonly logger: ILogger
     ) {}
 
@@ -23,9 +26,13 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
 
             try {
                 this.logger.info(`[${request.method}]  ${request.url}`);
-                const result = await this.jobAssessmentService.runAssessment(candidateProfileId, jobPostId);
-                return reply.code(200).send({
-                    result,
+
+                const result = await this.jobAssessmentQueueService.enqueue({
+                    jobPostId,
+                    candidateProfileId,
+                });
+                return reply.code(202).send({
+                    jobId: result,
                 });
             } catch (error) {
                 const errMsg = error instanceof Error ? error.message : String(error);

@@ -1,9 +1,11 @@
 import { ILlmInferenceProvider } from "../../Infrastructure/Inference/ILlmInferenceProvider";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
+import { IJobAssessmentQueue } from "../../Infrastructure/Persistence/JobAssessmentQueue/IJobAssessmentQueue";
 import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
 import { SqliteDatabaseConnection } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteDatabaseConnection";
 import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
 import { IJobAssessmentService } from "../JobAssessment/IJobAssessmentService";
+import { IJobAssessmentQueueService } from "../JobAssessment/PipelineQueue/IJobAssessmentQueueService";
 import { IJobRequirementsMatchingService } from "../JobAssessment/RequirementMatching/IJobRequirementMatchingService";
 import { IJobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/IJobRequirementsExtractionService";
 import { IJobRequirementClassificationService } from "../JobAssessment/RquirementClassification/IJobRequirementClassificationService";
@@ -22,6 +24,8 @@ export interface IApplicationDependencies {
     jobSourceRepository: IJobSourceRepository;
     jobPostResultService: IJobPostResultService;
     jobPostSyncService: IJobPostSyncService;
+    jobAssessmentQueue: IJobAssessmentQueue;
+    jobAssessmentQueueService: IJobAssessmentQueueService;
     jobCandidateProfileService: IJobCandidateProfileService;
     jobSourceService: IJobSourceService;
     llm: ILlmInferenceProvider;

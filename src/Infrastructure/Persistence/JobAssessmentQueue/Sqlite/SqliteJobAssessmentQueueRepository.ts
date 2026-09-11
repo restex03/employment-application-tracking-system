@@ -1,30 +1,169 @@
 import Database from "better-sqlite3";
-import { IJobAssessmentQueueRepository } from "../IJobAssessmentQueueRepository";
-import { ILogger } from "../../../Logging/ILogger";
+import { randomUUID } from "node:crypto";
 
-export class SqliteJobAssessmentQueueRepository implements IJobAssessmentQueueRepository {
-    private readonly claimNextQueuedJobStatement: Database.Statement;
+import { ILogger } from "../../../Logging/ILogger";
+import {
+    IJobAssessmentJob,
+    IJobAssessmentJobRequest,
+    JobQueueStatus,
+} from "../../../../Application/JobAssessment/PipelineQueue/IJobAssessmentJob";
+import { IJobAssessmentQueue } from "../IJobAssessmentQueue";
+
+interface JobAssessmentJobRow {
+    id: string;
+    job_post_id: string;
+    candidate_profile_id: string;
+    status: JobQueueStatus;
+    error: string | null;
+    warnings: string | null;
+}
+
+interface JobAssessmentJobStatusRow {
+    status: JobQueueStatus;
+}
+
+export class SqliteJobAssessmentQueueRepository implements IJobAssessmentQueue {
+    private readonly enqueueStatement: Database.Statement;
+    private readonly getStatusStatement: Database.Statement;
+    private readonly claimNextStatement: Database.Statement;
+    private readonly completeStatement: Database.Statement;
+    private readonly failStatement: Database.Statement;
 
     constructor(
         private readonly connection: Database.Database,
         private readonly logger: ILogger
     ) {
-        this.claimNextQueuedJobStatement = this.connection.prepare(`
+        this.enqueueStatement = this.connection.prepare(`
+            INSERT INTO job_assessment_job_queue (
+                id,
+                job_post_id,
+                candidate_profile_id,
+                status
+            )
+            VALUES (
+                @id,
+                @jobPostId,
+                @candidateProfileId,
+                @status
+            )
+        `);
+
+        this.getStatusStatement = this.connection.prepare(`
+            SELECT status
+            FROM job_assessment_job_queue
+            WHERE id = @jobId
+        `);
+
+        this.claimNextStatement = this.connection.prepare(`
             UPDATE job_assessment_job_queue
-            SET status = 'claimed'
+            SET status = @inProgressStatus
             WHERE id = (
                 SELECT id
                 FROM job_assessment_job_queue
-                WHERE status = 'queued'
+                WHERE status = @queuedStatus
                 ORDER BY created_at ASC
                 LIMIT 1
             )
+            AND status = @queuedStatus
             RETURNING *
+        `);
+
+        this.completeStatement = this.connection.prepare(`
+            UPDATE job_assessment_job_queue
+            SET
+                status = @completedStatus,
+                error = NULL
+            WHERE id = @jobId
+              AND status = @inProgressStatus
+        `);
+
+        this.failStatement = this.connection.prepare(`
+            UPDATE job_assessment_job_queue
+            SET
+                status = @failedStatus,
+                error = @error
+            WHERE id = @jobId
+              AND status = @inProgressStatus
         `);
     }
 
-    public async claimNextQueuedJob() {
-        this.logger.debug("Claiming next queued job from the job assessment queue.");
-        return this.claimNextQueuedJobStatement.get();
+    public async getStatus(jobId: string): Promise<JobQueueStatus | null> {
+        const row = this.getStatusStatement.get({
+            jobId,
+        }) as JobAssessmentJobStatusRow | undefined;
+
+        return row?.status ?? null;
+    }
+
+    public async enqueue(job: IJobAssessmentJobRequest): Promise<string> {
+        const id = randomUUID();
+
+        this.enqueueStatement.run({
+            id,
+            jobPostId: job.jobPostId,
+            candidateProfileId: job.candidateProfileId,
+            status: JobQueueStatus.Queued,
+        });
+
+        this.logger.debug(`[SqliteJobAssessmentQueueRepository.enqueue] Queued job ${id}`);
+
+        return id;
+    }
+
+    public async claimNext(): Promise<IJobAssessmentJob | null> {
+        const row = this.claimNextStatement.get({
+            queuedStatus: JobQueueStatus.Queued,
+            inProgressStatus: JobQueueStatus.InProgress,
+        }) as JobAssessmentJobRow | undefined;
+
+        if (!row) {
+            return null;
+        }
+
+        this.logger.debug(`[SqliteJobAssessmentQueueRepository.claimNext] Claimed job ${row.id}`);
+
+        return this.mapRow(row);
+    }
+
+    public async complete(jobId: string): Promise<void> {
+        const result = this.completeStatement.run({
+            jobId,
+            inProgressStatus: JobQueueStatus.InProgress,
+            completedStatus: JobQueueStatus.Completed,
+        });
+
+        if (result.changes !== 1) {
+            throw new Error(
+                `[SqliteJobAssessmentQueueRepository.complete] ` + `Unable to complete in-progress job: ${jobId}`
+            );
+        }
+
+        this.logger.debug(`[SqliteJobAssessmentQueueRepository.complete] Completed job ${jobId}`);
+    }
+
+    public async fail(jobId: string, error: string): Promise<void> {
+        const result = this.failStatement.run({
+            jobId,
+            error,
+            inProgressStatus: JobQueueStatus.InProgress,
+            failedStatus: JobQueueStatus.Failed,
+        });
+
+        if (result.changes !== 1) {
+            throw new Error(`[SqliteJobAssessmentQueueRepository.fail] ` + `Unable to fail in-progress job: ${jobId}`);
+        }
+
+        this.logger.debug(`[SqliteJobAssessmentQueueRepository.fail] Failed job ${jobId}`);
+    }
+
+    private mapRow(row: JobAssessmentJobRow): IJobAssessmentJob {
+        return {
+            id: row.id,
+            jobPostId: row.job_post_id,
+            candidateProfileId: row.candidate_profile_id,
+            status: row.status,
+            error: row.error ?? undefined,
+            warnings: row.warnings ? JSON.parse(row.warnings) : undefined,
+        };
     }
 }

@@ -29,7 +29,11 @@ export class HttpServer {
                 this.dependencies.logger
             ),
 
-            new JobAssessmentRoutes(this.dependencies.jobAssessmentService, this.dependencies.logger),
+            new JobAssessmentRoutes(
+                this.dependencies.jobAssessmentService,
+                this.dependencies.jobAssessmentQueueService,
+                this.dependencies.logger
+            ),
 
             new ToolsRoutes(
                 this.dependencies.sqliteConnection,

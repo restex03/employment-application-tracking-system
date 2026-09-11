@@ -64,7 +64,7 @@ export class SqliteJobQueries implements IJobPostQueries {
 
             FROM job_posts jp
             
-            JOIN workday_job_sources js
+            JOIN job_sources js
                 ON js.id = jp.source_id
 
             LEFT JOIN job_assessments ja
@@ -98,7 +98,7 @@ export class SqliteJobQueries implements IJobPostQueries {
 
             FROM job_posts jp
             
-            JOIN workday_job_sources js
+            JOIN job_sources js
                 ON js.id = jp.source_id
 
             LEFT JOIN job_assessments ja
@@ -120,7 +120,7 @@ export class SqliteJobQueries implements IJobPostQueries {
             SELECT COUNT(*) as totalCount
             FROM job_posts jp
 
-            JOIN workday_job_sources js
+            JOIN job_sources js
                 ON js.id = jp.source_id
 
                 WHERE (UPPER(@companyName) = '' OR UPPER(js.company_name) LIKE '%' || UPPER(@companyName) || '%')

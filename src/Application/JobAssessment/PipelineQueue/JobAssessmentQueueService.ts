@@ -1,0 +1,20 @@
+import { IJobAssessmentQueue } from "../../../Infrastructure/Persistence/JobAssessmentQueue/IJobAssessmentQueue";
+import { IJobAssessmentService } from "../IJobAssessmentService";
+import { IJobAssessmentJobRequest, JobQueueStatus } from "./IJobAssessmentJob";
+import { IJobAssessmentQueueService } from "./IJobAssessmentQueueService";
+
+export class JobAssessmentQueueService implements IJobAssessmentQueueService {
+    private running = false;
+
+    constructor(
+        private readonly queue: IJobAssessmentQueue,
+        private readonly assessmentService: IJobAssessmentService
+    ) {}
+    getStatus(jobId: string): Promise<JobQueueStatus | null> {
+        throw new Error("Method not implemented.");
+    }
+    public async enqueue(job: IJobAssessmentJobRequest): Promise<string> {
+        const jobId = await this.queue.enqueue(job);
+        return jobId;
+    }
+}
