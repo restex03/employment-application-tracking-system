@@ -66,7 +66,7 @@ export class JobPostRoutes implements IRouteRegistrar {
                 const { jobPostId } = request.params;
                 this.logger.info(`[${request.method}]  ${request.url}`);
 
-                const jobPost = await this.jobPostService.getById(jobPostId);
+                const jobPost = await this.jobPostService.getByIdOrThrow(jobPostId);
 
                 if (!jobPost) {
                     this.logger.info(`[${request.method}]  ${request.url} Job post not found`);

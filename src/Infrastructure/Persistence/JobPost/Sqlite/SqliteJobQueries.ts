@@ -34,11 +34,46 @@ interface JobPostRow {
 export class SqliteJobQueries implements IJobPostQueries {
     private readonly getAllStatement: Database.Statement;
     private readonly getAllCountStatement: Database.Statement;
+    private readonly getByIdStatement: Database.Statement;
 
     constructor(
         private readonly connection: Database.Database,
         private readonly logger: ILogger
     ) {
+        this.getByIdStatement = this.connection.prepare(`
+            SELECT
+                jp.id,
+                jp.source_id,
+                jp.requisition_id,
+                jp.title,
+                jp.detail_path,
+                jp.locations,
+                jp.days_old,
+                jp.remote_type,
+                jp.created_at,
+                js.browser_base_url,
+                ja.job_match_score_json,
+
+                jpd.id AS detail_id,
+                jpd.description AS detail_description,
+                jpd.employment_type AS detail_employment_type,
+                jpd.locations AS detail_locations,
+                jpd.valid_through AS detail_valid_through,
+                jpd.remote_type AS detail_remote_type,
+                jpd.applicant_locations AS detail_applicant_locations
+
+            FROM job_posts jp
+            
+            JOIN workday_job_sources js
+                ON js.id = jp.source_id
+
+            LEFT JOIN job_assessments ja
+                ON ja.job_post_id = jp.id
+            LEFT JOIN job_post_details jpd
+                ON jpd.job_post_id = jp.id
+
+            WHERE jp.id = @id
+        `);
         this.getAllStatement = this.connection.prepare(`
             SELECT
                 jp.id,
@@ -95,6 +130,7 @@ export class SqliteJobQueries implements IJobPostQueries {
                     AND (COALESCE(TRIM(@daysOld), '') = '' OR UPPER(jp.days_old) LIKE '%' || UPPER(TRIM(@daysOld)) || '%')
         `);
     }
+
     async getJobPostTableResults(
         pageCount: number,
         pageNumber: number,
@@ -124,6 +160,26 @@ export class SqliteJobQueries implements IJobPostQueries {
             data: rows.map(row => this.mapJobPost(row)),
             totalCount,
         };
+    }
+
+    async getJobPostTableResultById(id: string): Promise<IJobPostResponse | undefined> {
+        const result = this.getByIdStatement.get({ id }) as JobPostRow;
+
+        if (!result) {
+            return undefined;
+        }
+
+        return this.mapJobPost(result);
+    }
+
+    async getJobPostTableResultByIdOrThrow(id: string): Promise<IJobPostResponse> {
+        const result = this.getByIdStatement.get({ id }) as JobPostRow;
+
+        if (!result) {
+            throw new Error(`Job post table result not found for job post ${id}`);
+        }
+
+        return this.mapJobPost(result);
     }
 
     private mapJobPost(row: JobPostRow): IJobPostResponse {

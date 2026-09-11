@@ -31,10 +31,7 @@ export class JobPostService implements IJobPostService {
         return result;
     }
 
-    public async getById(id: string): Promise<IJobPost | undefined> {
-        return this.jobRepository.getById(id);
-    }
-    public async getByIdOrThrow(id: string): Promise<IJobPost> {
-        return this.jobRepository.getByIdOrThrow(id);
+    public async getByIdOrThrow(id: string): Promise<IJobPostResponse> {
+        return await this.jobPostQueries.getJobPostTableResultByIdOrThrow(id);
     }
 }

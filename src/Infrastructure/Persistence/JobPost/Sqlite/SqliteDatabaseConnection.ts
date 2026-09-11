@@ -27,8 +27,8 @@ export class SqliteDatabaseConnection {
             DELETE FROM candidate_experience;
             DELETE FROM candidate_skills;
             DELETE FROM candidate_profiles;
-            DELETE FROM workday_job_sources;
-            DELETE FROM job_assessments_job_queue
+            DELETE FROM job_sources;
+            DELETE FROM job_assessment_job_queue
         `);
         this.db.pragma("foreign_keys = ON");
     }
@@ -38,7 +38,7 @@ export class SqliteDatabaseConnection {
     }
 
     private createSchema(): void {
-        this.createWorkdayJobSourcesTable();
+        this.createJobSourcesTable();
         this.createJobPostsTable();
         this.addJobPostRemoteTypeColumn();
         this.createJobPostDetailsTable();
@@ -49,7 +49,7 @@ export class SqliteDatabaseConnection {
 
     private createJobAssessmentsJobQueueTable(): void {
         this.db.exec(`
-            CREATE TABLE IF NOT EXISTS job_assessments_job_queue (
+            CREATE TABLE IF NOT EXISTS job_assessment_job_queue (
                 id TEXT PRIMARY KEY NOT NULL,
                 job_assessment_id TEXT NOT NULL,
                 status TEXT NOT NULL,
@@ -62,17 +62,17 @@ export class SqliteDatabaseConnection {
         `);
     }
 
-    private createWorkdayJobSourcesTable(): void {
+    private createJobSourcesTable(): void {
         this.db.exec(`
-            CREATE TABLE IF NOT EXISTS workday_job_sources (
+            CREATE TABLE IF NOT EXISTS job_sources (
                 id TEXT PRIMARY KEY NOT NULL,
                 company_name TEXT NOT NULL,
                 base_url TEXT NOT NULL UNIQUE,
                 browser_base_url TEXT NOT NULL UNIQUE
             );
 
-            CREATE UNIQUE INDEX IF NOT EXISTS ux_workday_job_sources_company_name
-            ON workday_job_sources(company_name);
+            CREATE UNIQUE INDEX IF NOT EXISTS ux_job_sources_company_name
+            ON job_sources(company_name);
         `);
     }
 
@@ -90,7 +90,7 @@ export class SqliteDatabaseConnection {
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
                 FOREIGN KEY (source_id)
-                    REFERENCES workday_job_sources(id)
+                REFERENCES job_sources(id)
             );
 
             CREATE UNIQUE INDEX IF NOT EXISTS ux_job_posts_source_detail_path

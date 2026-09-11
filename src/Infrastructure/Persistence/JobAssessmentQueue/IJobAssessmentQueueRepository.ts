@@ -1,1 +1,3 @@
-export interface IJobAssessmentQueueRepository {}
+export interface IJobAssessmentQueueRepository {
+    claimNextQueuedJob(): Promise<any>;
+}

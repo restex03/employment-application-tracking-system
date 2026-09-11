@@ -20,6 +20,5 @@ export interface IJobPostService {
         queryFilters: JobPostQueryFilters
     ): Promise<{ data: IJobPostResponse[]; totalCount: number }>;
 
-    getById(id: string): Promise<IJobPost | undefined>;
-    getByIdOrThrow(id: string): Promise<IJobPost>;
+    getByIdOrThrow(id: string): Promise<IJobPostResponse>;
 }

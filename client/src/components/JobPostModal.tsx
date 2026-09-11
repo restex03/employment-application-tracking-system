@@ -12,8 +12,7 @@ interface JobPostModalProps {
 function JobPostModal({ isOpen, onClose, jobPost }: JobPostModalProps) {
     if (!isOpen) return null;
 
-    const detail = jobPost.detail;
-
+    const jobPostData = jobPost;
     const formatLocationsAsList = (locations: unknown[] | undefined): React.ReactNode => {
         if (!locations || locations.length === 0) return "N/A";
 
@@ -50,10 +49,10 @@ function JobPostModal({ isOpen, onClose, jobPost }: JobPostModalProps) {
                 </div>
 
                 <div className="modal-body">
-                    {detail ? (
+                    {jobPostData.detail ? (
                         <div className="job-post-detail">
                             <div className="detail-card">
-                                <h3 className="detail-title">{detail.title || jobPost.title}</h3>
+                                <h3 className="detail-title">{jobPost.title}</h3>
 
                                 <div className="job-post-link-section">
                                     <h4>View Job:&nbsp;</h4>
@@ -69,8 +68,8 @@ function JobPostModal({ isOpen, onClose, jobPost }: JobPostModalProps) {
                                     <div
                                         className="detail-description"
                                         dangerouslySetInnerHTML={{
-                                            __html: detail.description
-                                                ? DOMPurify.sanitize(detail.description)
+                                            __html: jobPostData.detail.description
+                                                ? DOMPurify.sanitize(jobPostData.detail.description)
                                                 : "No description available",
                                         }}
                                     />
@@ -79,35 +78,37 @@ function JobPostModal({ isOpen, onClose, jobPost }: JobPostModalProps) {
                                 <div className="detail-grid">
                                     <div className="detail-item">
                                         <span className="detail-label">Remote Type:</span>
-                                        <span className="detail-value">{detail.remoteType || "N/A"}</span>
+                                        <span className="detail-value">{jobPostData.detail.remoteType || "N/A"}</span>
                                     </div>
 
                                     <div className="detail-item">
                                         <span className="detail-label">Applicant Locations:</span>
                                         <span className="detail-value">
-                                            {formatApplicantLocations(detail.applicantLocations)}
+                                            {formatApplicantLocations(jobPostData.detail.applicantLocations)}
                                         </span>
                                     </div>
 
                                     <div className="detail-item">
                                         <span className="detail-label">Employment Type:</span>
-                                        <span className="detail-value">{detail.employmentType || "N/A"}</span>
+                                        <span className="detail-value">
+                                            {jobPostData.detail.employmentType || "N/A"}
+                                        </span>
                                     </div>
 
                                     <div className="detail-item">
                                         <span className="detail-label">Days Old:</span>
-                                        <span className="detail-value">{detail.daysOld || "N/A"}</span>
+                                        <span className="detail-value">{jobPostData.detail.daysOld || "N/A"}</span>
                                     </div>
 
                                     <div className="detail-item">
                                         <span className="detail-label">Valid Through:</span>
-                                        <span className="detail-value">{detail.validThrough || "N/A"}</span>
+                                        <span className="detail-value">{jobPostData.detail.validThrough || "N/A"}</span>
                                     </div>
 
                                     <div className="detail-item detail-item-full-width">
                                         <span className="detail-label">Locations:</span>
                                         <span className="detail-value">
-                                            {formatLocationsAsList(detail.locations || jobPost.locations)}
+                                            {formatLocationsAsList(jobPostData.detail.locations || jobPost.locations)}
                                         </span>
                                     </div>
                                 </div>

@@ -181,7 +181,6 @@ function JobPostsPage() {
 
             if (getResponse.ok) {
                 const data: IJobPostData = await getResponse.json();
-
                 // If detail is undefined, sync the job detail
                 if (!data.detail) {
                     const syncUrl = `/api/v1/job-posts/${jobPost.id}/sync`;
