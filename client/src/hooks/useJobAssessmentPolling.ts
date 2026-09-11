@@ -7,31 +7,39 @@ export interface ToastMessage {
     message: string;
 }
 
+interface TrackedJob {
+    jobId: string;
+    status: JobQueueStatus | null;
+}
+
 interface UseJobAssessmentPollingOptions {
     candidateProfileId: string;
     pollIntervalMs?: number;
 }
 
 interface UseJobAssessmentPollingResult {
-    jobId: string | null;
-    jobPostId: string | null;
-    jobStatus: JobQueueStatus | null;
+    getStatus: (jobPostId: string) => JobQueueStatus | null;
     enqueue: (jobPostId: string) => Promise<void>;
+    enqueueMany: (jobPostIds: string[]) => Promise<void>;
     toasts: ToastMessage[];
     dismissToast: (id: string) => void;
 }
 
 const POLL_INTERVAL_MS = 10_000;
+const IN_FLIGHT_STATUSES: Array<JobQueueStatus | null> = [null, "QUEUED", "IN_PROGRESS"];
 
 export function useJobAssessmentPolling({
     candidateProfileId,
     pollIntervalMs = POLL_INTERVAL_MS,
 }: UseJobAssessmentPollingOptions): UseJobAssessmentPollingResult {
-    const [jobId, setJobId] = useState<string | null>(null);
-    const [trackedJobPostId, setTrackedJobPostId] = useState<string | null>(null);
-    const [jobStatus, setJobStatus] = useState<JobQueueStatus | null>(null);
+    const [trackedJobs, setTrackedJobs] = useState<Record<string, TrackedJob>>({});
+    const trackedJobsRef = useRef<Record<string, TrackedJob>>({});
     const [toasts, setToasts] = useState<ToastMessage[]>([]);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    useEffect(() => {
+        trackedJobsRef.current = trackedJobs;
+    }, [trackedJobs]);
 
     const addToast = useCallback((type: ToastMessage["type"], message: string) => {
         const id = crypto.randomUUID();
@@ -52,38 +60,60 @@ export function useJobAssessmentPolling({
         }
     }, []);
 
-    const pollJobStatus = useCallback(
-        async (id: string) => {
+    const pollJob = useCallback(
+        async (jobPostId: string, jobId: string) => {
             try {
-                const response = await fetch(`/api/v1/assessment-jobs/${id}`);
+                const response = await fetch(`/api/v1/assessment-jobs/${jobId}`);
                 if (!response.ok) {
                     return;
                 }
                 const data = await response.json();
                 const status = data.status as JobQueueStatus;
-                setJobStatus(status);
+
+                // Ignore stale responses if a newer job was enqueued for this job post in the meantime.
+                setTrackedJobs(prev => {
+                    const existing = prev[jobPostId];
+                    if (!existing || existing.jobId !== jobId) {
+                        return prev;
+                    }
+                    return { ...prev, [jobPostId]: { ...existing, status } };
+                });
 
                 if (status === "COMPLETED") {
-                    stopPolling();
                     addToast("success", "Job assessment completed successfully.");
                 } else if (status === "FAILED") {
-                    stopPolling();
                     addToast("error", "Job assessment failed.");
                 }
             } catch {
                 // network errors are transient; keep polling
             }
         },
-        [stopPolling, addToast]
+        [addToast]
     );
+
+    const pollAllInFlight = useCallback(() => {
+        const inFlightEntries = Object.entries(trackedJobsRef.current).filter(([, job]) =>
+            IN_FLIGHT_STATUSES.includes(job.status)
+        );
+
+        if (inFlightEntries.length === 0) {
+            stopPolling();
+            return;
+        }
+
+        for (const [jobPostId, job] of inFlightEntries) {
+            pollJob(jobPostId, job.jobId);
+        }
+    }, [pollJob, stopPolling]);
+
+    const ensurePolling = useCallback(() => {
+        if (!pollRef.current) {
+            pollRef.current = setInterval(pollAllInFlight, pollIntervalMs);
+        }
+    }, [pollAllInFlight, pollIntervalMs]);
 
     const enqueue = useCallback(
         async (jobPostId: string) => {
-            setJobStatus(null);
-            setJobId(null);
-            setTrackedJobPostId(jobPostId);
-            stopPolling();
-
             try {
                 const response = await fetch(`/api/v1/job-posts/${jobPostId}/assessments/${candidateProfileId}`, {
                     method: "POST",
@@ -96,21 +126,29 @@ export function useJobAssessmentPolling({
 
                 const data = await response.json();
                 const newJobId: string = data.jobId;
-                setJobId(newJobId);
 
-                // Start polling
-                pollRef.current = setInterval(() => {
-                    pollJobStatus(newJobId);
-                }, pollIntervalMs);
+                setTrackedJobs(prev => ({
+                    ...prev,
+                    [jobPostId]: { jobId: newJobId, status: null },
+                }));
 
-                // Poll immediately (don't wait for the first interval)
-                pollJobStatus(newJobId);
+                ensurePolling();
+                pollJob(jobPostId, newJobId);
             } catch {
                 addToast("error", "Failed to start job assessment.");
             }
         },
-        [candidateProfileId, pollIntervalMs, stopPolling, addToast, pollJobStatus]
+        [candidateProfileId, addToast, ensurePolling, pollJob]
     );
+
+    const enqueueMany = useCallback(
+        async (jobPostIds: string[]) => {
+            await Promise.all(jobPostIds.map(jobPostId => enqueue(jobPostId)));
+        },
+        [enqueue]
+    );
+
+    const getStatus = useCallback((jobPostId: string) => trackedJobs[jobPostId]?.status ?? null, [trackedJobs]);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -119,5 +157,5 @@ export function useJobAssessmentPolling({
         };
     }, [stopPolling]);
 
-    return { jobId, jobPostId: trackedJobPostId, jobStatus, enqueue, toasts, dismissToast };
+    return { getStatus, enqueue, enqueueMany, toasts, dismissToast };
 }

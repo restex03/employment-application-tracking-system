@@ -67,8 +67,14 @@ export class SqliteJobQueries implements IJobPostQueries {
             JOIN job_sources js
                 ON js.id = jp.source_id
 
-            LEFT JOIN job_assessments ja
-                ON ja.job_post_id = jp.id
+            LEFT JOIN (
+                SELECT
+                    job_post_id,
+                    job_match_score_json,
+                    ROW_NUMBER() OVER (PARTITION BY job_post_id ORDER BY created_at DESC) AS row_num
+                FROM job_assessments
+            ) ja
+                ON ja.job_post_id = jp.id AND ja.row_num = 1
             LEFT JOIN job_post_details jpd
                 ON jpd.job_post_id = jp.id
 
@@ -101,8 +107,14 @@ export class SqliteJobQueries implements IJobPostQueries {
             JOIN job_sources js
                 ON js.id = jp.source_id
 
-            LEFT JOIN job_assessments ja
-                ON ja.job_post_id = jp.id
+            LEFT JOIN (
+                SELECT
+                    job_post_id,
+                    job_match_score_json,
+                    ROW_NUMBER() OVER (PARTITION BY job_post_id ORDER BY created_at DESC) AS row_num
+                FROM job_assessments
+            ) ja
+                ON ja.job_post_id = jp.id AND ja.row_num = 1
             LEFT JOIN job_post_details jpd
                 ON jpd.job_post_id = jp.id
 

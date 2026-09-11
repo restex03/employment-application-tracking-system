@@ -404,6 +404,17 @@
     width: 40px;
 }
 
+.select-column {
+    width: 36px;
+    text-align: center;
+}
+
+.select-cell {
+    width: 36px;
+    text-align: center;
+    vertical-align: middle;
+}
+
 .row-count {
     width: 40px;
     text-align: right;

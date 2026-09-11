@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useJobPosts } from "../hooks/useJobPosts";
 import { useJobSources } from "../hooks/useJobSources";
 import { useSyncJobPosts } from "../hooks/useSyncJobPosts";
@@ -64,16 +64,17 @@ function JobPostsPage() {
     const [sortColumn, setSortColumn] = useState<SortableColumn>(null);
     const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
     const {
-        jobPostId: activeAssessmentJobPostId,
-        jobStatus: assessmentJobStatus,
+        getStatus: getAssessmentStatus,
         enqueue: enqueueAssessment,
+        enqueueMany: enqueueAssessments,
         toasts: assessmentToasts,
         dismissToast: dismissAssessmentToast,
     } = useJobAssessmentPolling({ candidateProfileId: CANDIDATE_PROFILE_ID });
+    const [selectedJobPostIds, setSelectedJobPostIds] = useState<Set<string>>(new Set());
+    const selectAllRef = useRef<HTMLInputElement>(null);
 
     // Only show the polled status when it corresponds to the currently open job post.
-    const modalJobStatus =
-        selectedJobPost && activeAssessmentJobPostId === selectedJobPost.id ? assessmentJobStatus : null;
+    const modalJobStatus = selectedJobPost ? getAssessmentStatus(selectedJobPost.id) : null;
 
     // Sort the posts returned by the API.
     const filteredAndSortedPosts = useMemo(() => {
@@ -126,6 +127,49 @@ function JobPostsPage() {
 
         return result;
     }, [jobPosts, sortColumn, sortDirection, getCompanyName]);
+
+    const allVisibleSelected =
+        filteredAndSortedPosts.length > 0 && filteredAndSortedPosts.every(jp => selectedJobPostIds.has(jp.id));
+    const someVisibleSelected = filteredAndSortedPosts.some(jp => selectedJobPostIds.has(jp.id));
+
+    // Reflect a partial selection of the current page in the header checkbox.
+    useEffect(() => {
+        if (selectAllRef.current) {
+            selectAllRef.current.indeterminate = someVisibleSelected && !allVisibleSelected;
+        }
+    }, [someVisibleSelected, allVisibleSelected]);
+
+    const handleSelectAllVisible = (checked: boolean) => {
+        const visibleIds = filteredAndSortedPosts.map(jp => jp.id);
+        setSelectedJobPostIds(prev => {
+            const next = new Set(prev);
+            if (checked) {
+                visibleIds.forEach(id => next.add(id));
+            } else {
+                visibleIds.forEach(id => next.delete(id));
+            }
+            return next;
+        });
+    };
+
+    const handleToggleJobPostSelection = (jobPostId: string, checked: boolean) => {
+        setSelectedJobPostIds(prev => {
+            const next = new Set(prev);
+            if (checked) {
+                next.add(jobPostId);
+            } else {
+                next.delete(jobPostId);
+            }
+            return next;
+        });
+    };
+
+    const handleRunSelectedAssessments = () => {
+        if (selectedJobPostIds.size === 0) {
+            return;
+        }
+        enqueueAssessments(Array.from(selectedJobPostIds));
+    };
 
     const handleSort = (column: SortableColumn) => {
         if (sortColumn === column) {
@@ -367,6 +411,13 @@ function JobPostsPage() {
             <div className="page-header">
                 <h2>Job Posts ({totalCount})</h2>
                 <div className="header-actions">
+                    <button
+                        onClick={handleRunSelectedAssessments}
+                        className="sync-button"
+                        disabled={selectedJobPostIds.size === 0}
+                    >
+                        Run Assessments ({selectedJobPostIds.size})
+                    </button>
                     <button onClick={openSyncModal} className="sync-button" disabled={jobSources.length === 0}>
                         Sync
                     </button>
@@ -432,6 +483,15 @@ function JobPostsPage() {
                     <thead>
                         <tr>
                             <th className="row-count">#</th>
+                            <th className="select-column">
+                                <input
+                                    type="checkbox"
+                                    ref={selectAllRef}
+                                    checked={allVisibleSelected}
+                                    onChange={e => handleSelectAllVisible(e.target.checked)}
+                                    title="Select all on this page"
+                                />
+                            </th>
                             <th className="score-column">Job Match</th>
                             <th onClick={() => handleSort("company")}>
                                 <div className="sortable-header">
@@ -477,7 +537,7 @@ function JobPostsPage() {
                     <tbody>
                         {filteredAndSortedPosts.length === 0 ? (
                             <tr>
-                                <td colSpan={11} className="no-data">
+                                <td colSpan={12} className="no-data">
                                     No job posts match your filters.
                                 </td>
                             </tr>
@@ -486,6 +546,13 @@ function JobPostsPage() {
                                 <tr key={jobPost.id} className="job-post-row">
                                     <td className="row-count">
                                         {(pagination.pageNumber - 1) * pagination.pageCount + index + 1}
+                                    </td>
+                                    <td className="select-cell">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedJobPostIds.has(jobPost.id)}
+                                            onChange={e => handleToggleJobPostSelection(jobPost.id, e.target.checked)}
+                                        />
                                     </td>
                                     <td className="score-cell">{renderScoreIndicator(jobPost.jobMatchScore)}</td>
                                     <td>{getCompanyName(jobPost.sourceId)}</td>
