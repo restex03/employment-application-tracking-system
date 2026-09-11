@@ -292,31 +292,92 @@ function JobMatchDetailsModal({ isOpen, onClose, jobPostId }: JobMatchDetailsMod
                             {/* Requirement Matches Summary */}
                             <div className="matches-section">
                                 <h3>Requirement Matches Summary</h3>
-                                <div className="matches-grid">
-                                    {assessment.requirementMatches
-                                        .sort((a, b) => a.matchType.localeCompare(b.matchType))
-                                        .map((match, index) => (
-                                            <div key={index} className="match-card">
-                                                <div
-                                                    className="match-type"
-                                                    style={{ color: getMatchTypeColor(match.matchType) }}
-                                                >
-                                                    <strong>{match.matchType}</strong>
-                                                </div>
-                                                <div className="match-requirement">
-                                                    <p>
-                                                        <strong>{match.requirement.area}</strong>
-                                                    </p>
-                                                    <p>{match.requirement.description}</p>
-                                                </div>
-                                                {match.evidence && (
-                                                    <div className="match-evidence">
-                                                        <p>{match.evidence}</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                </div>
+                                {assessment.requirementMatches.length > 0 ? (
+                                    <>
+                                        <div className="match-legend">
+                                            {(["direct", "transferable", "missing"] as const).map(matchType => {
+                                                const symbol =
+                                                    matchType === "direct"
+                                                        ? "\u2713"
+                                                        : matchType === "transferable"
+                                                        ? "~"
+                                                        : "\u2717";
+                                                const color = getMatchTypeColor(matchType);
+                                                const label =
+                                                    matchType === "direct"
+                                                        ? "Direct"
+                                                        : matchType === "transferable"
+                                                        ? "Transferable"
+                                                        : "Missing";
+                                                return (
+                                                    <span key={matchType} className="match-legend-item">
+                                                        {label}:
+                                                        <span
+                                                            className="match-symbol"
+                                                            style={{ color }}
+                                                        >
+                                                            {symbol}
+                                                        </span>
+                                                    </span>
+                                                );
+                                            })}
+                                        </div>
+                                        <div className="matches-list">
+                                            {assessment.requirementMatches
+                                                .slice()
+                                                .sort((a, b) => {
+                                                    const order: Record<string, number> = {
+                                                        direct: 0,
+                                                        transferable: 1,
+                                                        missing: 2,
+                                                    };
+                                                    return (
+                                                        (order[a.matchType] ?? 3) -
+                                                        (order[b.matchType] ?? 3)
+                                                    );
+                                                })
+                                                .map((match, index) => {
+                                                    const symbol =
+                                                        match.matchType === "direct"
+                                                            ? "\u2713"
+                                                            : match.matchType === "transferable"
+                                                            ? "~"
+                                                            : "\u2717";
+                                                    const color = getMatchTypeColor(match.matchType);
+
+                                                    return (
+                                                        <ul key={index} className="match-list">
+                                                            <li className="match-list-item">
+                                                                <span
+                                                                    className="match-symbol"
+                                                                    style={{ color }}
+                                                                >
+                                                                    {symbol}
+                                                                </span>
+                                                                <span
+                                                                    className="match-list-area"
+                                                                    title={
+                                                                        match.evidence
+                                                                            ? `Evidence: ${match.evidence}`
+                                                                            : undefined
+                                                                    }
+                                                                >
+                                                                    {match.requirement.area}
+                                                                    <ul className="match-sublist">
+                                                                        <li className="match-sublist-item">
+                                                                            {match.requirement.description}
+                                                                        </li>
+                                                                    </ul>
+                                                                </span>
+                                                            </li>
+                                                        </ul>
+                                                    );
+                                                })}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <p className="no-requirements">No requirement matches found.</p>
+                                )}
                             </div>
                         </div>
                     ) : (
