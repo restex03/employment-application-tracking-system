@@ -27,7 +27,7 @@ function SyncModal({
 }: SyncModalProps) {
     const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
     const [filterText, setFilterText] = useState<string>("");
-    const [searchText, setSearchText] = useState<string>("");
+    const [searchText, setSearchText] = useState<string>("software engineer");
     const [sortOrder, setSortOrder] = useState<SortOrder>(null);
 
     // Filter and sort the sources

@@ -25,10 +25,10 @@ export interface IJobPostDetail {
     applicantLocations?: string[];
 }
 
-export interface IJobPost {
+export interface IJobPostData {
     id: string;
     sourceId: string;
-    score: number;
+    jobMatchScore: number;
     requisitionId?: string;
     title: string;
     remoteType?: string;
@@ -37,10 +37,11 @@ export interface IJobPost {
     daysOld?: string;
     createdAt: string;
     detail?: IJobPostDetail;
+    jobLink: string;
 }
 
 export interface IJobPostsResponse {
-    data: IJobPost[];
+    data: IJobPostData[];
     totalCount: number;
 }
 
@@ -55,5 +56,5 @@ export interface QueryFilterParams {
     title?: string;
     location?: string;
     daysOld?: string;
-    jobScore?: string;
+    jobMatchScore?: string;
 }

@@ -1,6 +1,6 @@
 import { ILogger } from "../../Logging/ILogger";
 import { IJobsLookupRequest } from "../../../Domain/JobPosts/IJobsLookupRequest";
-import { IJobGateway } from "../../../Domain/JobPosts/IJobSource";
+import { IJobGateway } from "../IJobGateway";
 import { IWorkdayJobDetailsApiResponse } from "./Contracts/IWorkdayJobDetailsApiResponse";
 import { IWorkdayJobsApiResponse } from "./Contracts/IWorkdayJobsApiResponse";
 

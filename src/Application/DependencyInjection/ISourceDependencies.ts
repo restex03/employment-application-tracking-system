@@ -1,4 +1,4 @@
-import { IJobGateway } from "../../Domain/JobPosts/IJobSource";
+import { IJobGateway } from "../../Infrastructure/JobSources/IJobGateway";
 import { IJobPostDiscoveryService } from "../JobPostDiscovery/IJobPostDiscoveryService";
 
 export interface ISourceDependencies {

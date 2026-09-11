@@ -2,7 +2,7 @@ import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IJobPostService } from "../JobPost/IJobPostService";
 import { IJobPostSyncResult, IJobPostSyncService } from "./IJobPostSyncService";
 import { IJobPostDiscoveryServiceFactory } from "../JobPostDiscovery/IJobPostDiscoveryServiceFactory";
-import { IWorkdayJobSource } from "../../Infrastructure/JobSources/Workday/IWorkdayJobSource";
+import { IJobSource } from "../../Domain/JobSources/IJobSource";
 import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
 import { IJobPostDiscovery } from "../../Domain/JobPosts/IJobPostDiscovery";
 import { randomUUID } from "crypto";
@@ -53,7 +53,7 @@ export class JobPostSyncService implements IJobPostSyncService {
         await this.jobPostService.update(jobPost);
     }
 
-    private async getSource(sourceId: string): Promise<IWorkdayJobSource> {
+    private async getSource(sourceId: string): Promise<IJobSource> {
         const source = await this.jobSourceRepository.getById(sourceId);
 
         if (!source) {

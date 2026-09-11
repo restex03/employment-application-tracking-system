@@ -1,4 +1,5 @@
 import { IJobPost } from "../../Domain/JobPosts/IJobPost";
+import { IJobPostResponse } from "./IJobPostResponse";
 
 export interface JobPostQueryFilters {
     companyName: string;
@@ -6,7 +7,7 @@ export interface JobPostQueryFilters {
     title: string;
     location: string;
     daysOld: string;
-    jobScore: number;
+    jobMatchScore: number;
 }
 
 export interface IJobPostService {
@@ -17,7 +18,7 @@ export interface IJobPostService {
         pageCount: number,
         pageNumber: number,
         queryFilters: JobPostQueryFilters
-    ): Promise<{ data: IJobPost[]; totalCount: number }>;
+    ): Promise<{ data: IJobPostResponse[]; totalCount: number }>;
 
     getById(id: string): Promise<IJobPost | undefined>;
     getByIdOrThrow(id: string): Promise<IJobPost>;

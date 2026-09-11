@@ -3,7 +3,7 @@ import { ILogger } from "../../../Infrastructure/Logging/ILogger";
 import { IWorkdayJobsApiResponseMapper } from "../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobsApiResponseMapper";
 
 import { WorkdayJobDiscoveryService } from "./WorkdayJobDiscoveryService";
-import { IJobGateway } from "../../../Domain/JobPosts/IJobSource";
+import { IJobGateway } from "../../../Infrastructure/JobSources/IJobGateway";
 import { IJobPostDiscovery } from "../../../Domain/JobPosts/IJobPostDiscovery";
 import { IWorkdayJobDetailsApiResponseMapper } from "../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobDetailsApiResponseMapper";
 

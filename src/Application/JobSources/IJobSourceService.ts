@@ -1,6 +1,6 @@
-import { IWorkdayJobSource } from "../../Infrastructure/JobSources/Workday/IWorkdayJobSource";
+import { IJobSource } from "../../Domain/JobSources/IJobSource";
 
 export interface IJobSourceService {
     seedDefaultWorkdayJobSources(): Promise<void>;
-    getJobSources(): Promise<IWorkdayJobSource[]>;
+    getJobSources(): Promise<IJobSource[]>;
 }

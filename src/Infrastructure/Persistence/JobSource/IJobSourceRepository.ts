@@ -1,16 +1,16 @@
-import { IWorkdayJobSource } from "../../JobSources/Workday/IWorkdayJobSource";
+import { IJobSource } from "../../../Domain/JobSources/IJobSource";
 
-export type JobSourceInput = Omit<IWorkdayJobSource, "id">;
+export type JobSourceInput = Omit<IJobSource, "id">;
 
 export interface IJobSourceRepository {
-    upsert(source: JobSourceInput): Promise<IWorkdayJobSource>;
+    upsert(source: JobSourceInput): Promise<IJobSource>;
 
-    upsertMany(sources: JobSourceInput[]): Promise<IWorkdayJobSource[]>;
+    upsertMany(sources: JobSourceInput[]): Promise<IJobSource[]>;
 
-    getById(id: string): Promise<IWorkdayJobSource | undefined>;
-    getByIdOrThrow(id: string): Promise<IWorkdayJobSource>;
+    getById(id: string): Promise<IJobSource | undefined>;
+    getByIdOrThrow(id: string): Promise<IJobSource>;
 
-    getByCompanyName(companyName: string): Promise<IWorkdayJobSource | undefined>;
+    getByCompanyName(companyName: string): Promise<IJobSource | undefined>;
 
-    getAll(): Promise<IWorkdayJobSource[]>;
+    getAll(): Promise<IJobSource[]>;
 }

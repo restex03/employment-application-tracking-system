@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { IJobPost, IJobPostsResponse, PaginationParams, QueryFilterParams } from "../types/JobPost";
+import { IJobPostData, IJobPostsResponse, PaginationParams, QueryFilterParams } from "../types/JobPost";
 import { useAbortableFetch } from "./useAbortableFetch";
 
 interface JobPostsResult {
-    posts: IJobPost[];
+    posts: IJobPostData[];
     totalCount: number;
 }
 
@@ -25,7 +25,7 @@ export function useJobPosts(initialParams?: PaginationParams, queryParams?: Quer
                 ["title", queryParams?.title ?? ""],
                 ["location", queryParams?.location ?? ""],
                 ["daysOld", queryParams?.daysOld ?? ""],
-                ["jobScore", queryParams?.jobScore ?? ""],
+                ["jobMatchScore", queryParams?.jobMatchScore ?? ""],
             ];
             for (const [key, value] of filterEntries) {
                 const normalizedValue = value.trim();
@@ -40,7 +40,7 @@ export function useJobPosts(initialParams?: PaginationParams, queryParams?: Quer
             }
 
             const responseData: IJobPostsResponse = await response.json();
-            const posts = responseData.data.map((post: IJobPost) => ({
+            const posts = responseData.data.map((post: IJobPostData) => ({
                 ...post,
                 createdAt: typeof post.createdAt === "string" ? post.createdAt : new Date(post.createdAt).toISOString(),
             }));
@@ -55,7 +55,7 @@ export function useJobPosts(initialParams?: PaginationParams, queryParams?: Quer
             queryParams?.title,
             queryParams?.location,
             queryParams?.daysOld,
-            queryParams?.jobScore,
+            queryParams?.jobMatchScore,
         ]
     );
 

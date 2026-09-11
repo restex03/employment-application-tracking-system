@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useJobPosts } from "../hooks/useJobPosts";
 import { useJobSources } from "../hooks/useJobSources";
 import { useSyncJobPosts } from "../hooks/useSyncJobPosts";
-import { IJobPost } from "../types/JobPost";
+import { IJobPostData } from "../types/JobPost";
 import JobPostModal from "../components/JobPostModal";
 import JobMatchDetailsModal from "../components/JobMatchDetailsModal";
 import SyncModal from "../components/SyncModal";
@@ -52,12 +52,12 @@ function JobPostsPage() {
         reset: resetSync,
         clearError: clearSyncError,
     } = useSyncJobPosts();
-    const [selectedJobPost, setSelectedJobPost] = useState<IJobPost | null>(null);
+    const [selectedJobPost, setSelectedJobPost] = useState<IJobPostData | null>(null);
     const [isJobPostModalOpen, setIsJobPostModalOpen] = useState<boolean>(false);
     const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
     const [detailLoading, setDetailLoading] = useState<boolean>(false);
     const [_detailError, setDetailError] = useState<string | null>(null);
-    const [selectedJobPostForAssessment, setSelectedJobPostForAssessment] = useState<IJobPost | null>(null);
+    const [selectedJobPostForAssessment, setSelectedJobPostForAssessment] = useState<IJobPostData | null>(null);
     const [isJobMatchModalOpen, setIsJobMatchModalOpen] = useState<boolean>(false);
     const [_assessmentLoading, _setAssessmentLoading] = useState<boolean>(false);
     const [_assessmentError, setAssessmentError] = useState<string | null>(null);
@@ -156,6 +156,11 @@ function JobPostsPage() {
         window.location.reload();
     };
 
+    const handleResetClose = async () => {
+        setIsToolsModalOpen(false);
+        window.location.reload();
+    };
+
     const openSyncModal = () => {
         resetSync();
         setIsSyncModalOpen(true);
@@ -165,7 +170,7 @@ function JobPostsPage() {
         setIsSyncModalOpen(false);
     };
 
-    const fetchJobDetail = async (jobPost: IJobPost): Promise<IJobPost> => {
+    const fetchJobDetail = async (jobPost: IJobPostData): Promise<IJobPostData> => {
         setDetailLoading(true);
         setDetailError(null);
 
@@ -175,7 +180,7 @@ function JobPostsPage() {
             const getResponse = await fetch(getUrl);
 
             if (getResponse.ok) {
-                const data: IJobPost = await getResponse.json();
+                const data: IJobPostData = await getResponse.json();
 
                 // If detail is undefined, sync the job detail
                 if (!data.detail) {
@@ -222,11 +227,11 @@ function JobPostsPage() {
         }
     };
 
-    const fetchWithRetry = async (url: string, maxRetries: number, delayMs: number): Promise<IJobPost> => {
+    const fetchWithRetry = async (url: string, maxRetries: number, delayMs: number): Promise<IJobPostData> => {
         for (let attempt = 0; attempt < maxRetries; attempt++) {
             const response = await fetch(url);
             if (response.ok) {
-                const data: IJobPost = await response.json();
+                const data: IJobPostData = await response.json();
                 if (data.detail) {
                     return data;
                 }
@@ -243,12 +248,12 @@ function JobPostsPage() {
         return await response.json();
     };
 
-    const handleRunAssessment = (jobPost: IJobPost) => {
+    const handleRunAssessment = (jobPost: IJobPostData) => {
         setSelectedJobPostForAssessment(jobPost);
         setIsJobMatchModalOpen(true);
     };
 
-    const handleDetailsButtonClick = async (jobPost: IJobPost) => {
+    const handleDetailsButtonClick = async (jobPost: IJobPostData) => {
         // Fetch the job detail and open JobPostModal for Details button clicks
         const jobPostWithDetail = await fetchJobDetail(jobPost);
         setSelectedJobPost(jobPostWithDetail);
@@ -455,7 +460,7 @@ function JobPostsPage() {
                             </th>
                             <th onClick={() => handleSort("createdAt")}>
                                 <div className="sortable-header">
-                                    <span>Created At</span>
+                                    <span>Synced At</span>
                                     <span className="sort-icon">{getSortIndicator("createdAt")}</span>
                                 </div>
                             </th>
@@ -476,7 +481,7 @@ function JobPostsPage() {
                                     <td className="row-count">
                                         {(pagination.pageNumber - 1) * pagination.pageCount + index + 1}
                                     </td>
-                                    <td className="score-cell">{renderScoreIndicator(jobPost.score)}</td>
+                                    <td className="score-cell">{renderScoreIndicator(jobPost.jobMatchScore)}</td>
                                     <td>{getCompanyName(jobPost.sourceId)}</td>
                                     <td>{jobPost.requisitionId || "N/A"}</td>
                                     <td>{jobPost.title}</td>
@@ -584,7 +589,7 @@ function JobPostsPage() {
                 syncSuccess={syncSuccess}
             />
 
-            <ToolsModal isOpen={isToolsModalOpen} onClose={() => setIsToolsModalOpen(false)} />
+            <ToolsModal isOpen={isToolsModalOpen} onClose={handleResetClose} />
         </div>
     );
 }

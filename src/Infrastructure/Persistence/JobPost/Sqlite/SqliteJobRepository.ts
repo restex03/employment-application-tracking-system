@@ -1,11 +1,11 @@
 import Database from "better-sqlite3";
 import { randomUUID } from "node:crypto";
 
-import { IJobPost, JobPost } from "../../../../../Domain/JobPosts/IJobPost";
-import { IJobLocation, IJobPostDetail } from "../../../../../Domain/JobPosts/IJobPostDetail";
-import { IJobPostRepository } from "../../IJobPostRepository";
-import { ILogger } from "../../../../Logging/ILogger";
-import { JobPostQueryFilters } from "../../../../../Application/JobPost/IJobPostService";
+import { IJobPost, JobPost } from "../../../../Domain/JobPosts/IJobPost";
+import { IJobLocation, IJobPostDetail } from "../../../../Domain/JobPosts/IJobPostDetail";
+import { IJobPostRepository } from "../IJobPostRepository";
+import { ILogger } from "../../../Logging/ILogger";
+import { JobPostQueryFilters } from "../../../../Application/JobPost/IJobPostService";
 
 interface JobPostParameters {
     id: string;
@@ -329,7 +329,7 @@ export class SqliteJobRepository implements IJobPostRepository {
             title: queryFilters.title?.trim() ?? "",
             location: queryFilters.location?.trim() ?? "",
             daysOld: queryFilters.daysOld?.trim() ?? "",
-            jobScore: queryFilters.jobScore,
+            jobMatchScore: queryFilters.jobMatchScore,
         };
         const rows = this.getAllStatement.all(queryParams) as JobPostRow[];
 

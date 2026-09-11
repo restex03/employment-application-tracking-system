@@ -62,9 +62,9 @@ function ToolsModal({ isOpen, onClose }: ToolsModalProps) {
                                     <h3>Reset Database</h3>
                                 </div>
                                 <p className="tool-description">
-                                    Reset deletes all data from the database, including job posts, job post details,
-                                    job sources, candidate profiles, and job assessments. The schema is preserved so
-                                    the application remains usable after reset. This action cannot be undone.
+                                    Reset deletes all data from the database, including job posts, job post details, job
+                                    sources, candidate profiles, and job assessments. The schema is preserved so the
+                                    application remains usable after reset. This action cannot be undone.
                                 </p>
 
                                 {resetError && (

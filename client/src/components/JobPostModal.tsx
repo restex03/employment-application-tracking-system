@@ -1,12 +1,12 @@
 import React from "react";
 import DOMPurify from "dompurify";
-import { IJobPost } from "../types/JobPost";
+import { IJobPostData } from "../types/JobPost";
 import "./JobPostModal.css";
 
 interface JobPostModalProps {
     isOpen: boolean;
     onClose: () => void;
-    jobPost: IJobPost;
+    jobPost: IJobPostData;
 }
 
 function JobPostModal({ isOpen, onClose, jobPost }: JobPostModalProps) {
@@ -54,6 +54,15 @@ function JobPostModal({ isOpen, onClose, jobPost }: JobPostModalProps) {
                         <div className="job-post-detail">
                             <div className="detail-card">
                                 <h3 className="detail-title">{detail.title || jobPost.title}</h3>
+
+                                <div className="job-post-link-section">
+                                    <h4>View Job:&nbsp;</h4>
+
+                                    <a href={jobPost.jobLink || "#"} target="_blank" rel="noopener noreferrer">
+                                        {jobPost.jobLink || "N/A"}
+                                    </a>
+                                </div>
+                                <br></br>
 
                                 <div className="detail-section">
                                     <h4>Description</h4>

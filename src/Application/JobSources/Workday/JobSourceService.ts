@@ -1,8 +1,9 @@
 import { readFileSync } from "fs";
-import { IWorkdayJobSource } from "../../Infrastructure/JobSources/Workday/IWorkdayJobSource";
-import { IJobSourceService } from "./IJobSourceService";
-import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
-import { ILogger } from "../../Infrastructure/Logging/ILogger";
+import { IJobSource } from "../../../Domain/JobSources/IJobSource";
+import { IJobSourceService } from "../IJobSourceService";
+import { IJobSourceRepository } from "../../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
+import { ILogger } from "../../../Infrastructure/Logging/ILogger";
+import { WorkdayBaseUrlMapper } from "./Mappers/WorkdayBaseUrlMapper";
 
 export class JobSourceService implements IJobSourceService {
     constructor(
@@ -21,7 +22,7 @@ export class JobSourceService implements IJobSourceService {
 
         try {
             const json = readFileSync(jsonPath, "utf-8");
-            const workdaySources = JSON.parse(json) as IWorkdayJobSource[];
+            const workdaySources = JSON.parse(json) as IJobSource[];
 
             // Validate that we have an array of sources
             if (!Array.isArray(workdaySources)) {
@@ -39,6 +40,7 @@ export class JobSourceService implements IJobSourceService {
                 return {
                     companyName: source.companyName,
                     baseUrl: source.baseUrl,
+                    browserBaseUrl: WorkdayBaseUrlMapper.deriveBrowserBaseUrl(source.baseUrl),
                 };
             });
 
@@ -54,7 +56,7 @@ export class JobSourceService implements IJobSourceService {
             throw new Error(`Failed to seed Workday job sources: ${errMsg}`);
         }
     }
-    async getJobSources(): Promise<IWorkdayJobSource[]> {
+    async getJobSources(): Promise<IJobSource[]> {
         const result = await this.jobSourceRepo.getAll();
         return result;
     }

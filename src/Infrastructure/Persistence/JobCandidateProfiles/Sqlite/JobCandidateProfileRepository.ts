@@ -1,9 +1,21 @@
 import Database from "better-sqlite3";
 import { randomUUID } from "node:crypto";
 
-import { ICandidateProfile, ISkill, ICandidateExperience, ILocationPreference, ICompensationPreference, IWorkAuthorization, ICandidateEducation, SkillLevel, SkillCategory, WorkArrangement, EmploymentType } from "../../../Domain/Candidates/ICandidateProfile";
-import { IJobCandidateProfileRepository } from "./IJobCandidateProfileRepository";
-import { ILogger } from "../../Logging/ILogger";
+import {
+    ICandidateProfile,
+    ISkill,
+    ICandidateExperience,
+    ILocationPreference,
+    ICompensationPreference,
+    IWorkAuthorization,
+    ICandidateEducation,
+    SkillLevel,
+    SkillCategory,
+    WorkArrangement,
+    EmploymentType,
+} from "../../../../Domain/Candidates/ICandidateProfile";
+import { IJobCandidateProfileRepository } from "../IJobCandidateProfileRepository";
+import { ILogger } from "../../../Logging/ILogger";
 
 interface CandidateProfileRow {
     id: string;
@@ -77,19 +89,19 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
     private readonly deleteProfileStatement: Database.Statement;
     private readonly getProfileByIdStatement: Database.Statement;
     private readonly getAllProfilesStatement: Database.Statement;
-    
+
     private readonly insertSkillStatement: Database.Statement;
     private readonly deleteSkillsStatement: Database.Statement;
     private readonly getSkillsByProfileIdStatement: Database.Statement;
-    
+
     private readonly insertExperienceStatement: Database.Statement;
     private readonly deleteExperiencesStatement: Database.Statement;
     private readonly getExperiencesByProfileIdStatement: Database.Statement;
-    
+
     private readonly insertLocationPreferenceStatement: Database.Statement;
     private readonly deleteLocationPreferencesStatement: Database.Statement;
     private readonly getLocationPreferencesByProfileIdStatement: Database.Statement;
-    
+
     private readonly insertEmploymentTypeStatement: Database.Statement;
     private readonly deleteEmploymentTypesStatement: Database.Statement;
     private readonly getEmploymentTypesByProfileIdStatement: Database.Statement;
@@ -258,14 +270,14 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
         this.logger.debug(`[JobCandidateProfileRepository.getCandidateProfileById] Getting profile by ID: ${id}`);
 
         const profileRow = this.getProfileByIdStatement.get({ id }) as CandidateProfileRow | undefined;
-        
+
         if (!profileRow) {
             this.logger.debug(`[JobCandidateProfileRepository.getCandidateProfileById] Profile not found: ${id}`);
             return null;
         }
 
         const profile = this.mapProfileRow(profileRow);
-        
+
         // Load related data
         profile.skills = this.getSkillsForProfile(id);
         profile.experience = this.getExperiencesForProfile(id);
@@ -282,7 +294,9 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
             this.logger.error(
                 `[JobCandidateProfileRepository.getCandidateProfileByIdOrThrow] Candidate profile with Id ${id} does not exist.`
             );
-            throw new Error(`[JobCandidateProfileRepository.getCandidateProfileByIdOrThrow] Candidate profile with Id ${id} does not exist.`);
+            throw new Error(
+                `[JobCandidateProfileRepository.getCandidateProfileByIdOrThrow] Candidate profile with Id ${id} does not exist.`
+            );
         }
         return result;
     }
@@ -291,16 +305,16 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
         this.logger.debug(`[JobCandidateProfileRepository.getCandidateProfiles] Getting all profiles`);
 
         const profileRows = this.getAllProfilesStatement.all() as CandidateProfileRow[];
-        
+
         const profiles = profileRows.map(row => {
             const profile = this.mapProfileRow(row);
-            
+
             // Load related data for each profile
             profile.skills = this.getSkillsForProfile(profile.id);
             profile.experience = this.getExperiencesForProfile(profile.id);
             profile.preferences.locations = this.getLocationPreferencesForProfile(profile.id);
             profile.preferences.employmentTypes = this.getEmploymentTypesForProfile(profile.id) || undefined;
-            
+
             return profile;
         });
 
@@ -364,10 +378,18 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
             preferencesWorkArrangements: JSON.stringify(profile.preferences.workArrangements),
             preferencesCompensationMinimumBaseSalary: profile.preferences.compensation.minimumBaseSalary ?? null,
             preferencesCompensationTargetBaseSalary: profile.preferences.compensation.targetBaseSalary ?? null,
-            preferencesCompensationConsiderVariableCompensation: profile.preferences.compensation.considerVariableCompensation ? 1 : 0,
-            constraintsRequiresRemoteOrApprovedHybridLocation: profile.constraints.requiresRemoteOrApprovedHybridLocation ? 1 : 0,
+            preferencesCompensationConsiderVariableCompensation: profile.preferences.compensation
+                .considerVariableCompensation
+                ? 1
+                : 0,
+            constraintsRequiresRemoteOrApprovedHybridLocation: profile.constraints
+                .requiresRemoteOrApprovedHybridLocation
+                ? 1
+                : 0,
             constraintsRequiresSponsorship: profile.constraints.requiresSponsorship ? 1 : 0,
-            constraintsHardConstraints: profile.constraints.hardConstraints ? JSON.stringify(profile.constraints.hardConstraints) : null
+            constraintsHardConstraints: profile.constraints.hardConstraints
+                ? JSON.stringify(profile.constraints.hardConstraints)
+                : null,
         };
 
         this.insertProfileStatement.run(params);
@@ -396,10 +418,18 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
             preferencesWorkArrangements: JSON.stringify(profile.preferences.workArrangements),
             preferencesCompensationMinimumBaseSalary: profile.preferences.compensation.minimumBaseSalary ?? null,
             preferencesCompensationTargetBaseSalary: profile.preferences.compensation.targetBaseSalary ?? null,
-            preferencesCompensationConsiderVariableCompensation: profile.preferences.compensation.considerVariableCompensation ? 1 : 0,
-            constraintsRequiresRemoteOrApprovedHybridLocation: profile.constraints.requiresRemoteOrApprovedHybridLocation ? 1 : 0,
+            preferencesCompensationConsiderVariableCompensation: profile.preferences.compensation
+                .considerVariableCompensation
+                ? 1
+                : 0,
+            constraintsRequiresRemoteOrApprovedHybridLocation: profile.constraints
+                .requiresRemoteOrApprovedHybridLocation
+                ? 1
+                : 0,
             constraintsRequiresSponsorship: profile.constraints.requiresSponsorship ? 1 : 0,
-            constraintsHardConstraints: profile.constraints.hardConstraints ? JSON.stringify(profile.constraints.hardConstraints) : null
+            constraintsHardConstraints: profile.constraints.hardConstraints
+                ? JSON.stringify(profile.constraints.hardConstraints)
+                : null,
         };
 
         this.updateProfileStatement.run(params);
@@ -415,7 +445,7 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
                 level: skill.level,
                 years: skill.years ?? null,
                 productionExperience: skill.productionExperience ? 1 : 0,
-                context: skill.context ?? null
+                context: skill.context ?? null,
             };
             this.insertSkillStatement.run(params);
         }
@@ -432,7 +462,7 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
                 endDate: experience.endDate ?? null,
                 current: experience.current ? 1 : 0,
                 highlights: JSON.stringify(experience.highlights),
-                domains: experience.domains ? JSON.stringify(experience.domains) : null
+                domains: experience.domains ? JSON.stringify(experience.domains) : null,
             };
             this.insertExperienceStatement.run(params);
         }
@@ -446,7 +476,7 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
                 city: location.city ?? null,
                 state: location.state ?? null,
                 country: location.country,
-                maxCommuteMinutes: location.maxCommuteMinutes ?? null
+                maxCommuteMinutes: location.maxCommuteMinutes ?? null,
             };
             this.insertLocationPreferenceStatement.run(params);
         }
@@ -458,7 +488,7 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
                 const params = {
                     id: randomUUID(),
                     candidateProfileId: profile.id,
-                    employmentType: employmentType
+                    employmentType: employmentType,
                 };
                 this.insertEmploymentTypeStatement.run(params);
             }
@@ -473,12 +503,14 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
             level: row.level,
             years: row.years ?? undefined,
             productionExperience: row.production_experience === 1,
-            context: row.context ?? undefined
+            context: row.context ?? undefined,
         }));
     }
 
     private getExperiencesForProfile(profileId: string): ICandidateExperience[] {
-        const rows = this.getExperiencesByProfileIdStatement.all({ candidateProfileId: profileId }) as CandidateExperienceRow[];
+        const rows = this.getExperiencesByProfileIdStatement.all({
+            candidateProfileId: profileId,
+        }) as CandidateExperienceRow[];
         return rows.map(row => ({
             title: row.title,
             company: row.company,
@@ -486,22 +518,26 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
             endDate: row.end_date ?? undefined,
             current: row.current === 1,
             highlights: JSON.parse(row.highlights),
-            domains: row.domains ? JSON.parse(row.domains) : undefined
+            domains: row.domains ? JSON.parse(row.domains) : undefined,
         }));
     }
 
     private getLocationPreferencesForProfile(profileId: string): ILocationPreference[] {
-        const rows = this.getLocationPreferencesByProfileIdStatement.all({ candidateProfileId: profileId }) as CandidateLocationPreferenceRow[];
+        const rows = this.getLocationPreferencesByProfileIdStatement.all({
+            candidateProfileId: profileId,
+        }) as CandidateLocationPreferenceRow[];
         return rows.map(row => ({
             city: row.city ?? undefined,
             state: row.state ?? undefined,
             country: row.country,
-            maxCommuteMinutes: row.max_commute_minutes ?? undefined
+            maxCommuteMinutes: row.max_commute_minutes ?? undefined,
         }));
     }
 
     private getEmploymentTypesForProfile(profileId: string): EmploymentType[] | undefined {
-        const rows = this.getEmploymentTypesByProfileIdStatement.all({ candidateProfileId: profileId }) as CandidateEmploymentTypeRow[];
+        const rows = this.getEmploymentTypesByProfileIdStatement.all({
+            candidateProfileId: profileId,
+        }) as CandidateEmploymentTypeRow[];
         return rows.length > 0 ? rows.map(row => row.employment_type) : undefined;
     }
 
@@ -533,7 +569,7 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
             workAuthorization: {
                 citizenshipCountry: row.work_auth_citizenship_country!,
                 authorizedToWorkInUS: row.work_auth_authorized_in_us === 1,
-                requiresSponsorship: row.work_auth_requires_sponsorship === 1
+                requiresSponsorship: row.work_auth_requires_sponsorship === 1,
             },
             education: row.education_json ? JSON.parse(row.education_json) : [],
             skills: [], // Will be populated separately
@@ -549,7 +585,7 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
                 learningOpportunity: row.career_priorities_learning_opportunity,
                 compensation: row.career_priorities_compensation,
                 stability: row.career_priorities_stability,
-                workLifeBalance: row.career_priorities_work_life_balance ?? undefined
+                workLifeBalance: row.career_priorities_work_life_balance ?? undefined,
             },
             preferences: {
                 workArrangements: JSON.parse(row.preferences_work_arrangements),
@@ -557,15 +593,18 @@ export class JobCandidateProfileRepository implements IJobCandidateProfileReposi
                 compensation: {
                     minimumBaseSalary: row.preferences_compensation_minimum_base_salary ?? undefined,
                     targetBaseSalary: row.preferences_compensation_target_base_salary ?? undefined,
-                    considerVariableCompensation: row.preferences_compensation_consider_variable_compensation === 1
+                    considerVariableCompensation: row.preferences_compensation_consider_variable_compensation === 1,
                 },
-                employmentTypes: undefined // Will be populated separately
+                employmentTypes: undefined, // Will be populated separately
             },
             constraints: {
-                requiresRemoteOrApprovedHybridLocation: row.constraints_requires_remote_or_approved_hybrid_location === 1,
+                requiresRemoteOrApprovedHybridLocation:
+                    row.constraints_requires_remote_or_approved_hybrid_location === 1,
                 requiresSponsorship: row.constraints_requires_sponsorship === 1,
-                hardConstraints: row.constraints_hard_constraints ? JSON.parse(row.constraints_hard_constraints) : undefined
-            }
+                hardConstraints: row.constraints_hard_constraints
+                    ? JSON.parse(row.constraints_hard_constraints)
+                    : undefined,
+            },
         };
     }
 }

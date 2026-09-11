@@ -1,6 +1,6 @@
 import { IJobPostDetail } from "../../../Domain/JobPosts/IJobPostDetail";
 import { IJobPostDiscovery } from "../../../Domain/JobPosts/IJobPostDiscovery";
-import { IJobGateway } from "../../../Domain/JobPosts/IJobSource";
+import { IJobGateway } from "../../../Infrastructure/JobSources/IJobGateway";
 import { IWorkdayJobDetailsApiResponseMapper } from "../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobDetailsApiResponseMapper";
 import { IWorkdayJobsApiResponseMapper } from "../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobsApiResponseMapper";
 import { ILogger } from "../../../Infrastructure/Logging/ILogger";

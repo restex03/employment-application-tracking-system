@@ -28,6 +28,7 @@ export class SqliteDatabaseConnection {
             DELETE FROM candidate_skills;
             DELETE FROM candidate_profiles;
             DELETE FROM workday_job_sources;
+            DELETE FROM job_assessments_job_queue
         `);
         this.db.pragma("foreign_keys = ON");
     }
@@ -66,7 +67,8 @@ export class SqliteDatabaseConnection {
             CREATE TABLE IF NOT EXISTS workday_job_sources (
                 id TEXT PRIMARY KEY NOT NULL,
                 company_name TEXT NOT NULL,
-                base_url TEXT NOT NULL UNIQUE
+                base_url TEXT NOT NULL UNIQUE,
+                browser_base_url TEXT NOT NULL UNIQUE
             );
 
             CREATE UNIQUE INDEX IF NOT EXISTS ux_workday_job_sources_company_name

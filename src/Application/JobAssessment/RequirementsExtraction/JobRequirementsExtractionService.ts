@@ -6,6 +6,7 @@ import { IJobRequirement } from "./IJobRequirement";
 import { JobRequirementsExtractorSystemPrompt } from "./JobRequirementsExtractorSystemPrompt";
 import { JobRequirementsResponseSchema } from "./JobRequirementsResponseSchema";
 import { JobRequirementsResponseValidationSchema } from "./JobRequirementsResponseValidationSchema";
+import sanitizeHtml from "sanitize-html";
 
 export class JobRequirementsExtractionService implements IJobRequirementsExtractionService {
     constructor(
@@ -17,10 +18,10 @@ export class JobRequirementsExtractionService implements IJobRequirementsExtract
         const jobInfo = `${job.requisitionId} (${job.title})`;
 
         this.logger.info(`[JobRequirementsExtractionService.extract] Extracting job requirements`);
-
+        const jobDescription = this.stripMarkup(job.description);
         const result = await this.llm.generateStructured({
             systemPrompt: JobRequirementsExtractorSystemPrompt,
-            input: job,
+            input: jobDescription,
 
             schemaName: "job_requirements",
             jsonSchema: JobRequirementsResponseSchema,
@@ -41,5 +42,11 @@ export class JobRequirementsExtractionService implements IJobRequirementsExtract
         this.logger.info("\n");
 
         return result.requirements;
+    }
+    private stripMarkup(description: string) {
+        return sanitizeHtml(description, {
+            allowedTags: [],
+            allowedAttributes: {},
+        });
     }
 }

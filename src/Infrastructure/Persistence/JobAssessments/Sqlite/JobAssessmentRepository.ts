@@ -1,9 +1,9 @@
 import Database from "better-sqlite3";
 
-import { IJobAssessment, JobAssessment, JobAssessmentProps } from "../../../Domain/JobAssessment/IJobAssessment";
-import { NotFoundError } from "../../../Application/Common/Errors/NotFoundError";
-import { IJobAssessmentRepository } from "./IJobAssessmentRepository";
-import { ILogger } from "../../Logging/ILogger";
+import { IJobAssessment, JobAssessment, JobAssessmentProps } from "../../../../Domain/JobAssessment/IJobAssessment";
+import { NotFoundError } from "../../../../Application/Common/Errors/NotFoundError";
+import { IJobAssessmentRepository } from "../IJobAssessmentRepository";
+import { ILogger } from "../../../Logging/ILogger";
 
 interface JobAssessmentRow {
     id: string;

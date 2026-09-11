@@ -1,5 +1,5 @@
-import { IJobGateway } from "../../Domain/JobPosts/IJobSource";
-import { IWorkdayJobSource } from "../../Infrastructure/JobSources/Workday/IWorkdayJobSource";
+import { IJobGateway } from "../../Infrastructure/JobSources/IJobGateway";
+import { IJobSource } from "../../Domain/JobSources/IJobSource";
 import {
     IWorkdayJobDetailsApiResponseMapper,
     WorkdayJobDetailsApiResponseMapper,
@@ -19,7 +19,7 @@ import { WorkdayJobDiscoveryService } from "./Workday/WorkdayJobDiscoveryService
  */
 export class JobPostDiscoveryServiceFactory implements IJobPostDiscoveryServiceFactory {
     constructor(private readonly logger: ILogger) {}
-    create(source: IWorkdayJobSource): IJobPostDiscoveryService {
+    create(source: IJobSource): IJobPostDiscoveryService {
         const jobGateway: IJobGateway = new WorkdayJobsGateway({
             baseUrl: source.baseUrl,
             logger: this.logger,

@@ -29,7 +29,7 @@ export class WorkdayJobDetailsApiResponseMapper implements IWorkdayJobDetailsApi
             id: jobPostingInfo.id,
             requisitionId: jobPostingInfo.jobReqId,
             title: jobPostingInfo.title,
-            description: this.sanitize(jobPostingInfo.jobDescription),
+            description: this.normalizeHtml(this.sanitize(jobPostingInfo.jobDescription)),
             datePosted: jobPostingInfo.postedOn,
             employmentType: jobPostingInfo.timeType,
             locations: uniqueLocations,
@@ -53,5 +53,12 @@ export class WorkdayJobDetailsApiResponseMapper implements IWorkdayJobDetailsApi
             },
         });
         return clean;
+    }
+
+    private normalizeHtml(html: string): string {
+        return html.replace(/<(h[1-5])(\b[^>]*)>([\s\S]*?)<\/\1>/gi, (_match, _tag, attributes, content) => {
+            const normalizedContent = content.replace(/<\/?(?:b|strong)\b[^>]*>/gi, "");
+            return `<h5${attributes}>${normalizedContent}</h5>`;
+        });
     }
 }

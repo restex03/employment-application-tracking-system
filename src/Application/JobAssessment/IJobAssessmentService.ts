@@ -1,5 +1,4 @@
 import { IJobAssessmentResponse } from "../../Api/Contracts/JobAssessment/IJobAssessmentResponse";
-import { IJobAssessment } from "../../Domain/JobAssessment/IJobAssessment";
 import { IJobAssessmentResult } from "./IJobAssessmentResult";
 
 export interface IJobAssessmentService {

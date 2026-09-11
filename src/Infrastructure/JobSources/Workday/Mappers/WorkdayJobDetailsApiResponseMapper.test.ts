@@ -60,6 +60,40 @@ describe("WorkdayJobDetailsApiResponseMapper", () => {
         });
     });
 
+    it("normalizes h1 through h4 headings to h5", () => {
+        const mapper = new WorkdayJobDetailsApiResponseMapper();
+        const response = createResponse({
+            jobDescription: `
+                <h1>Main heading</h1>
+                <h2 class="section-heading">Section heading</h2>
+                <h3>Subsection heading</h3>
+                <h4>Detail heading</h4>
+                <h5>Existing h5 heading</h5>
+                <p>Body text</p>
+            `,
+        });
+
+        const result = mapper.map(response);
+
+        expect(result.description).toContain("<h5>Main heading</h5>");
+        expect(result.description).toContain("<h5>Section heading</h5>");
+        expect(result.description).toContain("<h5>Subsection heading</h5>");
+        expect(result.description).toContain("<h5>Detail heading</h5>");
+        expect(result.description).toContain("<h5>Existing h5 heading</h5>");
+        expect(result.description).toContain("<p>Body text</p>");
+    });
+
+    it("removes b and strong tags from heading content", () => {
+        const mapper = new WorkdayJobDetailsApiResponseMapper();
+        const response = createResponse({
+            jobDescription: "<h2>Required <b>skills</b> and <strong>experience</strong></h2>",
+        });
+
+        const result = mapper.map(response);
+
+        expect(result.description).toBe("<h5>Required skills and experience</h5>");
+    });
+
     it("maps additional locations", () => {
         const mapper = new WorkdayJobDetailsApiResponseMapper();
 

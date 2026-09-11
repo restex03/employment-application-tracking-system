@@ -62,10 +62,6 @@ export class JobAssessmentService implements IJobAssessmentService {
 
     /**
      * Runs a complete assessment pipeline for a given candidate profile and job post.
-     *
-     * TODO: Refactor to separate concerns:
-     * - Job detail fetching should be decoupled from assessment execution
-     * - Job post updates should be handled as a separate side effect, not inline
      */
     public async runAssessment(candidateProfileId: string, jobPostId: string): Promise<IJobAssessmentResult> {
         this.logger.info(`[JobAssessmentService.runAssessment] Running assessment for job post: ${jobPostId}`);

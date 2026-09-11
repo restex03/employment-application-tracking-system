@@ -17,7 +17,7 @@ export interface JobPostQuery {
     title?: string;
     location?: string;
     daysOld?: string;
-    jobScore?: number;
+    jobMatchScore?: number;
 }
 
 interface SyncJobPostsBody {
@@ -46,7 +46,7 @@ export class JobPostRoutes implements IRouteRegistrar {
                     title: request.query.title?.trim() ?? "",
                     location: request.query.location?.trim() ?? "",
                     daysOld: request.query.daysOld?.trim() ?? "",
-                    jobScore: request.query.jobScore,
+                    jobMatchScore: request.query.jobMatchScore,
                 } as JobPostQueryFilters;
                 const result = await this.jobPostService.getAll(pageCount, pageNumber, queryFilters);
                 return result;
@@ -92,7 +92,10 @@ export class JobPostRoutes implements IRouteRegistrar {
                 // TODO: Update this endpoint to accept a list of source IDs instead of just one.
                 // TODO: Update this endpoint to run job in background and return a job ID for tracking progress.
                 this.logger.info(`[${request.method}]  ${request.url}`);
-                const result = await this.jobPostSyncService.syncJobs(request.body?.sourceIds, request.body?.searchText);
+                const result = await this.jobPostSyncService.syncJobs(
+                    request.body?.sourceIds,
+                    request.body?.searchText
+                );
 
                 this.logger.info(`[${request.method}]  ${request.url} Sync completed successfully`);
                 return reply.code(200).send(result);

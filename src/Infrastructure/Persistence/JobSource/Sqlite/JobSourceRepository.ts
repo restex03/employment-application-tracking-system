@@ -1,6 +1,6 @@
 import Database from "better-sqlite3";
 import { randomUUID } from "node:crypto";
-import { IWorkdayJobSource } from "../../../JobSources/Workday/IWorkdayJobSource";
+import { IJobSource } from "../../../../Domain/JobSources/IJobSource";
 
 import { ILogger } from "../../../Logging/ILogger";
 import { IJobSourceRepository, JobSourceInput } from "../IJobSourceRepository";
@@ -9,15 +9,17 @@ interface WorkdaySourceParameters {
     id: string;
     companyName: string;
     baseUrl: string;
+    browserBaseUrl: string;
 }
 
 interface WorkdaySourceRow {
     id: string;
     company_name: string;
     base_url: string;
+    browser_base_url: string;
 }
 
-export class WorkdayJobSourceRepository implements IJobSourceRepository {
+export class JobSourceRepository implements IJobSourceRepository {
     private readonly upsertStatement: Database.Statement;
     private readonly getByIdStatement: Database.Statement;
     private readonly getByCompanyNameStatement: Database.Statement;
@@ -31,27 +33,32 @@ export class WorkdayJobSourceRepository implements IJobSourceRepository {
             INSERT INTO workday_job_sources (
                 id,
                 company_name,
-                base_url
+                base_url,
+                browser_base_url
             )
             VALUES (
                 @id,
                 @companyName,
-                @baseUrl
+                @baseUrl,
+                @browserBaseUrl
             )
             ON CONFLICT(base_url)
             DO UPDATE SET
-                company_name = excluded.company_name
+                company_name = excluded.company_name,
+                browser_base_url = excluded.browser_base_url
             RETURNING
                 id,
                 company_name,
-                base_url
+                base_url,
+                browser_base_url
         `);
 
         this.getByIdStatement = this.connection.prepare(`
             SELECT
                 id,
                 company_name,
-                base_url
+                base_url,
+                browser_base_url
             FROM workday_job_sources
             WHERE id = ?
             LIMIT 1
@@ -61,7 +68,8 @@ export class WorkdayJobSourceRepository implements IJobSourceRepository {
             SELECT
                 id,
                 company_name,
-                base_url
+                base_url,
+                browser_base_url
             FROM workday_job_sources
             WHERE company_name = ?
             LIMIT 1
@@ -71,27 +79,26 @@ export class WorkdayJobSourceRepository implements IJobSourceRepository {
             SELECT
                 id,
                 company_name,
-                base_url
+                base_url,
+                browser_base_url
             FROM workday_job_sources
             ORDER BY company_name
         `);
     }
 
-    public async upsert(source: JobSourceInput): Promise<IWorkdayJobSource> {
+    public async upsert(source: JobSourceInput): Promise<IJobSource> {
         const row = this.upsertStatement.get(this.mapParameters(source)) as WorkdaySourceRow;
 
         const result = this.mapRow(row);
 
-        this.logger.debug(
-            `[WorkdayJobSourceRepository.upsert] ` + `Upserted source: ${result.companyName} (${result.id})`
-        );
+        this.logger.debug(`[JobSourceRepository.upsert] ` + `Upserted source: ${result.companyName} (${result.id})`);
 
         return result;
     }
 
-    public async upsertMany(sources: JobSourceInput[]): Promise<IWorkdayJobSource[]> {
+    public async upsertMany(sources: JobSourceInput[]): Promise<IJobSource[]> {
         const upsertMany = this.connection.transaction((sources: JobSourceInput[]) => {
-            const results: IWorkdayJobSource[] = [];
+            const results: IJobSource[] = [];
 
             for (const source of sources) {
                 const row = this.upsertStatement.get(this.mapParameters(source)) as WorkdaySourceRow;
@@ -104,31 +111,27 @@ export class WorkdayJobSourceRepository implements IJobSourceRepository {
 
         const results = upsertMany(sources);
 
-        this.logger.debug(
-            `[WorkdayJobSourceRepository.upsertMany] ` + `Processed ${results.length} Workday job sources`
-        );
+        this.logger.debug(`[JobSourceRepository.upsertMany] ` + `Processed ${results.length} Workday job sources`);
 
         return results;
     }
 
-    public async getById(id: string): Promise<IWorkdayJobSource | undefined> {
+    public async getById(id: string): Promise<IJobSource | undefined> {
         const row = this.getByIdStatement.get(id) as WorkdaySourceRow | undefined;
 
         if (!row) {
-            this.logger.debug(`[WorkdayJobSourceRepository.getById] ` + `No Workday job source found for id: ${id}`);
+            this.logger.debug(`[JobSourceRepository.getById] ` + `No Workday job source found for id: ${id}`);
 
             return undefined;
         }
 
         const result = this.mapRow(row);
 
-        this.logger.debug(
-            `[WorkdayJobSourceRepository.getById] ` + `Found source: ${result.companyName} (${result.id})`
-        );
+        this.logger.debug(`[JobSourceRepository.getById] ` + `Found source: ${result.companyName} (${result.id})`);
 
         return result;
     }
-    public async getByIdOrThrow(id: string): Promise<IWorkdayJobSource> {
+    public async getByIdOrThrow(id: string): Promise<IJobSource> {
         const source = await this.getById(id);
         if (!source) {
             throw new Error(`Workday job source not found for id: ${id}`);
@@ -136,13 +139,12 @@ export class WorkdayJobSourceRepository implements IJobSourceRepository {
         return source;
     }
 
-    public async getByCompanyName(companyName: string): Promise<IWorkdayJobSource | undefined> {
+    public async getByCompanyName(companyName: string): Promise<IJobSource | undefined> {
         const row = this.getByCompanyNameStatement.get(companyName) as WorkdaySourceRow | undefined;
 
         if (!row) {
             this.logger.debug(
-                `[WorkdayJobSourceRepository.getByCompanyName] ` +
-                    `No Workday job source found for company: ${companyName}`
+                `[JobSourceRepository.getByCompanyName] ` + `No Workday job source found for company: ${companyName}`
             );
 
             return undefined;
@@ -151,18 +153,18 @@ export class WorkdayJobSourceRepository implements IJobSourceRepository {
         const result = this.mapRow(row);
 
         this.logger.debug(
-            `[WorkdayJobSourceRepository.getByCompanyName] ` + `Found source: ${result.companyName} (${result.id})`
+            `[JobSourceRepository.getByCompanyName] ` + `Found source: ${result.companyName} (${result.id})`
         );
 
         return result;
     }
 
-    public async getAll(): Promise<IWorkdayJobSource[]> {
+    public async getAll(): Promise<IJobSource[]> {
         const rows = this.getAllStatement.all() as WorkdaySourceRow[];
 
         const results = rows.map(row => this.mapRow(row));
 
-        this.logger.debug(`[WorkdayJobSourceRepository.getAll] ` + `Retrieved ${results.length} Workday job sources`);
+        this.logger.debug(`[JobSourceRepository.getAll] ` + `Retrieved ${results.length} job sources`);
 
         return results;
     }
@@ -172,14 +174,16 @@ export class WorkdayJobSourceRepository implements IJobSourceRepository {
             id: randomUUID(),
             companyName: source.companyName,
             baseUrl: source.baseUrl,
+            browserBaseUrl: source.browserBaseUrl,
         };
     }
 
-    private mapRow(row: WorkdaySourceRow): IWorkdayJobSource {
+    private mapRow(row: WorkdaySourceRow): IJobSource {
         return {
             id: row.id,
             companyName: row.company_name,
             baseUrl: row.base_url,
+            browserBaseUrl: row.browser_base_url,
         };
     }
 }

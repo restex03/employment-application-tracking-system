@@ -2,10 +2,13 @@ import { IJobPost } from "../../Domain/JobPosts/IJobPost";
 import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
 import { IJobPostService, JobPostQueryFilters } from "./IJobPostService";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
+import { IJobPostQueries } from "../../Infrastructure/Persistence/JobPost/IJobPostQueries";
+import { IJobPostResponse } from "./IJobPostResponse";
 
 export class JobPostService implements IJobPostService {
     constructor(
         private readonly jobRepository: IJobPostRepository,
+        private readonly jobPostQueries: IJobPostQueries,
         private readonly logger: ILogger
     ) {}
     public async update(job: IJobPost): Promise<void> {
@@ -23,8 +26,9 @@ export class JobPostService implements IJobPostService {
         pageCount: number,
         pageNumber: number,
         queryFilters: JobPostQueryFilters
-    ): Promise<{ data: IJobPost[]; totalCount: number }> {
-        return this.jobRepository.getAll(pageCount, pageNumber, queryFilters);
+    ): Promise<{ data: IJobPostResponse[]; totalCount: number }> {
+        const result = await this.jobPostQueries.getJobPostTableResults(pageCount, pageNumber, queryFilters);
+        return result;
     }
 
     public async getById(id: string): Promise<IJobPost | undefined> {
