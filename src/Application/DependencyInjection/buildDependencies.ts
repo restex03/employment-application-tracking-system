@@ -154,6 +154,9 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
 
     logger.debug(`[buildDependencies] Using DB Path: ${sqliteConnection.db.name}`);
 
+    /**
+     * Humble and basic DI until a proper DI framework is introduced.
+     */
     return {
         logger,
         sqliteConnection,
