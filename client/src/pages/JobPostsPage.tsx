@@ -257,11 +257,6 @@ function JobPostsPage() {
         return await response.json();
     };
 
-    const handleRunAssessment = (jobPost: IJobPostData) => {
-        openJobPostModal(jobPost);
-        enqueueAssessment(jobPost.id);
-    };
-
     const openJobPostModal = async (jobPost: IJobPostData) => {
         const jobPostWithDetail = await fetchJobDetail(jobPost);
         setSelectedJobPost(jobPostWithDetail);
@@ -477,13 +472,12 @@ function JobPostsPage() {
                                 </div>
                             </th>
                             <th>Details</th>
-                            <th>Evaluate</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredAndSortedPosts.length === 0 ? (
                             <tr>
-                                <td colSpan={12} className="no-data">
+                                <td colSpan={11} className="no-data">
                                     No job posts match your filters.
                                 </td>
                             </tr>
@@ -517,17 +511,6 @@ function JobPostsPage() {
                                                 <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
                                                 <circle cx="12" cy="12" r="3" />
                                             </svg>
-                                        </button>
-                                    </td>
-                                    <td>
-                                        <button
-                                            className="assessment-button"
-                                            onClick={e => {
-                                                e.stopPropagation();
-                                                handleRunAssessment(jobPost);
-                                            }}
-                                        >
-                                            &nbsp;▶&nbsp;
                                         </button>
                                     </td>
                                 </tr>
