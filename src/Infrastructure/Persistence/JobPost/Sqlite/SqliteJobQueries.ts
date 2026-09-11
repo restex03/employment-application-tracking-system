@@ -4,10 +4,10 @@ import {
     IJobPostDetailResponse,
     IJobPostResponse,
 } from "../../../../Application/JobPost/IJobPostResponse";
-import { JobPostQueryFilters } from "../../../../Application/JobPost/IJobPostService";
 import { IJobPostQueries } from "../IJobPostQueries";
 import { ILogger } from "../../../Logging/ILogger";
 import { IJobMatchScore } from "../../../../Domain/JobAssessment/Scoring/IJobMatchScore";
+import { JobPostQueryFilters } from "../../../../Application/JobPost/IJobPostResultService";
 
 interface JobPostRow {
     id: string;

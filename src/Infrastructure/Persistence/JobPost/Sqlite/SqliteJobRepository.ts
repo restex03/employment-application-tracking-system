@@ -5,7 +5,7 @@ import { IJobPost, JobPost } from "../../../../Domain/JobPosts/IJobPost";
 import { IJobLocation, IJobPostDetail } from "../../../../Domain/JobPosts/IJobPostDetail";
 import { IJobPostRepository } from "../IJobPostRepository";
 import { ILogger } from "../../../Logging/ILogger";
-import { JobPostQueryFilters } from "../../../../Application/JobPost/IJobPostService";
+import { JobPostQueryFilters } from "../../../../Application/JobPost/IJobPostResultService";
 
 interface JobPostParameters {
     id: string;

@@ -10,10 +10,7 @@ export interface JobPostQueryFilters {
     jobMatchScore: number;
 }
 
-export interface IJobPostService {
-    addMany(jobs: IJobPost[]): Promise<void>;
-    update(job: IJobPost): Promise<void>;
-
+export interface IJobPostResultService {
     getAll(
         pageCount: number,
         pageNumber: number,

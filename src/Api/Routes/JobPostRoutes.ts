@@ -1,9 +1,9 @@
 import { FastifyInstance } from "fastify";
 
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
-import { IJobPostService, JobPostQueryFilters } from "../../Application/JobPost/IJobPostService";
 import { IJobPostSyncService } from "../../Application/JobPostSync/IJobPostSyncService";
 import { IRouteRegistrar } from "../Host/IRouteRegistrar";
+import { IJobPostResultService, JobPostQueryFilters } from "../../Application/JobPost/IJobPostResultService";
 
 interface JobPostParams {
     jobPostId: string;
@@ -27,7 +27,7 @@ interface SyncJobPostsBody {
 
 export class JobPostRoutes implements IRouteRegistrar {
     constructor(
-        private readonly jobPostService: IJobPostService,
+        private readonly jobPostResultService: IJobPostResultService,
         private readonly jobPostSyncService: IJobPostSyncService,
         private readonly logger: ILogger
     ) {}
@@ -48,7 +48,7 @@ export class JobPostRoutes implements IRouteRegistrar {
                     daysOld: request.query.daysOld?.trim() ?? "",
                     jobMatchScore: request.query.jobMatchScore,
                 } as JobPostQueryFilters;
-                const result = await this.jobPostService.getAll(pageCount, pageNumber, queryFilters);
+                const result = await this.jobPostResultService.getAll(pageCount, pageNumber, queryFilters);
                 return result;
             } catch (error) {
                 const errMsg = error instanceof Error ? error.message : String(error);
@@ -66,7 +66,7 @@ export class JobPostRoutes implements IRouteRegistrar {
                 const { jobPostId } = request.params;
                 this.logger.info(`[${request.method}]  ${request.url}`);
 
-                const jobPost = await this.jobPostService.getByIdOrThrow(jobPostId);
+                const jobPost = await this.jobPostResultService.getByIdOrThrow(jobPostId);
 
                 if (!jobPost) {
                     this.logger.info(`[${request.method}]  ${request.url} Job post not found`);

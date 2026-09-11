@@ -1,4 +1,4 @@
-import { JobPostQueryFilters } from "../../../Application/JobPost/IJobPostService";
+import { JobPostQueryFilters } from "../../../Application/JobPost/IJobPostResultService";
 import { IJobPost } from "../../../Domain/JobPosts/IJobPost";
 
 export interface IJobPostRepository {

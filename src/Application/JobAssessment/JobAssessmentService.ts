@@ -48,7 +48,7 @@ export class JobAssessmentService implements IJobAssessmentService {
             candidateProfileId: result.candidateProfile.id,
             jobPostId: result.job.id,
 
-            status: "complete",
+            status: result.status,
             reviewStatus: "unreviewed",
 
             screenResult: result.screenResult,
@@ -89,13 +89,10 @@ export class JobAssessmentService implements IJobAssessmentService {
 
         const assessmentResult = this.createAssessmentResult(context, pipelineResult.status);
         await this.updateDatabase(assessmentResult);
-        if (pipelineResult.status === PipelineStepStatus.Stopped) {
-            this.logger.info("Assessment stopped successfully.");
-        } else {
-            this.logger.info("Assessment completed successfully.");
 
-            this.printJobAssessmentDetails(context);
-        }
+        this.logger.info("Assessment completed successfully.");
+
+        this.printJobAssessmentDetails(context);
 
         return assessmentResult;
     }

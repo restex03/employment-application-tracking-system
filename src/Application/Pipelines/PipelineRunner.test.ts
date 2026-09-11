@@ -21,6 +21,10 @@ class TestPipelineStep implements IPipelineStep<TestContext> {
     }
 }
 
+class JumpingPipelineStep extends TestPipelineStep {}
+class SkippedPipelineStep extends TestPipelineStep {}
+class TargetPipelineStep extends TestPipelineStep {}
+
 describe("PipelineRunner", () => {
     it("returns succeeded when all steps succeed", async () => {
         const context: TestContext = { value: 0 };
@@ -185,90 +189,53 @@ describe("PipelineRunner", () => {
         expect(result.reason).toBeUndefined();
     });
 
-    it("stops executing when a step returns stopped", async () => {
+    it("jumps to the named step and skips intervening steps", async () => {
         const context: TestContext = { value: 0 };
+        const executionOrder: string[] = [];
 
-        const step1 = new TestPipelineStep({
-            status: PipelineStepStatus.Succeeded,
-        });
+        const jumpingStep = new JumpingPipelineStep(
+            {
+                status: PipelineStepStatus.Jumped,
+                jumpStep: TargetPipelineStep.name,
+            },
+            () => executionOrder.push("jump")
+        );
+        const skippedStep = new SkippedPipelineStep({ status: PipelineStepStatus.Succeeded }, () =>
+            executionOrder.push("skipped")
+        );
+        const targetStep = new TargetPipelineStep({ status: PipelineStepStatus.Succeeded }, () =>
+            executionOrder.push("target")
+        );
 
-        const stoppedStep = new TestPipelineStep({
-            status: PipelineStepStatus.Stopped,
-            reason: "Halted by screening",
-        });
-
-        const step3 = new TestPipelineStep({
-            status: PipelineStepStatus.Succeeded,
-        });
-
-        const runner = new PipelineRunner<TestContext>([step1, stoppedStep, step3]);
-
-        await runner.run(context);
-
-        expect(step1.execute).toHaveBeenCalledOnce();
-        expect(stoppedStep.execute).toHaveBeenCalledOnce();
-        expect(step3.execute).not.toHaveBeenCalled();
-    });
-
-    it("returns stopped status and information from the stopped step", async () => {
-        const context: TestContext = { value: 0 };
-
-        const stoppedStep = new TestPipelineStep({
-            status: PipelineStepStatus.Stopped,
-            reason: "Halted by screening",
-        });
-
-        const runner = new PipelineRunner<TestContext>([stoppedStep]);
+        const runner = new PipelineRunner<TestContext>([jumpingStep, skippedStep, targetStep]);
 
         const result = await runner.run(context);
 
         expect(result).toEqual({
-            status: PipelineStepStatus.Stopped,
+            status: PipelineStepStatus.Succeeded,
             context,
-            lastStepReached: "TestPipelineStep",
-            reason: "Halted by screening",
         });
+        expect(executionOrder).toEqual(["jump", "target"]);
     });
 
-    it("preserves context changes made before a stop", async () => {
+    it("throws when a jumped step does not provide a jump target", async () => {
         const context: TestContext = { value: 0 };
+        const jumpingStep = new JumpingPipelineStep({ status: PipelineStepStatus.Jumped });
+        const runner = new PipelineRunner<TestContext>([jumpingStep]);
 
-        const step1 = new TestPipelineStep({ status: PipelineStepStatus.Succeeded }, ctx => {
-            ctx.value = 10;
-        });
-
-        const stoppedStep = new TestPipelineStep(
-            {
-                status: PipelineStepStatus.Stopped,
-                reason: "Stopped",
-            },
-            ctx => {
-                ctx.value = 20;
-            }
+        await expect(runner.run(context)).rejects.toThrow(
+            "Pipeline step JumpingPipelineStep returned Jumped without a jumpStep."
         );
-
-        const runner = new PipelineRunner<TestContext>([step1, stoppedStep]);
-
-        const result = await runner.run(context);
-
-        expect(result.status).toBe(PipelineStepStatus.Stopped);
-        expect(result.context).toBe(context);
-        expect(result.context.value).toBe(20);
     });
 
-    it("allows a stopped step to omit a reason", async () => {
+    it("throws when a jump target is not found", async () => {
         const context: TestContext = { value: 0 };
-
-        const stoppedStep = new TestPipelineStep({
-            status: PipelineStepStatus.Stopped,
+        const jumpingStep = new JumpingPipelineStep({
+            status: PipelineStepStatus.Jumped,
+            jumpStep: "MissingPipelineStep",
         });
+        const runner = new PipelineRunner<TestContext>([jumpingStep]);
 
-        const runner = new PipelineRunner<TestContext>([stoppedStep]);
-
-        const result = await runner.run(context);
-
-        expect(result.status).toBe(PipelineStepStatus.Stopped);
-        expect(result.lastStepReached).toBe("TestPipelineStep");
-        expect(result.reason).toBeUndefined();
+        await expect(runner.run(context)).rejects.toThrow("Pipeline jump target 'MissingPipelineStep' was not found.");
     });
 });

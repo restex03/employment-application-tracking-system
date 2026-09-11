@@ -1,10 +1,11 @@
 export enum PipelineStepStatus {
     Succeeded = "succeeded",
     Failed = "failed",
-    Stopped = "stopped",
+    Jumped = "jumped",
 }
 
 export interface IPipelineStepResult {
     status: PipelineStepStatus;
+    jumpStep?: string;
     reason?: string;
 }

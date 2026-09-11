@@ -7,7 +7,9 @@ export class OllamaInferenceProvider implements ILlmInferenceProvider {
 
     constructor(
         private readonly logger: ILogger,
-        private readonly model: string = "qwen3:4b-instruct-8k"
+        private readonly model: string = "phi4-mini:3.8b"
+        // private readonly model: string = "qwen3:4b-instruct-8k"
+        // private readonly model: string = "qwen3:8b-8k"
     ) {
         this.client = new OpenAI({
             // TODO: Move to .env

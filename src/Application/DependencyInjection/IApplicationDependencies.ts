@@ -9,7 +9,7 @@ import { IJobRequirementsExtractionService } from "../JobAssessment/Requirements
 import { IJobRequirementClassificationService } from "../JobAssessment/RquirementClassification/IJobRequirementClassificationService";
 import { IJobScreeningService } from "../JobAssessment/Screening/IJobScreeningService";
 import { IJobCandidateProfileService } from "../JobCandidateProfiles/IJobCandidateProfileService";
-import { IJobPostService } from "../JobPost/IJobPostService";
+import { IJobPostResultService } from "../JobPost/IJobPostResultService";
 import { IJobPostDiscoveryServiceFactory } from "../JobPostDiscovery/IJobPostDiscoveryServiceFactory";
 import { IJobPostSyncService } from "../JobPostSync/IJobPostSyncService";
 import { IJobSourceService } from "../JobSources/IJobSourceService";
@@ -20,7 +20,7 @@ export interface IApplicationDependencies {
     sqliteConnection: SqliteDatabaseConnection;
     jobPostRepository: IJobPostRepository;
     jobSourceRepository: IJobSourceRepository;
-    jobPostService: IJobPostService;
+    jobPostResultService: IJobPostResultService;
     jobPostSyncService: IJobPostSyncService;
     jobCandidateProfileService: IJobCandidateProfileService;
     jobSourceService: IJobSourceService;

@@ -1,5 +1,5 @@
 import { IJobPostResponse } from "../../../Application/JobPost/IJobPostResponse";
-import { JobPostQueryFilters } from "../../../Application/JobPost/IJobPostService";
+import { JobPostQueryFilters } from "../../../Application/JobPost/IJobPostResultService";
 
 export interface IJobPostQueries {
     getJobPostTableResults(

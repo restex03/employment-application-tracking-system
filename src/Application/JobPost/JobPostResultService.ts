@@ -1,11 +1,11 @@
 import { IJobPost } from "../../Domain/JobPosts/IJobPost";
 import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
-import { IJobPostService, JobPostQueryFilters } from "./IJobPostService";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IJobPostQueries } from "../../Infrastructure/Persistence/JobPost/IJobPostQueries";
 import { IJobPostResponse } from "./IJobPostResponse";
+import { IJobPostResultService, JobPostQueryFilters } from "./IJobPostResultService";
 
-export class JobPostService implements IJobPostService {
+export class JobPostResultService implements IJobPostResultService {
     constructor(
         private readonly jobRepository: IJobPostRepository,
         private readonly jobPostQueries: IJobPostQueries,

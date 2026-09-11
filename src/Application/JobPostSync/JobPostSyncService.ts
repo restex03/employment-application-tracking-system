@@ -1,5 +1,4 @@
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
-import { IJobPostService } from "../JobPost/IJobPostService";
 import { IJobPostSyncResult, IJobPostSyncService } from "./IJobPostSyncService";
 import { IJobPostDiscoveryServiceFactory } from "../JobPostDiscovery/IJobPostDiscoveryServiceFactory";
 import { IJobSource } from "../../Domain/JobSources/IJobSource";
@@ -7,12 +6,13 @@ import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource
 import { IJobPostDiscovery } from "../../Domain/JobPosts/IJobPostDiscovery";
 import { randomUUID } from "crypto";
 import { IJobPost, JobPost } from "../../Domain/JobPosts/IJobPost";
+import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
 
 export class JobPostSyncService implements IJobPostSyncService {
     constructor(
         private readonly discoveryServiceFactory: IJobPostDiscoveryServiceFactory,
         private readonly jobSourceRepository: IJobSourceRepository,
-        private readonly jobPostService: IJobPostService,
+        private readonly jobPostRepository: IJobPostRepository,
         private readonly logger: ILogger
     ) {}
 
@@ -28,7 +28,7 @@ export class JobPostSyncService implements IJobPostSyncService {
             const discoveryService = this.discoveryServiceFactory.create(source);
             const discoveries = await discoveryService.fetchList(searchText);
             const jobPosts = discoveries.map(discovery => this.createJobPost(discovery));
-            await this.jobPostService.addMany(jobPosts);
+            await this.jobPostRepository.addMany(jobPosts);
 
             jobsDiscovered += jobPosts.length;
         }
@@ -45,12 +45,27 @@ export class JobPostSyncService implements IJobPostSyncService {
 
     public async syncJobDetails(jobPostId: string): Promise<void> {
         this.logger.debug(`[JobPostSyncService.sync] Syncing job details for job post: ${jobPostId}`);
-        const jobPost = await this.jobPostService.getByIdOrThrow(jobPostId);
+        const jobPost = await this.jobPostRepository.getByIdOrThrow(jobPostId);
         const source = await this.getSource(jobPost.sourceId);
         const discoveryService = this.discoveryServiceFactory.create(source);
         const detail = await discoveryService.fetchDetail(jobPost);
         jobPost.hydrateDetail(detail);
-        await this.jobPostService.update(jobPost);
+        await this.jobPostRepository.update(jobPost);
+    }
+
+    public async update(job: IJobPost): Promise<void> {
+        this.logger.info(`[JobPostSyncService.update] ` + `Updating job ${job.id}...`);
+        await this.jobPostRepository.update(job);
+    }
+
+    public async addMany(jobs: IJobPost[]): Promise<void> {
+        this.logger.info(`[JobPostSyncService.addMany] ` + `Storing ${jobs.length} jobs...`);
+
+        await this.jobPostRepository.addMany(jobs);
+    }
+
+    public async getByIdOrThrow(id: string): Promise<IJobPost> {
+        return await this.jobPostRepository.getByIdOrThrow(id);
     }
 
     private async getSource(sourceId: string): Promise<IJobSource> {

@@ -7,6 +7,21 @@ export class CalculateJobMatchScore implements IPipelineStep<IJobAssessmentConte
     constructor(private readonly calculator: JobMatchScoreCalculator) {}
 
     public async execute(context: IJobAssessmentContext): Promise<IPipelineStepResult> {
+        if (context.screenResult?.disposition === "reject") {
+            context.jobMatchScore = {
+                score: 0,
+                totalRequirements: 0,
+                directMatches: 0,
+                transferableMatches: 0,
+                missingMatches: 0,
+            };
+
+            return {
+                status: PipelineStepStatus.Succeeded,
+                reason: "Job post was rejected during screening.",
+            };
+        }
+
         if (!context.requirementMatches) {
             return {
                 status: PipelineStepStatus.Failed,

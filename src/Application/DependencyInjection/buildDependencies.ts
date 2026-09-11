@@ -20,8 +20,6 @@ import { IJobRequirementDirectMatchingService } from "../JobAssessment/Requireme
 import { JobRequirementDirectMatchingService } from "../JobAssessment/RequirementMatching/DirectMatching/JobRequirementDirectMatchingService";
 import { IJobRequirementTransferableMatchingService } from "../JobAssessment/RequirementMatching/TransferableMatching/IJobRequirementTransferableMatchingService";
 import { JobRequirementTransferableMatchingService } from "../JobAssessment/RequirementMatching/TransferableMatching/JobRequirementTransferableMatchingService";
-import { IJobPostService } from "../JobPost/IJobPostService";
-import { JobPostService } from "../JobPost/JobPostService";
 import { JobSourceRepository } from "../../Infrastructure/Persistence/JobSource/Sqlite/JobSourceRepository";
 import { IApplicationDependencies } from "./IApplicationDependencies";
 import { IJobPostSyncService } from "../JobPostSync/IJobPostSyncService";
@@ -44,13 +42,15 @@ import { IJobCandidateProfileService } from "../JobCandidateProfiles/IJobCandida
 import { JobCandidateProfileService } from "../JobCandidateProfiles/JobCandidateProfileService";
 import { IJobSourceService } from "../JobSources/IJobSourceService";
 import { JobSourceService } from "../JobSources/Workday/JobSourceService";
-import { CalculateJobMatchScore } from "../JobAssessment/Pipeline/Steps/CalculateJobScore";
+import { CalculateJobMatchScore } from "../JobAssessment/Pipeline/Steps/CalculateJobMatchScore";
 import { JobMatchScoreCalculator } from "../../Domain/JobAssessment/Scoring/JobMatchScoreCalculator";
 import { IJobMatchScoreCalculator } from "../../Domain/JobAssessment/Scoring/IJobMatchScoreCalculator";
 import { IJobAssessmentRepository } from "../../Infrastructure/Persistence/JobAssessments/IJobAssessmentRepository";
 import { JobAssessmentRepository } from "../../Infrastructure/Persistence/JobAssessments/Sqlite/JobAssessmentRepository";
 import { IJobPostQueries } from "../../Infrastructure/Persistence/JobPost/IJobPostQueries";
 import { SqliteJobQueries } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteJobQueries";
+import { IJobPostResultService } from "../JobPost/IJobPostResultService";
+import { JobPostResultService } from "../JobPost/JobPostResultService";
 
 export function buildDependencies(logLevel: LogLevel): IApplicationDependencies {
     const logger: ILogger = new ConsoleLogger(logLevel);
@@ -87,7 +87,11 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
     /*
      * Job post services
      */
-    const jobPostService: IJobPostService = new JobPostService(jobPostRepository, jobPostQueries, logger);
+    const jobPostResultService: IJobPostResultService = new JobPostResultService(
+        jobPostRepository,
+        jobPostQueries,
+        logger
+    );
 
     /*
      * Assessment services
@@ -126,7 +130,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
     const jobPostSyncService: IJobPostSyncService = new JobPostSyncService(
         jobPostDiscoveryServiceFactory,
         jobSourceRepository,
-        jobPostService,
+        jobPostRepository,
         logger
     );
     const scoreCalculator: IJobMatchScoreCalculator = new JobMatchScoreCalculator();
@@ -158,7 +162,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         jobSourceRepository,
         jobSourceService,
         jobCandidateProfileService,
-        jobPostService,
+        jobPostResultService,
         jobPostSyncService,
 
         screeningService,
