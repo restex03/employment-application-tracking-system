@@ -4,11 +4,18 @@ import { IRouteRegistrar } from "../Host/IRouteRegistrar";
 import { IJobAssessmentService } from "../../Application/JobAssessment/IJobAssessmentService";
 import { NotFoundError } from "../../Application/Common/Errors/NotFoundError";
 import { IJobAssessmentQueueService } from "../../Application/JobAssessment/PipelineQueue/IJobAssessmentQueueService";
-import { IJobAssessmentQueue } from "../../Infrastructure/Persistence/JobAssessmentQueue/IJobAssessmentQueue";
 
 interface JobPostParams {
     jobPostId: string;
     candidateProfileId: string;
+}
+
+interface JobStatusParams {
+    jobId: string;
+}
+
+interface JobAssessmentJobParams {
+    jobId: string;
 }
 
 export class JobAssessmentRoutes implements IRouteRegistrar {
@@ -39,6 +46,34 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
                 this.logger.error(`[${request.method}]  ${request.url} Assessment failed: ${errMsg}`);
                 return reply.code(500).send({
                     error: `Failed to run job assessment: ${errMsg}`,
+                });
+            }
+        });
+
+        server.get<{
+            Params: JobStatusParams;
+        }>("/assessment-jobs/:jobId", async (request, reply) => {
+            const { jobId } = request.params;
+
+            try {
+                this.logger.info(`[${request.method}]  ${request.url}`);
+                const status = await this.jobAssessmentQueueService.getStatus(jobId);
+
+                if (status === null) {
+                    return reply.code(404).send({
+                        error: "Job not found.",
+                    });
+                }
+
+                return reply.code(200).send({
+                    jobId,
+                    status,
+                });
+            } catch (error) {
+                const errMsg = error instanceof Error ? error.message : String(error);
+                this.logger.error(`[${request.method}]  ${request.url} Failed: ${errMsg}`);
+                return reply.code(500).send({
+                    error: `Failed to get job status: ${errMsg}`,
                 });
             }
         });

@@ -69,6 +69,13 @@ export class SqliteDatabaseConnection {
 
         CREATE INDEX IF NOT EXISTS ix_job_assessment_job_queue_status_created_at
             ON job_assessment_job_queue(status, created_at);
+
+        CREATE UNIQUE INDEX IF NOT EXISTS ux_job_assessment_job_queue_active
+            ON job_assessment_job_queue (
+                job_post_id,
+                candidate_profile_id
+            )
+            WHERE status IN ('QUEUED', 'IN_PROGRESS');
     `);
     }
 

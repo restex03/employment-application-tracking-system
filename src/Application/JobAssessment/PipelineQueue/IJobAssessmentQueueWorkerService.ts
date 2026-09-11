@@ -1,4 +1,8 @@
+export interface IJobQueueWorkerOptions {
+    freqMs: number;
+}
+
 export interface IJobAssessmentQueueWorkerService {
-    start(freqMs: number): Promise<void>;
+    start(options: IJobQueueWorkerOptions): Promise<void>;
     stop(): void;
 }

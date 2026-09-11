@@ -2,12 +2,15 @@ import React, { useState, useMemo } from "react";
 import { useJobPosts } from "../hooks/useJobPosts";
 import { useJobSources } from "../hooks/useJobSources";
 import { useSyncJobPosts } from "../hooks/useSyncJobPosts";
+import { useJobAssessmentPolling } from "../hooks/useJobAssessmentPolling";
 import { IJobPostData } from "../types/JobPost";
 import JobPostModal from "../components/JobPostModal";
-import JobMatchDetailsModal from "../components/JobMatchDetailsModal";
 import SyncModal from "../components/SyncModal";
 import ToolsModal from "../components/ToolsModal";
+import ToastContainer from "../components/ToastContainer";
 import "./JobPostsPage.css";
+
+const CANDIDATE_PROFILE_ID = "russell-estes";
 
 type SortableColumn = "company" | "requisitionId" | "title" | "locations" | "daysOld" | "createdAt" | null;
 type SortDirection = "asc" | "desc" | null;
@@ -57,13 +60,20 @@ function JobPostsPage() {
     const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
     const [detailLoading, setDetailLoading] = useState<boolean>(false);
     const [_detailError, setDetailError] = useState<string | null>(null);
-    const [selectedJobPostForAssessment, setSelectedJobPostForAssessment] = useState<IJobPostData | null>(null);
-    const [isJobMatchModalOpen, setIsJobMatchModalOpen] = useState<boolean>(false);
-    const [_assessmentLoading, _setAssessmentLoading] = useState<boolean>(false);
-    const [_assessmentError, setAssessmentError] = useState<string | null>(null);
     const [isToolsModalOpen, setIsToolsModalOpen] = useState<boolean>(false);
     const [sortColumn, setSortColumn] = useState<SortableColumn>(null);
     const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+    const {
+        jobPostId: activeAssessmentJobPostId,
+        jobStatus: assessmentJobStatus,
+        enqueue: enqueueAssessment,
+        toasts: assessmentToasts,
+        dismissToast: dismissAssessmentToast,
+    } = useJobAssessmentPolling({ candidateProfileId: CANDIDATE_PROFILE_ID });
+
+    // Only show the polled status when it corresponds to the currently open job post.
+    const modalJobStatus =
+        selectedJobPost && activeAssessmentJobPostId === selectedJobPost.id ? assessmentJobStatus : null;
 
     // Sort the posts returned by the API.
     const filteredAndSortedPosts = useMemo(() => {
@@ -248,15 +258,18 @@ function JobPostsPage() {
     };
 
     const handleRunAssessment = (jobPost: IJobPostData) => {
-        setSelectedJobPostForAssessment(jobPost);
-        setIsJobMatchModalOpen(true);
+        openJobPostModal(jobPost);
+        enqueueAssessment(jobPost.id);
     };
 
-    const handleDetailsButtonClick = async (jobPost: IJobPostData) => {
-        // Fetch the job detail and open JobPostModal for Details button clicks
+    const openJobPostModal = async (jobPost: IJobPostData) => {
         const jobPostWithDetail = await fetchJobDetail(jobPost);
         setSelectedJobPost(jobPostWithDetail);
         setIsJobPostModalOpen(true);
+    };
+
+    const handleDetailsButtonClick = (jobPost: IJobPostData) => {
+        openJobPostModal(jobPost);
     };
 
     const closeModal = () => {
@@ -561,19 +574,8 @@ function JobPostsPage() {
                     isOpen={isJobPostModalOpen}
                     onClose={closeModal}
                     jobPost={selectedJobPost}
-                />
-            )}
-
-            {selectedJobPostForAssessment && (
-                <JobMatchDetailsModal
-                    key={selectedJobPostForAssessment.id}
-                    isOpen={isJobMatchModalOpen}
-                    onClose={() => {
-                        setIsJobMatchModalOpen(false);
-                        setSelectedJobPostForAssessment(null);
-                        setAssessmentError(null);
-                    }}
-                    jobPostId={selectedJobPostForAssessment.id}
+                    jobStatus={modalJobStatus}
+                    onRunAssessment={() => enqueueAssessment(selectedJobPost.id)}
                 />
             )}
 
@@ -589,6 +591,8 @@ function JobPostsPage() {
             />
 
             <ToolsModal isOpen={isToolsModalOpen} onClose={handleResetClose} />
+
+            <ToastContainer toasts={assessmentToasts} onDismiss={dismissAssessmentToast} />
         </div>
     );
 }

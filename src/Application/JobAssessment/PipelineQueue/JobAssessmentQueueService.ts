@@ -10,8 +10,9 @@ export class JobAssessmentQueueService implements IJobAssessmentQueueService {
         private readonly queue: IJobAssessmentQueue,
         private readonly assessmentService: IJobAssessmentService
     ) {}
-    getStatus(jobId: string): Promise<JobQueueStatus | null> {
-        throw new Error("Method not implemented.");
+
+    public async getStatus(jobId: string): Promise<JobQueueStatus | null> {
+        return this.queue.getStatus(jobId);
     }
     public async enqueue(job: IJobAssessmentJobRequest): Promise<string> {
         const jobId = await this.queue.enqueue(job);

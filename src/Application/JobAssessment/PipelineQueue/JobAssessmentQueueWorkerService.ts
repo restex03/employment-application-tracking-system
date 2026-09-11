@@ -1,6 +1,6 @@
 import { IJobAssessmentQueue } from "../../../Infrastructure/Persistence/JobAssessmentQueue/IJobAssessmentQueue";
 import { IJobAssessmentService } from "../IJobAssessmentService";
-import { IJobAssessmentQueueWorkerService } from "./IJobAssessmentQueueWorkerService";
+import { IJobAssessmentQueueWorkerService, IJobQueueWorkerOptions } from "./IJobAssessmentQueueWorkerService";
 
 export class JobAssessmentQueueWorkerService implements IJobAssessmentQueueWorkerService {
     private running = false;
@@ -8,19 +8,19 @@ export class JobAssessmentQueueWorkerService implements IJobAssessmentQueueWorke
         private readonly queue: IJobAssessmentQueue,
         private readonly assessmentService: IJobAssessmentService
     ) {}
-    public async start(freqMs: number): Promise<void> {
+    public async start(options: IJobQueueWorkerOptions): Promise<void> {
         this.running = true;
 
         while (this.running) {
             const job = await this.queue.claimNext();
 
             if (!job) {
-                await new Promise(resolve => setTimeout(resolve, freqMs));
+                await new Promise(resolve => setTimeout(resolve, options.freqMs));
                 continue;
             }
 
             try {
-                await this.assessmentService.runAssessment(job.jobPostId, job.candidateProfileId);
+                await this.assessmentService.runAssessment(job.candidateProfileId, job.jobPostId);
 
                 await this.queue.complete(job.id);
             } catch (error) {

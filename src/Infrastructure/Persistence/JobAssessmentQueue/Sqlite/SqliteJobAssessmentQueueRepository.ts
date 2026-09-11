@@ -28,11 +28,21 @@ export class SqliteJobAssessmentQueueRepository implements IJobAssessmentQueue {
     private readonly claimNextStatement: Database.Statement;
     private readonly completeStatement: Database.Statement;
     private readonly failStatement: Database.Statement;
+    private readonly findActiveJobStatement: Database.Statement;
 
     constructor(
         private readonly connection: Database.Database,
         private readonly logger: ILogger
     ) {
+        this.findActiveJobStatement = this.connection.prepare(`
+    SELECT id
+    FROM job_assessment_job_queue
+    WHERE job_post_id = @jobPostId
+      AND candidate_profile_id = @candidateProfileId
+      AND status IN (@queuedStatus, @inProgressStatus)
+    ORDER BY created_at ASC
+    LIMIT 1
+`);
         this.enqueueStatement = this.connection.prepare(`
             INSERT INTO job_assessment_job_queue (
                 id,
@@ -96,6 +106,21 @@ export class SqliteJobAssessmentQueueRepository implements IJobAssessmentQueue {
     }
 
     public async enqueue(job: IJobAssessmentJobRequest): Promise<string> {
+        const existingJob = this.findActiveJobStatement.get({
+            jobPostId: job.jobPostId,
+            candidateProfileId: job.candidateProfileId,
+            queuedStatus: JobQueueStatus.Queued,
+            inProgressStatus: JobQueueStatus.InProgress,
+        }) as { id: string } | undefined;
+
+        if (existingJob) {
+            this.logger.debug(
+                `[SqliteJobAssessmentQueueRepository.enqueue] ` + `Active job already exists: ${existingJob.id}`
+            );
+
+            return existingJob.id;
+        }
+
         const id = randomUUID();
 
         this.enqueueStatement.run({
