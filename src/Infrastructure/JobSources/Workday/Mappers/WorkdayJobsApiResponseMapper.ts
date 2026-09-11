@@ -1,19 +1,32 @@
 import { IWorkdayJobsApiResponse } from "../Contracts/IWorkdayJobsApiResponse";
 import { IJobPostDiscovery } from "../../../../Domain/JobPosts/IJobPostDiscovery";
 import { WorkdayDaysOldNormalizer } from "./WorkdayDaysOldNormalizer";
+import { ILogger } from "../../../Logging/ILogger";
 
 type WorkdayJobPosting = IWorkdayJobsApiResponse["jobPostings"][number];
 
 export interface IWorkdayJobsApiResponseMapper {
-    map(posting: WorkdayJobPosting): IJobPostDiscovery;
+    map(posting: WorkdayJobPosting): IJobPostDiscovery | null;
 }
 
 export class WorkdayJobsResponseMapper implements IWorkdayJobsApiResponseMapper {
     private readonly daysOldNormalizer = new WorkdayDaysOldNormalizer();
 
-    public constructor(private readonly jobSourceId: string) {}
+    public constructor(
+        private readonly jobSourceId: string,
+        private readonly logger: ILogger
+    ) {}
 
-    public map(posting: WorkdayJobPosting): IJobPostDiscovery {
+    public map(posting: WorkdayJobPosting): IJobPostDiscovery | null {
+        if (!posting.title || !posting.externalPath) {
+            this.logger.warn(
+                `[WorkdayJobsResponseMapper] Job posting has missing or empty title or externalPath.` +
+                    `\n\t- externalPath: ${posting.externalPath ?? "N/A"}` +
+                    `\n\t- json: ${JSON.stringify(posting)}`
+            );
+            return null;
+        }
+
         let requisitionId = this.getRequisitionId(posting.externalPath);
         requisitionId ??= posting.externalPath;
         return {

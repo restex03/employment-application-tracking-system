@@ -141,6 +141,43 @@ describe("WorkdayJobDiscoveryService", () => {
                 jobPostings: [mappedJob1, mappedJob2],
             });
         });
+
+        it("filters out postings that the mapper returns null for", async () => {
+            const service = createService();
+
+            const validRawJob = {
+                title: "Software Engineer",
+                externalPath: "/job/software-engineer_R-100",
+            };
+
+            const invalidRawJob = {
+                title: "",
+                externalPath: "/job/broken_R-200",
+            };
+
+            const mappedJob = createJob({
+                sourceId: "R-100",
+                detailPath: validRawJob.externalPath,
+            });
+
+            searchMock.mockResolvedValue({
+                total: 2,
+                jobPostings: [validRawJob, invalidRawJob],
+            });
+
+            mapMock.mockReturnValueOnce(mappedJob).mockReturnValueOnce(null);
+
+            const result = await service.getJobsBatch({
+                limit: 20,
+                offset: 0,
+            });
+
+            expect(mapMock).toHaveBeenCalledTimes(2);
+            expect(result).toEqual({
+                total: 2,
+                jobPostings: [mappedJob],
+            });
+        });
     });
 
     describe("fetchJobs", () => {
@@ -333,6 +370,29 @@ describe("WorkdayJobDiscoveryService", () => {
             await service.fetchList();
 
             expect(logger.info).toHaveBeenCalledWith("[WorkdayJobDiscoveryService.fetchJobs] Total jobs to fetch: 37");
+        });
+
+        it("excludes postings that the mapper returns null for", async () => {
+            const service = createService();
+
+            const validJob = createJob({
+                sourceId: "R-100",
+                detailPath: "/job/valid_R-100",
+            });
+
+            searchMock.mockResolvedValue({
+                total: 2,
+                jobPostings: [
+                    { title: "Valid", externalPath: "/job/valid_R-100" },
+                    { title: "", externalPath: "/job/invalid_R-200" },
+                ],
+            });
+
+            mapMock.mockReturnValueOnce(validJob).mockReturnValueOnce(null);
+
+            const result = await service.fetchList();
+
+            expect(result).toEqual([validJob]);
         });
     });
 });

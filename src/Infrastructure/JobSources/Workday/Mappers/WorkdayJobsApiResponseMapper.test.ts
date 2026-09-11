@@ -1,7 +1,19 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { WorkdayJobsResponseMapper } from "./WorkdayJobsApiResponseMapper";
 import { IWorkdayJobsApiResponse } from "../Contracts/IWorkdayJobsApiResponse";
+import { ILogger } from "../../../Logging/ILogger";
+
+function createLogger(): ILogger {
+    return {
+        table: vi.fn(),
+        trace: vi.fn(),
+        debug: vi.fn(),
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+    };
+}
 
 function createResponse(jobPostings: IWorkdayJobsApiResponse["jobPostings"]): IWorkdayJobsApiResponse {
     return {
@@ -29,7 +41,7 @@ describe("WorkdayJobsResponseMapper", () => {
     const jobSourceId = "job-source-abc";
 
     it("maps Workday job postings to job search results", () => {
-        const mapper = new WorkdayJobsResponseMapper(jobSourceId);
+        const mapper = new WorkdayJobsResponseMapper(jobSourceId, createLogger());
 
         const response = createPosting();
 
@@ -54,17 +66,17 @@ describe("WorkdayJobsResponseMapper", () => {
         ["/job/test/Software-Engineer_2021114", "2021114"],
         ["/job/test/Software-Engineer_J00177610-1", "J00177610"],
     ])("extracts requisition ID from %s", (externalPath, expectedRequisitionId) => {
-        const mapper = new WorkdayJobsResponseMapper(jobSourceId);
+        const mapper = new WorkdayJobsResponseMapper(jobSourceId, createLogger());
 
         const response = createPosting({ externalPath });
 
         const result = mapper.map(response);
 
-        expect(result.requisitionId).toBe(expectedRequisitionId);
+        expect(result!.requisitionId).toBe(expectedRequisitionId);
     });
 
     it("extracts JR-prefixed requisition IDs containing a hyphen", () => {
-        const mapper = new WorkdayJobsResponseMapper(jobSourceId);
+        const mapper = new WorkdayJobsResponseMapper(jobSourceId, createLogger());
 
         const externalPath = "/job/USA-CA-Pleasanton/Senior-Software-Engineer_JR-0107919";
 
@@ -72,11 +84,11 @@ describe("WorkdayJobsResponseMapper", () => {
 
         const result = mapper.map(response);
 
-        expect(result.requisitionId).toBe("JR-0107919");
+        expect(result!.requisitionId).toBe("JR-0107919");
     });
 
     it("falls back to externalPath when a requisition ID cannot be determined", () => {
-        const mapper = new WorkdayJobsResponseMapper(jobSourceId);
+        const mapper = new WorkdayJobsResponseMapper(jobSourceId, createLogger());
 
         const externalPath = "/job/USA-GA-Atlanta/Some-Unusual-Job";
 
@@ -84,22 +96,51 @@ describe("WorkdayJobsResponseMapper", () => {
 
         const result = mapper.map(response);
 
-        expect(result.requisitionId).toBe(externalPath);
+        expect(result!.requisitionId).toBe(externalPath);
     });
 
     it("omits locations when locationsText is empty", () => {
-        const mapper = new WorkdayJobsResponseMapper(jobSourceId);
+        const mapper = new WorkdayJobsResponseMapper(jobSourceId, createLogger());
 
         const result = mapper.map(createPosting({ locationsText: "" }));
 
-        expect(result.locations).toBeUndefined();
+        expect(result!.locations).toBeUndefined();
     });
 
     it("omits postedDate when daysOld is empty", () => {
-        const mapper = new WorkdayJobsResponseMapper(jobSourceId);
+        const mapper = new WorkdayJobsResponseMapper(jobSourceId, createLogger());
 
         const result = mapper.map(createPosting({ postedOn: "" }));
 
-        expect(result.daysOld).toBeUndefined();
+        expect(result!.daysOld).toBeUndefined();
+    });
+
+    it("returns null when title is missing", () => {
+        const mapper = new WorkdayJobsResponseMapper(jobSourceId, createLogger());
+
+        const result = mapper.map(createPosting({ title: undefined as unknown as string }));
+
+        expect(result).toBeNull();
+    });
+
+    it("returns null when externalPath is missing", () => {
+        const mapper = new WorkdayJobsResponseMapper(jobSourceId, createLogger());
+
+        const result = mapper.map(createPosting({ externalPath: undefined as unknown as string }));
+
+        expect(result).toBeNull();
+    });
+
+    it("returns null when both title and externalPath are missing", () => {
+        const mapper = new WorkdayJobsResponseMapper(jobSourceId, createLogger());
+
+        const result = mapper.map(
+            createPosting({
+                title: undefined as unknown as string,
+                externalPath: undefined as unknown as string,
+            })
+        );
+
+        expect(result).toBeNull();
     });
 });

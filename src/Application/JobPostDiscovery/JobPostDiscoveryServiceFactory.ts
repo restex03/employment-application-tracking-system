@@ -25,7 +25,10 @@ export class JobPostDiscoveryServiceFactory implements IJobPostDiscoveryServiceF
             logger: this.logger,
         });
 
-        const lookupMapper: IWorkdayJobsApiResponseMapper = new WorkdayJobsResponseMapper(source.id);
+        const lookupMapper: IWorkdayJobsApiResponseMapper = new WorkdayJobsResponseMapper(
+            source.id,
+            this.logger
+        );
 
         const detailMapper: IWorkdayJobDetailsApiResponseMapper = new WorkdayJobDetailsApiResponseMapper();
 

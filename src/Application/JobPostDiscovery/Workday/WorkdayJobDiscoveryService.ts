@@ -104,7 +104,9 @@ export class WorkdayJobDiscoveryService implements IJobPostDiscoveryService {
         this.logger.trace(
             `[WorkdayJobDiscoveryService.getJobsBatch] Batch retrieved: ${batch.jobPostings.length} jobs`
         );
-        const mapped = batch.jobPostings.map(x => this.lookupMapper.map(x));
+        const mapped = batch.jobPostings
+            .map(x => this.lookupMapper.map(x))
+            .filter((x): x is IJobPostDiscovery => x !== null);
         return {
             jobPostings: mapped,
             total: batch.total,
