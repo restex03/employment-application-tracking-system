@@ -89,7 +89,6 @@ export class JobPostRoutes implements IRouteRegistrar {
             Body: SyncJobPostsBody;
         }>("/job-posts/sync", async (request, reply) => {
             try {
-                // TODO: Update this endpoint to accept a list of source IDs instead of just one.
                 // TODO: Update this endpoint to run job in background and return a job ID for tracking progress.
                 this.logger.info(`[${request.method}]  ${request.url}`);
                 const result = await this.jobPostSyncService.syncJobs(
