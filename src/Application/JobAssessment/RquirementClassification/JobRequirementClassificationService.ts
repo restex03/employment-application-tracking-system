@@ -37,7 +37,7 @@ export class JobRequirementClassificationService implements IJobRequirementClass
             validationSchema: JobRequirementClassificationResponseValidationSchema,
 
             temperature: 0.1,
-            maxTokens: 300,
+            maxTokens: 800,
         });
 
         const categoryByIndex = new Map(

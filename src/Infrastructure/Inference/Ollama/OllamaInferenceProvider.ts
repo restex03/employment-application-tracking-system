@@ -7,8 +7,15 @@ export class OllamaInferenceProvider implements ILlmInferenceProvider {
 
     constructor(
         private readonly logger: ILogger,
-        private readonly model: string = "phi4-mini:3.8b"
-        // private readonly model: string = "qwen3:4b-instruct-8k"
+        // private readonly model: string = "qwen3.5:4b"
+        // private readonly model: string = "ministral-3:8b"
+        // private readonly model: string = "granite4.2:3b"
+        // private readonly model: string = "granite4.2:8b"
+        // private readonly model: string = "gemma4:e4b-it-qat"
+        // private readonly model: string = "gemma4:e4b"
+        // private readonly model: string = "gemma3:4b"
+        // private readonly model: string = "phi4-mini:3.8b"
+        private readonly model: string = "qwen3:4b-instruct-8k"
         // private readonly model: string = "qwen3:8b-8k"
     ) {
         this.client = new OpenAI({
@@ -37,7 +44,7 @@ export class OllamaInferenceProvider implements ILlmInferenceProvider {
                     content: typeof request.input === "string" ? request.input : JSON.stringify(request.input),
                 },
             ],
-
+            reasoning_effort: "none",
             response_format: {
                 type: "json_schema",
                 json_schema: {
@@ -50,6 +57,8 @@ export class OllamaInferenceProvider implements ILlmInferenceProvider {
 
         const elapsed = performance.now() - start;
         const content = response.choices[0]?.message?.content;
+
+        // console.dir(response.choices[0], { depth: null });
 
         if (!content) {
             throw new Error(`[OllamaInferenceProvider.generateStructured] Model returned no content.`);

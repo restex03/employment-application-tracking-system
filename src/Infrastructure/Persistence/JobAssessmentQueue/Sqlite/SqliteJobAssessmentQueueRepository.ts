@@ -2,7 +2,7 @@ import Database from "better-sqlite3";
 import { IJobAssessmentQueueRepository } from "../IJobAssessmentQueueRepository";
 import { ILogger } from "../../../Logging/ILogger";
 
-export class JobAssessmentQueueRepository implements IJobAssessmentQueueRepository {
+export class SqliteJobAssessmentQueueRepository implements IJobAssessmentQueueRepository {
     private readonly claimNextQueuedJobStatement: Database.Statement;
 
     constructor(

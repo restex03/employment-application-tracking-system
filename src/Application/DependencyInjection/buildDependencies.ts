@@ -20,7 +20,7 @@ import { IJobRequirementDirectMatchingService } from "../JobAssessment/Requireme
 import { JobRequirementDirectMatchingService } from "../JobAssessment/RequirementMatching/DirectMatching/JobRequirementDirectMatchingService";
 import { IJobRequirementTransferableMatchingService } from "../JobAssessment/RequirementMatching/TransferableMatching/IJobRequirementTransferableMatchingService";
 import { JobRequirementTransferableMatchingService } from "../JobAssessment/RequirementMatching/TransferableMatching/JobRequirementTransferableMatchingService";
-import { JobSourceRepository } from "../../Infrastructure/Persistence/JobSource/Sqlite/JobSourceRepository";
+import { SqliteJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/Sqlite/SqliteJobSourceRepository";
 import { IApplicationDependencies } from "./IApplicationDependencies";
 import { IJobPostSyncService } from "../JobPostSync/IJobPostSyncService";
 import { JobPostSyncService } from "../JobPostSync/JobPostSyncService";
@@ -36,7 +36,7 @@ import { ExtractJobRequirements } from "../JobAssessment/Pipeline/Steps/ExtractJ
 import { FetchJobDetails } from "../JobAssessment/Pipeline/Steps/FetchJobDetail";
 import { MatchJobRequirements } from "../JobAssessment/Pipeline/Steps/MatchJobRequirements";
 import { PipelineRunner } from "../Pipelines/PipelineRunner";
-import { JobCandidateProfileRepository } from "../../Infrastructure/Persistence/JobCandidateProfiles/Sqlite/JobCandidateProfileRepository";
+import { SqliteJobCandidateProfileRepository } from "../../Infrastructure/Persistence/JobCandidateProfiles/Sqlite/SqliteJobCandidateProfileRepository";
 import { IJobCandidateProfileRepository } from "../../Infrastructure/Persistence/JobCandidateProfiles/IJobCandidateProfileRepository";
 import { IJobCandidateProfileService } from "../JobCandidateProfiles/IJobCandidateProfileService";
 import { JobCandidateProfileService } from "../JobCandidateProfiles/JobCandidateProfileService";
@@ -46,7 +46,7 @@ import { CalculateJobMatchScore } from "../JobAssessment/Pipeline/Steps/Calculat
 import { JobMatchScoreCalculator } from "../../Domain/JobAssessment/Scoring/JobMatchScoreCalculator";
 import { IJobMatchScoreCalculator } from "../../Domain/JobAssessment/Scoring/IJobMatchScoreCalculator";
 import { IJobAssessmentRepository } from "../../Infrastructure/Persistence/JobAssessments/IJobAssessmentRepository";
-import { JobAssessmentRepository } from "../../Infrastructure/Persistence/JobAssessments/Sqlite/JobAssessmentRepository";
+import { SqliteJobAssessmentRepository } from "../../Infrastructure/Persistence/JobAssessments/Sqlite/SqliteJobAssessmentRepository";
 import { IJobPostQueries } from "../../Infrastructure/Persistence/JobPost/IJobPostQueries";
 import { SqliteJobQueries } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteJobQueries";
 import { IJobPostResultService } from "../JobPost/IJobPostResultService";
@@ -62,11 +62,11 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
 
     const jobPostRepository: IJobPostRepository = new SqliteJobRepository(sqliteConnection.db, logger);
 
-    const jobSourceRepository: IJobSourceRepository = new JobSourceRepository(sqliteConnection.db, logger);
+    const jobSourceRepository: IJobSourceRepository = new SqliteJobSourceRepository(sqliteConnection.db, logger);
 
     const jobSourceService: IJobSourceService = new JobSourceService(jobSourceRepository, logger);
 
-    const jobCandidateProfileRepo: IJobCandidateProfileRepository = new JobCandidateProfileRepository(
+    const jobCandidateProfileRepo: IJobCandidateProfileRepository = new SqliteJobCandidateProfileRepository(
         sqliteConnection.db,
         logger
     );
@@ -75,7 +75,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         logger
     );
 
-    const jobAssessmentRepo: IJobAssessmentRepository = new JobAssessmentRepository(sqliteConnection.db, logger);
+    const jobAssessmentRepo: IJobAssessmentRepository = new SqliteJobAssessmentRepository(sqliteConnection.db, logger);
 
     const jobPostQueries: IJobPostQueries = new SqliteJobQueries(sqliteConnection.db, logger);
 

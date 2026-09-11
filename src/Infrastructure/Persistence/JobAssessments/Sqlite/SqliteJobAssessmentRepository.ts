@@ -18,7 +18,7 @@ interface JobAssessmentRow {
     job_match_score_json: string | null;
 }
 
-export class JobAssessmentRepository implements IJobAssessmentRepository {
+export class SqliteJobAssessmentRepository implements IJobAssessmentRepository {
     private readonly insertAssessmentStatement: Database.Statement;
     private readonly getAssessmentByIdStatement: Database.Statement;
     private readonly getAssessmentByJobPostIdAndCandidateProfileIdStatement: Database.Statement;

@@ -5,21 +5,21 @@ import { IJobSource } from "../../../../Domain/JobSources/IJobSource";
 import { ILogger } from "../../../Logging/ILogger";
 import { IJobSourceRepository, JobSourceInput } from "../IJobSourceRepository";
 
-interface WorkdaySourceParameters {
+interface JobSourceParameters {
     id: string;
     companyName: string;
     baseUrl: string;
     browserBaseUrl: string;
 }
 
-interface WorkdaySourceRow {
+interface JobSourceRow {
     id: string;
     company_name: string;
     base_url: string;
     browser_base_url: string;
 }
 
-export class JobSourceRepository implements IJobSourceRepository {
+export class SqliteJobSourceRepository implements IJobSourceRepository {
     private readonly upsertStatement: Database.Statement;
     private readonly getByIdStatement: Database.Statement;
     private readonly getByCompanyNameStatement: Database.Statement;
@@ -87,7 +87,7 @@ export class JobSourceRepository implements IJobSourceRepository {
     }
 
     public async upsert(source: JobSourceInput): Promise<IJobSource> {
-        const row = this.upsertStatement.get(this.mapParameters(source)) as WorkdaySourceRow;
+        const row = this.upsertStatement.get(this.mapParameters(source)) as JobSourceRow;
 
         const result = this.mapRow(row);
 
@@ -101,7 +101,7 @@ export class JobSourceRepository implements IJobSourceRepository {
             const results: IJobSource[] = [];
 
             for (const source of sources) {
-                const row = this.upsertStatement.get(this.mapParameters(source)) as WorkdaySourceRow;
+                const row = this.upsertStatement.get(this.mapParameters(source)) as JobSourceRow;
 
                 results.push(this.mapRow(row));
             }
@@ -117,7 +117,7 @@ export class JobSourceRepository implements IJobSourceRepository {
     }
 
     public async getById(id: string): Promise<IJobSource | undefined> {
-        const row = this.getByIdStatement.get(id) as WorkdaySourceRow | undefined;
+        const row = this.getByIdStatement.get(id) as JobSourceRow | undefined;
 
         if (!row) {
             this.logger.debug(`[JobSourceRepository.getById] ` + `No Workday job source found for id: ${id}`);
@@ -140,7 +140,7 @@ export class JobSourceRepository implements IJobSourceRepository {
     }
 
     public async getByCompanyName(companyName: string): Promise<IJobSource | undefined> {
-        const row = this.getByCompanyNameStatement.get(companyName) as WorkdaySourceRow | undefined;
+        const row = this.getByCompanyNameStatement.get(companyName) as JobSourceRow | undefined;
 
         if (!row) {
             this.logger.debug(
@@ -160,7 +160,7 @@ export class JobSourceRepository implements IJobSourceRepository {
     }
 
     public async getAll(): Promise<IJobSource[]> {
-        const rows = this.getAllStatement.all() as WorkdaySourceRow[];
+        const rows = this.getAllStatement.all() as JobSourceRow[];
 
         const results = rows.map(row => this.mapRow(row));
 
@@ -169,7 +169,7 @@ export class JobSourceRepository implements IJobSourceRepository {
         return results;
     }
 
-    private mapParameters(source: JobSourceInput): WorkdaySourceParameters {
+    private mapParameters(source: JobSourceInput): JobSourceParameters {
         return {
             id: randomUUID(),
             companyName: source.companyName,
@@ -178,7 +178,7 @@ export class JobSourceRepository implements IJobSourceRepository {
         };
     }
 
-    private mapRow(row: WorkdaySourceRow): IJobSource {
+    private mapRow(row: JobSourceRow): IJobSource {
         return {
             id: row.id,
             companyName: row.company_name,

@@ -83,7 +83,7 @@ interface CandidateEmploymentTypeRow {
     employment_type: EmploymentType;
 }
 
-export class JobCandidateProfileRepository implements IJobCandidateProfileRepository {
+export class SqliteJobCandidateProfileRepository implements IJobCandidateProfileRepository {
     private readonly insertProfileStatement: Database.Statement;
     private readonly updateProfileStatement: Database.Statement;
     private readonly deleteProfileStatement: Database.Statement;
