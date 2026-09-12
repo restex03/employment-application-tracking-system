@@ -22,6 +22,8 @@ interface UseJobAssessmentPollingResult {
     getStatus: (jobPostId: string) => JobQueueStatus | null;
     enqueue: (jobPostId: string) => Promise<void>;
     enqueueMany: (jobPostIds: string[]) => Promise<void>;
+    /** Number of assessment jobs currently being polled (queued or in progress). */
+    activeJobCount: number;
     toasts: ToastMessage[];
     dismissToast: (id: string) => void;
 }
@@ -48,6 +50,7 @@ export function useJobAssessmentPolling({
 }: UseJobAssessmentPollingOptions): UseJobAssessmentPollingResult {
     const [trackedJobs, setTrackedJobs] = useState<Record<string, TrackedJob>>({});
     const [toasts, setToasts] = useState<ToastMessage[]>([]);
+    const [activeJobCount, setActiveJobCount] = useState(0);
 
     // Maps in-flight jobId -> jobPostId so the manager's settlement callback (keyed by jobId)
     // can be attributed back to the job post the UI cares about.
@@ -104,7 +107,11 @@ export function useJobAssessmentPolling({
                 } else {
                     addToast("error", "Job assessment failed.");
                 }
+
+                setActiveJobCount(managerRef.current?.size ?? 0);
             });
+
+            setActiveJobCount(managerRef.current?.size ?? 0);
         },
         [addToast]
     );
@@ -186,5 +193,5 @@ export function useJobAssessmentPolling({
         };
     }, []);
 
-    return { getStatus, enqueue, enqueueMany, toasts, dismissToast };
+    return { getStatus, enqueue, enqueueMany, activeJobCount, toasts, dismissToast };
 }

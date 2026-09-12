@@ -73,6 +73,7 @@ function JobPostsPage() {
         getStatus: getAssessmentStatus,
         enqueue: enqueueAssessment,
         enqueueMany: enqueueAssessments,
+        activeJobCount: activeAssessmentJobCount,
         toasts: assessmentToasts,
         dismissToast: dismissAssessmentToast,
     } = useJobAssessmentPolling({ candidateProfileId: CANDIDATE_PROFILE_ID });
@@ -420,6 +421,12 @@ function JobPostsPage() {
             <div className="page-header">
                 <h2>Job Posts ({totalCount})</h2>
                 <div className="header-actions">
+                    {activeAssessmentJobCount > 0 && (
+                        <span className="active-jobs-indicator" title="Job assessments currently being processed">
+                            <span className="active-jobs-spinner"></span>
+                            {activeAssessmentJobCount} assessment{activeAssessmentJobCount === 1 ? "" : "s"} running
+                        </span>
+                    )}
                     <button
                         onClick={handleRunSelectedAssessments}
                         className="sync-button"

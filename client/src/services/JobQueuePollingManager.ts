@@ -77,6 +77,11 @@ export class JobQueuePollingManager<TJob> {
         return this.timers.has(jobId);
     }
 
+    /** Number of jobs currently being polled. */
+    public get size(): number {
+        return this.timers.size;
+    }
+
     private async poll(jobId: string, onSettled: JobPollingSettledCallback<TJob>): Promise<void> {
         // The job may have been removed while this check was in flight.
         if (!this.timers.has(jobId)) {
