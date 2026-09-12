@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useJobPosts } from "../hooks/useJobPosts";
 import { useJobSources } from "../hooks/useJobSources";
 import { useSyncJobPosts } from "../hooks/useSyncJobPosts";
+import { useSyncJobsStatus } from "../hooks/useSyncJobsStatus";
 import { useJobAssessmentPolling } from "../hooks/useJobAssessmentPolling";
 import { IJobPostData } from "../types/JobPost";
 import JobPostModal from "../components/JobPostModal";
@@ -55,6 +56,11 @@ function JobPostsPage() {
         reset: resetSync,
         clearError: clearSyncError,
     } = useSyncJobPosts();
+    const {
+        initialCheckComplete: syncStatusCheckComplete,
+        isSyncing,
+        startPolling: startSyncPolling,
+    } = useSyncJobsStatus();
     const [selectedJobPost, setSelectedJobPost] = useState<IJobPostData | null>(null);
     const [isJobPostModalOpen, setIsJobPostModalOpen] = useState<boolean>(false);
     const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
@@ -206,7 +212,10 @@ function JobPostsPage() {
     };
 
     const handleSync = async (sourceIds?: string[], searchText?: string) => {
-        await sync(sourceIds, searchText);
+        const result = await sync(sourceIds, searchText);
+        if (result.success) {
+            startSyncPolling();
+        }
         window.location.reload();
     };
 
@@ -418,7 +427,12 @@ function JobPostsPage() {
                     >
                         Run Assessments ({selectedJobPostIds.size})
                     </button>
-                    <button onClick={openSyncModal} className="sync-button" disabled={jobSources.length === 0}>
+                    <button
+                        onClick={openSyncModal}
+                        className="sync-button"
+                        disabled={!syncStatusCheckComplete || isSyncing || jobSources.length === 0}
+                        title={isSyncing ? "Sync is already running. Please wait for it to finish." : undefined}
+                    >
                         Sync
                     </button>
                     <button onClick={() => setIsToolsModalOpen(true)} className="tools-button">
@@ -538,7 +552,11 @@ function JobPostsPage() {
                         {filteredAndSortedPosts.length === 0 ? (
                             <tr>
                                 <td colSpan={12} className="no-data">
-                                    No job posts match your filters.
+                                    {totalCount === 0 && Object.values(filters).every(value => !value)
+                                        ? isSyncing
+                                            ? "No job posts yet. A sync is currently running and the Sync button is disabled until it completes \u2014 refresh the page to check for new results."
+                                            : "No job posts yet. Click Sync to fetch job posts."
+                                        : "No job posts match your filters."}
                                 </td>
                             </tr>
                         ) : (

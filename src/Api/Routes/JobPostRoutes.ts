@@ -119,6 +119,21 @@ export class JobPostRoutes implements IRouteRegistrar {
             }
         });
 
+        server.get("/sync-jobs", async (request, reply) => {
+            try {
+                this.logger.info(`[${request.method}]  ${request.url}`);
+                const jobs = await this.jobPostSyncQueueService.getActiveJobs();
+
+                return reply.code(200).send(jobs);
+            } catch (error) {
+                const errMsg = error instanceof Error ? error.message : String(error);
+                this.logger.error(`[${request.method}]  ${request.url} Failed: ${errMsg}`);
+                return reply.code(500).send({
+                    error: `Failed to get job post sync jobs: ${errMsg}`,
+                });
+            }
+        });
+
         server.post<{
             Params: JobPostParams;
         }>("/job-posts/:jobPostId/sync", async (request, reply) => {
