@@ -4,8 +4,8 @@ import { IJobPostSyncQueueService } from "./IJobPostSyncQueueService";
 
 export class JobPostSyncQueueService implements IJobPostSyncQueueService {
     constructor(private readonly queue: IJobPostSyncQueue) {}
-    getJobById(jobId: string): Promise<IJobPostSyncJob | null> {
-        return this.queue.getJobById(jobId);
+    getJobByIdOrThrow(jobId: string): Promise<IJobPostSyncJob> {
+        return this.queue.getJobByIdOrThrow(jobId);
     }
     getActiveJobs(): Promise<IJobPostSyncJob[]> {
         return this.queue.getActiveJobs();

@@ -12,8 +12,11 @@ await loadDefaultJobCandidateProfilesIfEmpty(dependencies.jobCandidateProfileSer
 const server = new HttpServer(dependencies);
 const port = process.env.API_PORT ? parseInt(process.env.API_PORT) : 3000;
 const jobQueueWorkerSvc = dependencies.jobAssessmentQueueWorkerService;
+const jobPostSyncQueueWorkerSvc = dependencies.jobPostSyncQueueWorkerService;
+
 const shutdown = async () => {
     await jobQueueWorkerSvc.stop();
+    await jobPostSyncQueueWorkerSvc.stop();
     await server.stop();
     dependencies.sqliteConnection.close();
 
@@ -24,7 +27,8 @@ process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
 await server.start(port);
-await jobQueueWorkerSvc.start({ freqMs: 1000 });
+
+jobPostSyncQueueWorkerSvc.start({ freqMs: 1000 });
 
 console.log(`API server started at http://localhost:${port}`);
 console.log(`Health check: http://localhost:${port}/health`);

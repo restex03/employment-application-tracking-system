@@ -17,6 +17,7 @@ import { IJobPostResultService } from "../JobPost/IJobPostResultService";
 import { IJobPostDiscoveryServiceFactory } from "../JobPostDiscovery/IJobPostDiscoveryServiceFactory";
 import { IJobPostSyncService } from "../JobPostSync/IJobPostSyncService";
 import { IJobPostSyncQueueService } from "../JobPostSync/Queue/IJobPostSyncQueueService";
+import { IJobPostSyncQueueWorkerService } from "../JobPostSync/Queue/IJobPostSyncQueueWorkerService";
 import { IJobSourceService } from "../JobSources/IJobSourceService";
 
 export interface IApplicationDependencies {
@@ -31,6 +32,7 @@ export interface IApplicationDependencies {
     jobPostSyncQueueService: IJobPostSyncQueueService;
     jobAssessmentQueue: IJobAssessmentQueue;
     jobAssessmentQueueService: IJobAssessmentQueueService;
+    jobPostSyncQueueWorkerService: IJobPostSyncQueueWorkerService;
     jobCandidateProfileService: IJobCandidateProfileService;
     jobSourceService: IJobSourceService;
     llm: ILlmInferenceProvider;
