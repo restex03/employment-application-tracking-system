@@ -119,6 +119,12 @@
     border-bottom: 2px solid var(--border-color);
 }
 
+.job-post-link-section a {
+    font-family: "SF Mono", "Cascadia Code", "Consolas", "Menlo", "Liberation Mono", monospace;
+    font-size: 0.875rem;
+    word-break: break-word;
+}
+
 .detail-section {
     margin-bottom: 1.5rem;
 }

@@ -1,0 +1,72 @@
+.hamburger-menu {
+    position: relative;
+}
+
+.hamburger-button {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: transparent;
+    border: 1px solid rgb(255 255 255 / 0.4);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.hamburger-button:hover {
+    background-color: rgb(255 255 255 / 0.15);
+}
+
+.hamburger-button span {
+    display: block;
+    width: 1.25rem;
+    height: 2px;
+    background-color: white;
+    border-radius: var(--radius-full);
+}
+
+.hamburger-panel {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    min-width: 200px;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    z-index: 100;
+}
+
+.hamburger-panel ul {
+    list-style: none;
+    padding: 0.5rem;
+}
+
+.nav-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 0.625rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.nav-item:hover {
+    background-color: var(--background-color);
+}
+
+.nav-item-active {
+    color: var(--primary-color);
+    background-color: rgb(37 99 235 / 0.08);
+}

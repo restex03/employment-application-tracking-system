@@ -5,6 +5,9 @@
 }
 
 .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     background: linear-gradient(135deg, var(--primary-color) 0%, #7c3aed 100%);
     color: white;
     padding: 1.5rem 2rem;
