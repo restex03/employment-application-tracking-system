@@ -23,7 +23,7 @@ interface JobAssessmentJobStatusRow {
 
 export class SqliteJobAssessmentQueueRepository implements IJobAssessmentQueue {
     private readonly enqueueStatement: Database.Statement;
-    private readonly getStatusStatement: Database.Statement;
+    private readonly getJobById: Database.Statement;
     private readonly claimNextStatement: Database.Statement;
     private readonly completeStatement: Database.Statement;
     private readonly failStatement: Database.Statement;
@@ -64,8 +64,8 @@ export class SqliteJobAssessmentQueueRepository implements IJobAssessmentQueue {
             )
         `);
 
-        this.getStatusStatement = this.connection.prepare(`
-            SELECT status
+        this.getJobById = this.connection.prepare(`
+            SELECT *
             FROM job_assessment_job_queue
             WHERE id = @jobId
         `);
@@ -112,7 +112,7 @@ export class SqliteJobAssessmentQueueRepository implements IJobAssessmentQueue {
     }
 
     public async getJobByIdOrThrow(jobId: string): Promise<IJobAssessmentJob> {
-        const row = this.getStatusStatement.get({
+        const row = this.getJobById.get({
             jobId,
         }) as JobAssessmentJobRow | undefined;
 
