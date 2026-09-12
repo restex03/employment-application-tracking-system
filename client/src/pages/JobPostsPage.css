@@ -304,10 +304,6 @@
     background-color: var(--primary-hover);
 }
 
-.details-button:hover .details-icon {
-    filter: brightness(140%);
-}
-
 .details-icon {
     width: 18px;
     height: 18px;
