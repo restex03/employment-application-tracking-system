@@ -1,5 +1,5 @@
 import { IJobAssessmentResponse } from "../../Api/Contracts/JobAssessment/IJobAssessmentResponse";
-import { IJobAssessment, JobAssessment } from "../../Domain/JobAssessment/IJobAssessment";
+import { IJobAssessment, JobAssessment, JobAssessmentStatus } from "../../Domain/JobAssessment/IJobAssessment";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IJobAssessmentRepository } from "../../Infrastructure/Persistence/JobAssessments/IJobAssessmentRepository";
 import { IJobCandidateProfileRepository } from "../../Infrastructure/Persistence/JobCandidateProfiles/IJobCandidateProfileRepository";
@@ -12,6 +12,7 @@ import { IJobAssessmentService } from "./IJobAssessmentService";
 import { JobAssessmentContext, IJobAssessmentContext } from "./Pipeline/IJobAssessmentContext";
 import { IJobRequirementMatch } from "./RequirementMatching/IJobRequirementMatch";
 import { randomUUID } from "crypto";
+import { JobScreenDisposition } from "./Screening/IJobScreenResult";
 
 export class JobAssessmentService implements IJobAssessmentService {
     constructor(
@@ -109,8 +110,11 @@ export class JobAssessmentService implements IJobAssessmentService {
             jobMatchScore: context.jobMatchScore,
         };
     }
-    private getAssessmentStatus(disposition: string | undefined, status: PipelineStepStatus): JobAssessmentStatus {
-        if (disposition === "rejected") {
+    private getAssessmentStatus(
+        disposition: JobScreenDisposition | undefined,
+        status: PipelineStepStatus
+    ): JobAssessmentStatus {
+        if (disposition === "reject") {
             return "incomplete";
         }
         if (status === PipelineStepStatus.Failed) {
