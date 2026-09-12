@@ -60,24 +60,6 @@ export class JobCandidateProfileService implements IJobCandidateProfileService {
     /**
      * Retrieves a candidate profile by its ID.
      * @param id The ID of the candidate profile to retrieve.
-     * @returns The candidate profile if found, or undefined if not found.
-     */
-    async getCandidateProfile(id: string): Promise<ICandidateProfile | undefined> {
-        this.logger.debug(`Retrieving candidate profile with ID: ${id}`);
-        const profile = await this.repository.getCandidateProfileById(id);
-
-        if (!profile) {
-            this.logger.debug(`No candidate profile found with ID: ${id}`);
-            return undefined;
-        }
-
-        this.logger.debug(`Successfully retrieved candidate profile with ID: ${id}`);
-        return profile;
-    }
-
-    /**
-     * Retrieves a candidate profile by its ID.
-     * @param id The ID of the candidate profile to retrieve.
      * @returns The candidate profile if found.
      * @throws Error if the profile is not found.
      */
