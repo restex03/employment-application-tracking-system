@@ -101,7 +101,10 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
 
             try {
                 this.logger.info(`[${request.method}]  ${request.url}`);
-                const result = await this.jobAssessmentService.getAssessmentOrThrow(jobPostId, candidateProfileId);
+                const result = await this.jobAssessmentService.getLatestAssessmentOrThrow(
+                    jobPostId,
+                    candidateProfileId
+                );
 
                 return reply.code(200).send(result);
             } catch (error) {

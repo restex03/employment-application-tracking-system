@@ -29,8 +29,11 @@ export class JobAssessmentService implements IJobAssessmentService {
         return mapToResponse(result);
     }
 
-    public async getAssessmentOrThrow(jobPostId: string, candidateProfileId: string): Promise<IJobAssessmentResponse> {
-        const result = await this.jobAssessmentRepo.getByJobPostAndCandidateIdOrThrow(jobPostId, candidateProfileId);
+    public async getLatestAssessmentOrThrow(
+        jobPostId: string,
+        candidateProfileId: string
+    ): Promise<IJobAssessmentResponse> {
+        const result = await this.jobAssessmentRepo.getLatestAssessmentOrThrow(jobPostId, candidateProfileId);
         return mapToResponse(result);
     }
     private async updateDatabase(result: IJobAssessmentResult): Promise<void> {

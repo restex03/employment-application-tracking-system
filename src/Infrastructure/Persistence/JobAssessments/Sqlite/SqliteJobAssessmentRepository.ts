@@ -27,7 +27,7 @@ interface JobAssessmentRow {
 export class SqliteJobAssessmentRepository implements IJobAssessmentRepository {
     private readonly insertAssessmentStatement: Database.Statement;
     private readonly getAssessmentByIdStatement: Database.Statement;
-    private readonly getAssessmentByJobPostIdAndCandidateProfileIdStatement: Database.Statement;
+    private readonly getLatestAssessmentStatement: Database.Statement;
 
     constructor(
         private readonly connection: Database.Database,
@@ -47,47 +47,47 @@ export class SqliteJobAssessmentRepository implements IJobAssessmentRepository {
             SELECT * FROM job_assessments WHERE id = @id LIMIT 1
         `);
 
-        this.getAssessmentByJobPostIdAndCandidateProfileIdStatement = this.connection.prepare(`
-            SELECT * FROM job_assessments WHERE job_post_id = @jobPostId AND candidate_profile_id = @candidateProfileId LIMIT 1
+        this.getLatestAssessmentStatement = this.connection.prepare(`
+            SELECT * FROM job_assessments 
+            WHERE job_post_id = @jobPostId AND candidate_profile_id = @candidateProfileId 
+            ORDER BY created_at DESC
+            LIMIT 1
         `);
     }
-    public async getByJobPostAndCandidateId(
+    public async getLatestAssessment(
         jobPostId: string,
         candidateProfileId: string
     ): Promise<IJobAssessment | undefined> {
         this.logger.info(
-            `[JobAssessmentRepository.getByJobPostAndCandidate] Fetching assessment for job post ${jobPostId} / candidate ${candidateProfileId}`
+            `[JobAssessmentRepository.getLatestAssessment] Fetching assessment for job post ${jobPostId} / candidate ${candidateProfileId}`
         );
-        const row = this.getAssessmentByJobPostIdAndCandidateProfileIdStatement.get({
+        const row = this.getLatestAssessmentStatement.get({
             jobPostId,
             candidateProfileId,
         }) as JobAssessmentRow | undefined;
 
         if (!row) {
             this.logger.debug(
-                `[JobAssessmentRepository.getByJobPostAndCandidateId] Assessment not found: ${jobPostId}, ${candidateProfileId}`
+                `[JobAssessmentRepository.getLatestAssessment] Assessment not found for job post ${jobPostId} and candidate ${candidateProfileId}`
             );
             return undefined;
         }
 
         const assessment = this.mapRowToAssessment(row);
         this.logger.debug(
-            `[JobAssessmentRepository.getByJobPostAndCandidateId] Retrieved assessment: ${jobPostId}, ${candidateProfileId}`
+            `[JobAssessmentRepository.getLatestAssessment] Retrieved assessment for job post ${jobPostId} and candidate ${candidateProfileId}`
         );
         return assessment;
     }
 
-    public async getByJobPostAndCandidateIdOrThrow(
-        jobPostId: string,
-        candidateProfileId: string
-    ): Promise<IJobAssessment> {
-        const result = await this.getByJobPostAndCandidateId(jobPostId, candidateProfileId);
+    public async getLatestAssessmentOrThrow(jobPostId: string, candidateProfileId: string): Promise<IJobAssessment> {
+        const result = await this.getLatestAssessment(jobPostId, candidateProfileId);
         if (!result) {
             this.logger.error(
-                `[JobAssessmentRepository.getByJobPostAndCandidateIdOrThrow] Assessment with ID ${jobPostId} / ${candidateProfileId} does not exist.`
+                `[JobAssessmentRepository.getLatestAssessmentOrThrow] Assessment with ID ${jobPostId} / ${candidateProfileId} does not exist.`
             );
             throw new NotFoundError(
-                `[JobAssessmentRepository.getByJobPostAndCandidateIdOrThrow] Assessment with ID ${jobPostId} / ${candidateProfileId} does not exist.`,
+                `[JobAssessmentRepository.getLatestAssessmentOrThrow] Assessment with ID ${jobPostId} / ${candidateProfileId} does not exist.`,
                 "jobPostId / candidateProfileId"
             );
         }
