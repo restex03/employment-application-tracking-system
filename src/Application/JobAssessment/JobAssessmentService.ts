@@ -13,8 +13,6 @@ import { JobAssessmentContext, IJobAssessmentContext } from "./Pipeline/IJobAsse
 import { IJobRequirementMatch } from "./RequirementMatching/IJobRequirementMatch";
 import { randomUUID } from "crypto";
 
-export type AssessmentStatus = "complete" | "incomplete";
-
 export class JobAssessmentService implements IJobAssessmentService {
     constructor(
         private readonly candidateProfileRepo: IJobCandidateProfileRepository,
@@ -99,7 +97,8 @@ export class JobAssessmentService implements IJobAssessmentService {
 
     private createAssessmentResult(context: IJobAssessmentContext, status: PipelineStepStatus): IJobAssessmentResult {
         return {
-            status: status === PipelineStepStatus.Succeeded ? "complete" : "incomplete",
+            // status: status === PipelineStepStatus.Succeeded ? "complete" : "incomplete",
+            status: this.getAssessmentStatus(context.screenResult?.disposition, status),
             jobSource: context.jobSource,
             candidateProfile: context.candidateProfile,
             job: context.job,
@@ -109,6 +108,19 @@ export class JobAssessmentService implements IJobAssessmentService {
             requirementMatches: context.requirementMatches,
             jobMatchScore: context.jobMatchScore,
         };
+    }
+    private getAssessmentStatus(disposition: string | undefined, status: PipelineStepStatus): JobAssessmentStatus {
+        if (disposition === "rejected") {
+            return "incomplete";
+        }
+        if (status === PipelineStepStatus.Failed) {
+            return "incomplete";
+        }
+        if (status === PipelineStepStatus.Succeeded) {
+            return "complete";
+        }
+        this.logger.warn(`[JobAssessmentService] Assessment unknown due to unknown status or disposition.`);
+        return "unknown";
     }
 
     private truncate(value: string | null | undefined, maxLength = 120): string {

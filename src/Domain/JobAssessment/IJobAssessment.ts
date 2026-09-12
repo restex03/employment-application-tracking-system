@@ -5,7 +5,7 @@ import { IJobScreenResult } from "../../Application/JobAssessment/Screening/IJob
 
 export type JobAssessmentReviewStatus = "unreviewed" | "accepted" | "flagged";
 
-export type JobAssessmentStatus = "complete" | "incomplete";
+export type JobAssessmentStatus = "complete" | "incomplete" | "unknown";
 
 export interface IJobAssessment {
     readonly id: string;

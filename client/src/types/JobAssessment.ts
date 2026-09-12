@@ -1,4 +1,4 @@
-export type JobAssessmentStatus = "complete" | "incomplete";
+export type JobAssessmentStatus = "complete" | "incomplete" | "unknown";
 export type JobAssessmentReviewStatus = "unreviewed" | "accepted" | "flagged";
 
 export type JobRequirementCategory =

@@ -1,6 +1,12 @@
 import Database from "better-sqlite3";
 
-import { IJobAssessment, JobAssessment, JobAssessmentProps } from "../../../../Domain/JobAssessment/IJobAssessment";
+import {
+    IJobAssessment,
+    JobAssessment,
+    JobAssessmentProps,
+    JobAssessmentReviewStatus,
+    JobAssessmentStatus,
+} from "../../../../Domain/JobAssessment/IJobAssessment";
 import { NotFoundError } from "../../../../Application/Common/Errors/NotFoundError";
 import { IJobAssessmentRepository } from "../IJobAssessmentRepository";
 import { ILogger } from "../../../Logging/ILogger";
@@ -144,8 +150,8 @@ export class SqliteJobAssessmentRepository implements IJobAssessmentRepository {
             candidateProfileId: row.candidate_profile_id,
             jobPostId: row.job_post_id,
             createdAt: new Date(row.created_at),
-            status: row.status as "complete" | "incomplete",
-            reviewStatus: row.review_status as "unreviewed" | "accepted" | "flagged",
+            status: row.status as JobAssessmentStatus,
+            reviewStatus: row.review_status as JobAssessmentReviewStatus,
             screenResult: row.screen_result_json ? JSON.parse(row.screen_result_json) : undefined,
             requirements: row.requirements_json ? JSON.parse(row.requirements_json) : [],
             requirementMatches: row.requirement_matches_json ? JSON.parse(row.requirement_matches_json) : [],
