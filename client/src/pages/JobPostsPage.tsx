@@ -13,7 +13,8 @@ import "./JobPostsPage.css";
 
 const CANDIDATE_PROFILE_ID = "russell-estes";
 
-type SortableColumn = "company" | "requisitionId" | "title" | "locations" | "daysOld" | "createdAt" | null;
+type SortableColumn =
+    "company" | "requisitionId" | "title" | "locations" | "daysOld" | "createdAt" | "jobMatchScore" | null;
 type SortDirection = "asc" | "desc" | null;
 
 interface FilterState {
@@ -22,6 +23,7 @@ interface FilterState {
     title: string;
     locations: string;
     daysOld: string;
+    jobMatchScore: string;
 }
 
 function JobPostsPage() {
@@ -31,6 +33,7 @@ function JobPostsPage() {
         title: "",
         locations: "",
         daysOld: "",
+        jobMatchScore: "",
     });
     const {
         jobPosts,
@@ -46,6 +49,7 @@ function JobPostsPage() {
         title: filters.title,
         location: filters.locations,
         daysOld: filters.daysOld,
+        jobMatchScore: filters.jobMatchScore,
     });
     const { jobSources, getCompanyName, loading: sourcesLoading, error: sourcesError } = useJobSources();
     const {
@@ -93,6 +97,13 @@ function JobPostsPage() {
                 if (sortColumn === "daysOld") {
                     const aValue = formatdaysOldSort(a.daysOld);
                     const bValue = formatdaysOldSort(b.daysOld);
+                    return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+                }
+
+                if (sortColumn === "jobMatchScore") {
+                    // Jobs without a score sort as lowest so they don't interleave with real scores.
+                    const aValue = a.jobMatchScore ?? -1;
+                    const bValue = b.jobMatchScore ?? -1;
                     return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
                 }
 
@@ -201,6 +212,7 @@ function JobPostsPage() {
             title: "",
             locations: "",
             daysOld: "",
+            jobMatchScore: "",
         });
         setPage(1);
     };
@@ -491,6 +503,24 @@ function JobPostsPage() {
                         onChange={e => handleFilterChange("daysOld", e.target.value)}
                         className="filter-input"
                     />
+                    <select
+                        value={filters.jobMatchScore}
+                        onChange={e => handleFilterChange("jobMatchScore", e.target.value)}
+                        className="filter-input"
+                        aria-label="Filter Job Match"
+                    >
+                        <option value="">Job Match Score: All</option>
+                        <option value="0">Job Match Score: &gt;=0</option>
+                        <option value="25">Job Match Score: &gt;=25</option>
+                        <option value="50">Job Match Score: &gt;=50</option>
+                        <option value="60">Job Match Score: &gt;=60</option>
+                        <option value="70">Job Match Score: &gt;=70</option>
+                        <option value="80">Job Match Score: &gt;=80</option>
+                        <option value="85">Job Match Score: &gt;=85</option>
+                        <option value="90">Job Match Score: &gt;=90</option>
+                        <option value="95">Job Match Score: &gt;=95</option>
+                        <option value="100">Job Match Score: 100</option>
+                    </select>
                     <button onClick={clearAllFilters} className="clear-filters-button">
                         Clear
                     </button>
@@ -513,7 +543,12 @@ function JobPostsPage() {
                                     title="Select all on this page"
                                 />
                             </th>
-                            <th className="score-column">Job Match</th>
+                            <th className="score-column" onClick={() => handleSort("jobMatchScore")}>
+                                <div className="sortable-header">
+                                    <span>Job Match</span>
+                                    <span className="sort-icon">{getSortIndicator("jobMatchScore")}</span>
+                                </div>
+                            </th>
                             <th onClick={() => handleSort("company")}>
                                 <div className="sortable-header">
                                     <span>Company</span>

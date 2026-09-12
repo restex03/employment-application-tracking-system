@@ -27,7 +27,7 @@ interface JobAssessmentRow {
 export class SqliteJobAssessmentRepository implements IJobAssessmentRepository {
     private readonly insertAssessmentStatement: Database.Statement;
     private readonly getAssessmentByIdStatement: Database.Statement;
-    private readonly getLatestAssessmentStatement: Database.Statement;
+    private readonly getLatestAssessmentForJobPostAndCandidateProfileStatement: Database.Statement;
 
     constructor(
         private readonly connection: Database.Database,
@@ -47,7 +47,7 @@ export class SqliteJobAssessmentRepository implements IJobAssessmentRepository {
             SELECT * FROM job_assessments WHERE id = @id LIMIT 1
         `);
 
-        this.getLatestAssessmentStatement = this.connection.prepare(`
+        this.getLatestAssessmentForJobPostAndCandidateProfileStatement = this.connection.prepare(`
             SELECT * FROM job_assessments 
             WHERE job_post_id = @jobPostId AND candidate_profile_id = @candidateProfileId 
             ORDER BY created_at DESC
@@ -61,7 +61,7 @@ export class SqliteJobAssessmentRepository implements IJobAssessmentRepository {
         this.logger.info(
             `[JobAssessmentRepository.getLatestAssessment] Fetching assessment for job post ${jobPostId} / candidate ${candidateProfileId}`
         );
-        const row = this.getLatestAssessmentStatement.get({
+        const row = this.getLatestAssessmentForJobPostAndCandidateProfileStatement.get({
             jobPostId,
             candidateProfileId,
         }) as JobAssessmentRow | undefined;

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useCandidateProfiles } from "../hooks/useCandidateProfiles";
 import { ICandidateProfile } from "../types/CandidateProfile";
-import CandidateProfileModal from "../components/CandidateProfileModal";
+
 import "./CandidateProfilesPage.css";
+import CandidateProfileModal from "../components/CandidateProfileModal";
 
 function CandidateProfilesPage() {
     const { candidateProfiles, loading, error } = useCandidateProfiles();

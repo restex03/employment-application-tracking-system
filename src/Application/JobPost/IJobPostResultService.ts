@@ -7,7 +7,7 @@ export interface JobPostQueryFilters {
     title: string;
     location: string;
     daysOld: string;
-    jobMatchScore: number;
+    jobMatchScore?: number;
 }
 
 export interface IJobPostResultService {

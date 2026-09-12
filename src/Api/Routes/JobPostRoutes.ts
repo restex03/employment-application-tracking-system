@@ -43,13 +43,18 @@ export class JobPostRoutes implements IRouteRegistrar {
                 this.logger.info(`[${request.method}]  ${request.url} Retrieving job posts`);
                 const pageCount = parseInt(request.query.pageCount || "10");
                 const pageNumber = parseInt(request.query.pageNumber || "1");
+                const rawJobMatchScore = request.query.jobMatchScore;
+                const jobMatchScore =
+                    rawJobMatchScore !== undefined && `${rawJobMatchScore}`.trim() !== ""
+                        ? Number(rawJobMatchScore)
+                        : undefined;
                 const queryFilters = {
                     companyName: request.query.companyName?.trim() ?? "",
                     requisitionId: request.query.requisitionId?.trim() ?? "",
                     title: request.query.title?.trim() ?? "",
                     location: request.query.location?.trim() ?? "",
                     daysOld: request.query.daysOld?.trim() ?? "",
-                    jobMatchScore: request.query.jobMatchScore,
+                    jobMatchScore: Number.isNaN(jobMatchScore) ? undefined : jobMatchScore,
                 } as JobPostQueryFilters;
                 const result = await this.jobPostResultService.getAll(pageCount, pageNumber, queryFilters);
                 return result;
