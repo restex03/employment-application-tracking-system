@@ -7,7 +7,7 @@ import { JobQueueStatus } from "../JobQueueStatus";
 export interface IJobAssessmentQueue {
     getActiveJobs(): Promise<IJobAssessmentJob[]>;
     enqueue(job: IJobAssessmentJobRequest): Promise<string>;
-    getStatus(jobId: string): Promise<JobQueueStatus | null>;
+    getJobByIdOrThrow(jobId: string): Promise<IJobAssessmentJob>;
 
     claimNext(): Promise<IJobAssessmentJob | null>;
 

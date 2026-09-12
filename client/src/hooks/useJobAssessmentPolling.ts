@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IAssessmentJob, JobQueueStatus } from "../types/JobAssessmentJob";
-import { JobPollingStatus, JobQueuePollingManager } from "../services/JobQueuePollingManager";
+import { JobQueuePollingManager } from "../services/JobQueuePollingManager";
 
 export interface ToastMessage {
     id: string;
@@ -28,14 +28,18 @@ interface UseJobAssessmentPollingResult {
 
 const POLL_INTERVAL_MS = 10_000;
 const IN_FLIGHT_STATUSES: ReadonlySet<JobQueueStatus> = new Set(["QUEUED", "IN_PROGRESS"]);
+const TERMINAL_STATUSES: ReadonlySet<JobQueueStatus> = new Set(["COMPLETED", "FAILED"]);
 
-async function checkJobStatus(jobId: string): Promise<JobPollingStatus | null> {
+async function getJobById(jobId: string): Promise<IAssessmentJob | null> {
     const response = await fetch(`/api/v1/assessment-jobs/${jobId}`);
     if (!response.ok) {
         return null;
     }
-    const data = await response.json();
-    return (data.status as JobPollingStatus) ?? null;
+    return (await response.json()) as IAssessmentJob;
+}
+
+function isJobTerminal(job: IAssessmentJob): boolean {
+    return TERMINAL_STATUSES.has(job.status);
 }
 
 export function useJobAssessmentPolling({
@@ -49,9 +53,13 @@ export function useJobAssessmentPolling({
     // can be attributed back to the job post the UI cares about.
     const jobPostIdByJobId = useRef<Map<string, string>>(new Map());
 
-    const managerRef = useRef<JobQueuePollingManager | null>(null);
+    const managerRef = useRef<JobQueuePollingManager<IAssessmentJob> | null>(null);
     if (!managerRef.current) {
-        managerRef.current = new JobQueuePollingManager({ checkStatus: checkJobStatus, pollIntervalMs });
+        managerRef.current = new JobQueuePollingManager<IAssessmentJob>({
+            getJobById,
+            isTerminal: isJobTerminal,
+            pollIntervalMs,
+        });
     }
 
     const addToast = useCallback((type: ToastMessage["type"], message: string) => {
@@ -75,7 +83,7 @@ export function useJobAssessmentPolling({
                 [jobPostId]: { jobId, status: initialStatus },
             }));
 
-            managerRef.current?.add(jobId, (settledJobId, status) => {
+            managerRef.current?.add(jobId, (settledJobId, settledJob) => {
                 const settledJobPostId = jobPostIdByJobId.current.get(settledJobId);
                 jobPostIdByJobId.current.delete(settledJobId);
                 if (!settledJobPostId) {
@@ -88,10 +96,10 @@ export function useJobAssessmentPolling({
                     if (!existing || existing.jobId !== settledJobId) {
                         return prev;
                     }
-                    return { ...prev, [settledJobPostId]: { ...existing, status } };
+                    return { ...prev, [settledJobPostId]: { ...existing, status: settledJob.status } };
                 });
 
-                if (status === "COMPLETED") {
+                if (settledJob.status === "COMPLETED") {
                     addToast("success", "Job assessment completed successfully.");
                 } else {
                     addToast("error", "Job assessment failed.");

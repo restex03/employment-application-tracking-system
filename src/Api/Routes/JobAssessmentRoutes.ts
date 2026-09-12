@@ -74,7 +74,7 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
 
             try {
                 this.logger.info(`[${request.method}]  ${request.url}`);
-                const status = await this.jobAssessmentQueueService.getStatus(jobId);
+                const status = await this.jobAssessmentQueueService.getJobByIdOrThrow(jobId);
 
                 if (status === null) {
                     return reply.code(404).send({

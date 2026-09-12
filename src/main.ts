@@ -27,7 +27,7 @@ process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
 await server.start(port);
-
+jobQueueWorkerSvc.start({ freqMs: 1000 });
 jobPostSyncQueueWorkerSvc.start({ freqMs: 1000 });
 
 console.log(`API server started at http://localhost:${port}`);

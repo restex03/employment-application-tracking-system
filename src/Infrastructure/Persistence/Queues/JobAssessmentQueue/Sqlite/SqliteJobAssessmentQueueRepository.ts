@@ -111,12 +111,16 @@ export class SqliteJobAssessmentQueueRepository implements IJobAssessmentQueue {
         return rows.map(row => this.mapRow(row));
     }
 
-    public async getStatus(jobId: string): Promise<JobQueueStatus | null> {
+    public async getJobByIdOrThrow(jobId: string): Promise<IJobAssessmentJob> {
         const row = this.getStatusStatement.get({
             jobId,
-        }) as JobAssessmentJobStatusRow | undefined;
+        }) as JobAssessmentJobRow | undefined;
 
-        return row?.status ?? null;
+        if (!row) {
+            throw new Error(`Job with ID ${jobId} not found`);
+        }
+
+        return this.mapRow(row);
     }
 
     public async enqueue(job: IJobAssessmentJobRequest): Promise<string> {

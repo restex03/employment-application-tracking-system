@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IJobPostSyncJob } from "../types/JobPostSyncJob";
-import { JobPollingStatus, JobQueuePollingManager } from "../services/JobQueuePollingManager";
+import { JobQueuePollingManager } from "../services/JobQueuePollingManager";
 
 const POLL_INTERVAL_MS = 5_000;
 // Single synthetic key: the manager tracks per-job-id polling, but we only care about the
@@ -15,10 +15,9 @@ async function fetchActiveSyncJobs(): Promise<IJobPostSyncJob[]> {
     return await response.json();
 }
 
-// Reports "COMPLETED" once no sync jobs remain active; returning null keeps the manager polling.
-async function checkSyncJobsSettled(): Promise<JobPollingStatus | null> {
-    const jobs = await fetchActiveSyncJobs();
-    return jobs.length === 0 ? "COMPLETED" : null;
+// The manager settles once no sync jobs remain active; an empty snapshot is the terminal state.
+function isSyncSettled(jobs: IJobPostSyncJob[]): boolean {
+    return jobs.length === 0;
 }
 
 export interface UseSyncJobsStatusResult {
@@ -38,9 +37,13 @@ export function useSyncJobsStatus(pollIntervalMs: number = POLL_INTERVAL_MS): Us
     const [initialCheckComplete, setInitialCheckComplete] = useState(false);
     const [isSyncing, setIsSyncing] = useState(false);
 
-    const managerRef = useRef<JobQueuePollingManager | null>(null);
+    const managerRef = useRef<JobQueuePollingManager<IJobPostSyncJob[]> | null>(null);
     if (!managerRef.current) {
-        managerRef.current = new JobQueuePollingManager({ checkStatus: checkSyncJobsSettled, pollIntervalMs });
+        managerRef.current = new JobQueuePollingManager<IJobPostSyncJob[]>({
+            getJobById: fetchActiveSyncJobs,
+            isTerminal: isSyncSettled,
+            pollIntervalMs,
+        });
     }
 
     const startPolling = useCallback(() => {
