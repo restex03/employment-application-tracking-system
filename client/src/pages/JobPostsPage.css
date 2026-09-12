@@ -289,19 +289,29 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: #9ca3af;
     border: none;
     padding: 0.25rem 0.5rem;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-full);
     font-size: 0.875rem;
     font-weight: 500;
-    background-color: var(--primary-color);
-    transition: background-color 0.2s ease;
+    background: transparent;
+    transition:
+        color 0.2s ease-out,
+        background-color 0.2s ease-out,
+        filter 0.2s ease-out,
+        transform 0.2s ease-out;
     cursor: pointer;
 }
 
 .details-button:hover {
-    background-color: var(--primary-hover);
+    filter: brightness(115%);
+    background-color: rgba(202, 208, 223, 0.1);
+    transform: scale(1.06);
+}
+
+.job-post-row:hover .details-button {
+    color: var(--primary-color);
 }
 
 .details-icon {

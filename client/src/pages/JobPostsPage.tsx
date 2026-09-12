@@ -575,8 +575,9 @@ function JobPostsPage() {
                                             }}
                                         >
                                             <svg className="details-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
-                                                <circle cx="12" cy="12" r="3" />
+                                                <circle cx="12" cy="12" r="10" />
+                                                <line x1="12" y1="11" x2="12" y2="16" />
+                                                <circle cx="12" cy="7.5" r="1" fill="currentColor" stroke="none" />
                                             </svg>
                                         </button>
                                     </td>
