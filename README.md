@@ -44,60 +44,96 @@ Provider-specific infrastructure is kept separate from the application and evalu
 
 ```
 src/
-├── Application/ # Application workflows and orchestration
-│ ├── DependencyInjection/ # Dependency registration
-│ ├── JobAssessment/ # Job screening and requirement evaluation
-│ ├── JobDiscovery/ # Job retrieval workflows
-│ └── Pipelines/ # Reusable pipeline execution & future paralelization
-│
-├── data/ # Application seed and candidate profile data
-│
-├── Domain/ # Core application models and contracts
-│ ├── Candidates/ # Candidate profile definitions
-│ ├── JobAssessment/ # Assessment-related domain models
-│ └── JobPosts/ # Job posting models and lookup contracts
-│
-└── Infrastructure/ # External systems and persistence
-    ├── Inference/ # LLM provider integrations
-    ├── JobSources/ # Job-source integrations
-    ├── Logging/ # Logging implementations
-    └── Persistence/ # Database repositories
+├── Api/                 # Fastify HTTP host, routes, and route contracts
+├── Application/         # Application workflows and orchestration
+│   ├── DependencyInjection/  # Dependency registration
+│   ├── JobAssessment/        # Job screening, scoring, and requirement evaluation
+│   ├── JobCandidateProfiles/ # Candidate profile CRUD workflows
+│   ├── JobPostDiscovery/     # Job retrieval workflows (e.g. Workday)
+│   ├── JobPostSync/          # Background job-post sync + queue
+│   ├── JobSources/           # Job source management
+│   └── Pipelines/            # Reusable pipeline execution engine
+├── Domain/              # Core application models and contracts
+│   ├── Candidates/      # Candidate profile definitions
+│   ├── JobAssessment/   # Assessment-related domain models
+│   ├── JobPosts/        # Job posting models and lookup contracts
+│   └── JobSources/      # Job source domain models
+├── Examples/            # Example/template data (e.g. candidateProfiles.example.json)
+└── Infrastructure/      # External systems and persistence
+    ├── Inference/       # LLM provider integrations (OpenAI-compatible / Ollama)
+    ├── JobSources/      # Job-source integrations (e.g. Workday)
+    ├── Logging/         # Logging implementations
+    └── Persistence/     # SQLite repositories and queues
 
+client/                  # React + Vite single-page frontend
+└── src/
+    ├── components/      # Modals, toasts, and other shared UI components
+    ├── hooks/           # Data-fetching and polling hooks
+    ├── pages/           # Top-level pages (Job Posts, Candidate Profiles)
+    ├── services/        # Framework-agnostic client services (e.g. job queue polling)
+    └── types/           # Client-side type definitions mirroring the API contracts
+
+data/                    # Runtime data, gitignored (see "Data Files" below)
+├── JobSources/workdaySources.json
+├── CandidateProfiles/candidateProfile.json
+└── job-app.db
 ```
 
 ## Technology Stack
 
-- Language: TypeScript
-- Runtime: Node.js
-- Database: SQLite (currently dormant)
-- LLM Runtime: Ollama
+- Language: TypeScript (backend and frontend)
+- Backend Runtime: Node.js + Fastify (REST API at `/api/v1`)
+- Frontend: React + Vite (served separately from the API in development)
+- Database: SQLite (active; stores job sources, job posts, candidate profiles, assessments, and background job queues)
+- LLM Runtime: Ollama by default, with optional OpenAI-compatible provider support
 - Job Sources: Workday-hosted career sites
 - Architecture: Layered architecture with dependency injection
-- Testing: Automated unit tests for application and scoring behavior
+- Testing: Vitest for both the backend (`src/`) and frontend (`client/src/`)
 
 ## Getting Started
 
-Prerequisites
+### Prerequisites
 
 - Current Node.js LTS
 - npm
-- Ollama
+- Ollama (unless you configure an OpenAI-compatible provider instead)
 
-## Installation
+### Installation
 
-`npm install`
+Install backend dependencies from the repository root, then install frontend dependencies in `client/`:
 
-## Candidate Profile Configuration
+```
+npm install
+cd client && npm install
+```
 
-The repository contains an example candidate profile that can be used as a template.
+### Environment Configuration
 
-## Copy:
+Copy the example environment file and fill in values for your machine:
 
-`src/data/candidateProfiles.example.jsonc`
+```
+cp .envExample .env
+```
 
-to
+| Variable                  | Required | Description                                                              |
+| ------------------------- | -------- | ------------------------------------------------------------------------ |
+| `DB_PATH`                 | Yes      | Path to the SQLite database file (e.g. `./data/job-app.db`).             |
+| `API_PORT`                | No       | Port the API server listens on. Defaults to `3000`.                      |
+| `WORKDAY_SOURCES`         | Yes      | Path to the Workday job sources JSON file (see "Job Sources" below).     |
+| `CANDIDATE_PROFILE`       | Yes      | Path to the candidate profile JSON file (see "Candidate Profile" below). |
+| `OLLAMA_BASE_URL`         | Yes      | Base URL of the local Ollama server.                                     |
+| `OLLAMA_MODEL`            | Yes      | Ollama model name used for job evaluation.                               |
+| `OPENAI_PROVIDER_API_KEY` | No       | If set, uses an OpenAI-compatible provider instead of Ollama.            |
 
-`src/data/candidateProfiles.jsonc`
+### Candidate Profile Configuration
+
+The repository contains an example candidate profile that can be used as a template:
+
+`src/Examples/candidateProfiles.example.json`
+
+Copy it to the path referenced by `CANDIDATE_PROFILE` in your `.env` file:
+
+`data/CandidateProfiles/candidateProfile.json`
 
 Then customize the local profile with your own:
 
@@ -110,42 +146,55 @@ Then customize the local profile with your own:
 - Work arrangements and locations
 - Hard constraints
 
-`candidateProfiles.jsonc` contains private candidate information and is intentionally excluded from source control.
+On first run, if no candidate profiles exist in the database, this file is automatically seeded. `data/` is gitignored, so this file contains private candidate information and is intentionally excluded from source control.
 
 Do not commit personal candidate data to the repository.
 
-## Job Sources
+### Job Sources
 
-Workday sources are configured in the following data file and seeded into the database when the
-application starts.
-`data\JobSources\workdaySources.json`
+Workday sources are configured in the file referenced by `WORKDAY_SOURCES` in your `.env` file:
 
-Additional Workday-hosted career sites can be added through the existing source configuration.
+`data/JobSources/workdaySources.json`
 
-## Ollama
+On first run, if no job sources exist in the database, this file is automatically seeded. Additional Workday-hosted career sites can be added through the existing source configuration.
 
-Ensure Ollama is installed and running before starting the application.
+### Ollama
+
+Ensure Ollama is installed and running before starting the application, unless `OPENAI_PROVIDER_API_KEY` is set to use an OpenAI-compatible provider instead.
 
 The LLM implementation is accessed through an abstraction so model and provider implementations can be changed independently of the job-evaluation workflow.
 
 ## Usage
 
-Start the scripted application workflow:
-`npm start`
+All commands below are run from the repository root unless noted otherwise.
 
-Start the scripted workflow and write console output to `output.txt`:
-`npm run start:tee`
+### Backend API
 
-Start the alternative API entry point (WIP; may be broken):
-`npm run api`
+| Command       | Description                                             |
+| ------------- | ------------------------------------------------------- |
+| `npm start`   | Start the API server once.                              |
+| `npm run dev` | Start the API server with auto-restart on file changes. |
+
+The API server starts at `http://localhost:3000` (or `API_PORT`), with routes mounted under `/api/v1` and a health check at `/health`.
+
+### Frontend
+
+| Command                    | Description                                                           |
+| -------------------------- | --------------------------------------------------------------------- |
+| `npm run frontend:dev`     | Start the Vite dev server (`client/`) at `http://localhost:3001`.     |
+| `npm run frontend:build`   | Build the frontend for production into `client/dist`.                 |
+| `npm run frontend:preview` | Preview the production frontend build locally.                        |
+| `npm run dev:full`         | Start both the backend (watch mode) and frontend dev server together. |
+
+The frontend dev server proxies `/api` requests to the backend at `http://localhost:3000`, so the backend must be running (e.g. via `npm run dev`) for the frontend to function.
 
 ### Pre-run Validation
 
 Run typescript validation:
 `npm run typecheck`
 
-Run tests:
-`npm test`
+Run backend + frontend validation together:
+`npm run verify`
 
 ## Features
 
@@ -171,7 +220,7 @@ This project supports local AI through Ollama. Candidate profile information and
 
 ### Persistence
 
-SQLite persistence is implemented for job sources and discovered job posts. Persistence for additional evaluation data remains a work in progress.
+SQLite persistence is implemented for job sources, discovered job posts, candidate profiles, job assessments, and the background job queues used for syncing job posts and running assessments.
 
 ### Extensible Architecture
 
@@ -183,20 +232,30 @@ Candidate profiles may contain résumé-level personal information and should no
 
 The repository includes a generic example profile for configuration guidance while the actual local candidate profile is excluded through `.gitignore`.
 
-## Development
+## Testing
+
+### Backend Tests
+
+From the repository root:
+
+| Command             | Description                                     |
+| ------------------- | ----------------------------------------------- |
+| `npm test`          | Run backend tests in watch mode.                |
+| `npm run test:run`  | Run backend tests once (CI-friendly).           |
+| `npm run typecheck` | Type-check the backend without emitting output. |
+| `npm run verify`    | Run `typecheck` followed by `test:run`.         |
+
+### Frontend Tests
+
+From the `client/` directory:
 
 ```
+cd client
+npx vitest run
+```
 
-# Type checking
+Omit `run` (`npx vitest`) to run frontend tests in watch mode. To run a single test file:
 
-npm run typecheck
-
-# Tests
-
-npm test
-
-# Run application
-
-npm start
-
+```
+npx vitest run src/services/JobQueuePollingManager.test.ts
 ```

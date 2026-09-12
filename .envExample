@@ -3,6 +3,10 @@ OLLAMA_MODEL=qwen3:4b-instruct
 # OLLAMA_MODEL=gemma3:4b
 # OLLAMA_MODEL=qwen3:8b
 
+# Optional: use an OpenAI-compatible provider instead of Ollama.
+# OPENAI_PROVIDER_API_KEY=
+
 DB_PATH=./data/job-app.db
 API_PORT=3000
-CANDIDATE_PROFILE=./src/data/candidateProfiles.json
+CANDIDATE_PROFILE=./data/CandidateProfiles/candidateProfile.json
+WORKDAY_SOURCES=./data/JobSources/workdaySources.json
