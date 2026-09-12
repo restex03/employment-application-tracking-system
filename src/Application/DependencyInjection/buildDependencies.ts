@@ -158,10 +158,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         logger
     );
 
-    const jobAssessmentQueueService: IJobAssessmentQueueService = new JobAssessmentQueueService(
-        jobAssessmentQueue,
-        jobAssessmentService
-    );
+    const jobAssessmentQueueService: IJobAssessmentQueueService = new JobAssessmentQueueService(jobAssessmentQueue);
 
     const jobAssessmentQueueWorkerService: IJobAssessmentQueueWorkerService = new JobAssessmentQueueWorkerService(
         jobAssessmentQueue,

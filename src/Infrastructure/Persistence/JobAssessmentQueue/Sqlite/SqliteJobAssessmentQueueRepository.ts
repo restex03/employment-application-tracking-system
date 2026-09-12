@@ -28,21 +28,28 @@ export class SqliteJobAssessmentQueueRepository implements IJobAssessmentQueue {
     private readonly claimNextStatement: Database.Statement;
     private readonly completeStatement: Database.Statement;
     private readonly failStatement: Database.Statement;
-    private readonly findActiveJobStatement: Database.Statement;
+    private readonly findActiveJobByIdStatement: Database.Statement;
+    private readonly findActiveJobsStatement: Database.Statement;
 
     constructor(
         private readonly connection: Database.Database,
         private readonly logger: ILogger
     ) {
-        this.findActiveJobStatement = this.connection.prepare(`
-    SELECT id
-    FROM job_assessment_job_queue
-    WHERE job_post_id = @jobPostId
-      AND candidate_profile_id = @candidateProfileId
-      AND status IN (@queuedStatus, @inProgressStatus)
-    ORDER BY created_at ASC
-    LIMIT 1
-`);
+        this.findActiveJobByIdStatement = this.connection.prepare(`
+            SELECT id
+            FROM job_assessment_job_queue
+            WHERE job_post_id = @jobPostId
+            AND candidate_profile_id = @candidateProfileId
+            AND status IN (@queuedStatus, @inProgressStatus)
+            ORDER BY created_at ASC
+            LIMIT 1
+        `);
+        this.findActiveJobsStatement = this.connection.prepare(`
+            SELECT *
+            FROM job_assessment_job_queue
+            WHERE status IN (@queuedStatus, @inProgressStatus)
+            ORDER BY created_at ASC
+        `);
         this.enqueueStatement = this.connection.prepare(`
             INSERT INTO job_assessment_job_queue (
                 id,
@@ -96,6 +103,14 @@ export class SqliteJobAssessmentQueueRepository implements IJobAssessmentQueue {
               AND status = @inProgressStatus
         `);
     }
+    public async getActiveJobs(): Promise<IJobAssessmentJob[]> {
+        const rows = this.findActiveJobsStatement.all({
+            queuedStatus: JobQueueStatus.Queued,
+            inProgressStatus: JobQueueStatus.InProgress,
+        }) as JobAssessmentJobRow[];
+
+        return rows.map(row => this.mapRow(row));
+    }
 
     public async getStatus(jobId: string): Promise<JobQueueStatus | null> {
         const row = this.getStatusStatement.get({
@@ -106,7 +121,7 @@ export class SqliteJobAssessmentQueueRepository implements IJobAssessmentQueue {
     }
 
     public async enqueue(job: IJobAssessmentJobRequest): Promise<string> {
-        const existingJob = this.findActiveJobStatement.get({
+        const existingJob = this.findActiveJobByIdStatement.get({
             jobPostId: job.jobPostId,
             candidateProfileId: job.candidateProfileId,
             queuedStatus: JobQueueStatus.Queued,

@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { JobQueueStatus } from "../types/JobAssessmentJob";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { IAssessmentJob, JobQueueStatus } from "../types/JobAssessmentJob";
+import { JobPollingStatus, JobQueuePollingManager } from "../services/JobQueuePollingManager";
 
 export interface ToastMessage {
     id: string;
@@ -26,20 +27,32 @@ interface UseJobAssessmentPollingResult {
 }
 
 const POLL_INTERVAL_MS = 10_000;
-const IN_FLIGHT_STATUSES: Array<JobQueueStatus | null> = [null, "QUEUED", "IN_PROGRESS"];
+const IN_FLIGHT_STATUSES: ReadonlySet<JobQueueStatus> = new Set(["QUEUED", "IN_PROGRESS"]);
+
+async function checkJobStatus(jobId: string): Promise<JobPollingStatus | null> {
+    const response = await fetch(`/api/v1/assessment-jobs/${jobId}`);
+    if (!response.ok) {
+        return null;
+    }
+    const data = await response.json();
+    return (data.status as JobPollingStatus) ?? null;
+}
 
 export function useJobAssessmentPolling({
     candidateProfileId,
     pollIntervalMs = POLL_INTERVAL_MS,
 }: UseJobAssessmentPollingOptions): UseJobAssessmentPollingResult {
     const [trackedJobs, setTrackedJobs] = useState<Record<string, TrackedJob>>({});
-    const trackedJobsRef = useRef<Record<string, TrackedJob>>({});
     const [toasts, setToasts] = useState<ToastMessage[]>([]);
-    const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    useEffect(() => {
-        trackedJobsRef.current = trackedJobs;
-    }, [trackedJobs]);
+    // Maps in-flight jobId -> jobPostId so the manager's settlement callback (keyed by jobId)
+    // can be attributed back to the job post the UI cares about.
+    const jobPostIdByJobId = useRef<Map<string, string>>(new Map());
+
+    const managerRef = useRef<JobQueuePollingManager | null>(null);
+    if (!managerRef.current) {
+        managerRef.current = new JobQueuePollingManager({ checkStatus: checkJobStatus, pollIntervalMs });
+    }
 
     const addToast = useCallback((type: ToastMessage["type"], message: string) => {
         const id = crypto.randomUUID();
@@ -53,64 +66,40 @@ export function useJobAssessmentPolling({
         setToasts(prev => prev.filter(t => t.id !== id));
     }, []);
 
-    const stopPolling = useCallback(() => {
-        if (pollRef.current) {
-            clearInterval(pollRef.current);
-            pollRef.current = null;
-        }
-    }, []);
+    // Registers a job for polling and wires up its settlement (toast + status update).
+    const trackJob = useCallback(
+        (jobPostId: string, jobId: string, initialStatus: JobQueueStatus) => {
+            jobPostIdByJobId.current.set(jobId, jobPostId);
+            setTrackedJobs(prev => ({
+                ...prev,
+                [jobPostId]: { jobId, status: initialStatus },
+            }));
 
-    const pollJob = useCallback(
-        async (jobPostId: string, jobId: string) => {
-            try {
-                const response = await fetch(`/api/v1/assessment-jobs/${jobId}`);
-                if (!response.ok) {
+            managerRef.current?.add(jobId, (settledJobId, status) => {
+                const settledJobPostId = jobPostIdByJobId.current.get(settledJobId);
+                jobPostIdByJobId.current.delete(settledJobId);
+                if (!settledJobPostId) {
                     return;
                 }
-                const data = await response.json();
-                const status = data.status as JobQueueStatus;
 
-                // Ignore stale responses if a newer job was enqueued for this job post in the meantime.
                 setTrackedJobs(prev => {
-                    const existing = prev[jobPostId];
-                    if (!existing || existing.jobId !== jobId) {
+                    const existing = prev[settledJobPostId];
+                    // Ignore a stale settlement if a newer job was enqueued for this job post since.
+                    if (!existing || existing.jobId !== settledJobId) {
                         return prev;
                     }
-                    return { ...prev, [jobPostId]: { ...existing, status } };
+                    return { ...prev, [settledJobPostId]: { ...existing, status } };
                 });
 
                 if (status === "COMPLETED") {
                     addToast("success", "Job assessment completed successfully.");
-                } else if (status === "FAILED") {
+                } else {
                     addToast("error", "Job assessment failed.");
                 }
-            } catch {
-                // network errors are transient; keep polling
-            }
+            });
         },
         [addToast]
     );
-
-    const pollAllInFlight = useCallback(() => {
-        const inFlightEntries = Object.entries(trackedJobsRef.current).filter(([, job]) =>
-            IN_FLIGHT_STATUSES.includes(job.status)
-        );
-
-        if (inFlightEntries.length === 0) {
-            stopPolling();
-            return;
-        }
-
-        for (const [jobPostId, job] of inFlightEntries) {
-            pollJob(jobPostId, job.jobId);
-        }
-    }, [pollJob, stopPolling]);
-
-    const ensurePolling = useCallback(() => {
-        if (!pollRef.current) {
-            pollRef.current = setInterval(pollAllInFlight, pollIntervalMs);
-        }
-    }, [pollAllInFlight, pollIntervalMs]);
 
     const enqueue = useCallback(
         async (jobPostId: string) => {
@@ -127,18 +116,14 @@ export function useJobAssessmentPolling({
                 const data = await response.json();
                 const newJobId: string = data.jobId;
 
-                setTrackedJobs(prev => ({
-                    ...prev,
-                    [jobPostId]: { jobId: newJobId, status: null },
-                }));
-
-                ensurePolling();
-                pollJob(jobPostId, newJobId);
-            } catch {
-                addToast("error", "Failed to start job assessment.");
+                trackJob(jobPostId, newJobId, "QUEUED");
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                console.error("Failed to start job assessment:", errorMessage);
+                addToast("error", "Failed to start job assessment: " + errorMessage);
             }
         },
-        [candidateProfileId, addToast, ensurePolling, pollJob]
+        [candidateProfileId, addToast, trackJob]
     );
 
     const enqueueMany = useCallback(
@@ -150,12 +135,48 @@ export function useJobAssessmentPolling({
 
     const getStatus = useCallback((jobPostId: string) => trackedJobs[jobPostId]?.status ?? null, [trackedJobs]);
 
+    // On mount, pick up any jobs already in flight (e.g. from before a page refresh) and resume polling them.
+    useEffect(() => {
+        const controller = new AbortController();
+
+        const hydrateActiveJobs = async () => {
+            try {
+                const response = await fetch("/api/v1/assessment-jobs", { signal: controller.signal });
+                if (!response.ok) {
+                    return;
+                }
+
+                const data = await response.json();
+                const jobs: IAssessmentJob[] = data.jobs ?? [];
+
+                for (const job of jobs) {
+                    if (job.candidateProfileId === candidateProfileId && IN_FLIGHT_STATUSES.has(job.status)) {
+                        trackJob(job.jobPostId, job.id, job.status);
+                    }
+                }
+            } catch (error) {
+                if (error instanceof DOMException && error.name === "AbortError") {
+                    return;
+                }
+                console.error("Failed to load active job assessments:", error);
+            }
+        };
+
+        void hydrateActiveJobs();
+
+        return () => {
+            controller.abort();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount; trackJob/candidateProfileId are stable in practice
+    }, []);
+
     // Cleanup on unmount
     useEffect(() => {
+        const manager = managerRef.current;
         return () => {
-            stopPolling();
+            manager?.removeAll();
         };
-    }, [stopPolling]);
+    }, []);
 
     return { getStatus, enqueue, enqueueMany, toasts, dismissToast };
 }

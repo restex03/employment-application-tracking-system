@@ -50,6 +50,23 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
             }
         });
 
+        server.get("/assessment-jobs", async (request, reply) => {
+            try {
+                this.logger.info(`[${request.method}]  ${request.url}`);
+                const jobs = await this.jobAssessmentQueueService.getActiveJobs();
+
+                return reply.code(200).send({
+                    jobs,
+                });
+            } catch (error) {
+                const errMsg = error instanceof Error ? error.message : String(error);
+                this.logger.error(`[${request.method}]  ${request.url} Failed: ${errMsg}`);
+                return reply.code(500).send({
+                    error: `Failed to get job assessment-jobs: ${errMsg}`,
+                });
+            }
+        });
+
         server.get<{
             Params: JobStatusParams;
         }>("/assessment-jobs/:jobId", async (request, reply) => {
