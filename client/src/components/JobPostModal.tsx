@@ -299,6 +299,11 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                                 </div>
                             ) : assessment ? (
                                 <div className="assessment-container">
+                                    <div className="assessment-actions">
+                                        <button onClick={onRunAssessment} className="rerun-button">
+                                            Re-run Assessment
+                                        </button>
+                                    </div>
                                     <div className="assessment-panel">
                                         {/* Overall Score Section */}
                                         {assessment.jobMatchScore && (
