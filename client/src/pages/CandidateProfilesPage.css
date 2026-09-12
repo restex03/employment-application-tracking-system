@@ -1,0 +1,179 @@
+.candidate-profiles-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.page-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.no-data {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 2rem;
+    font-size: 1.125rem;
+}
+
+.table-container {
+    position: relative;
+    overflow-x: auto;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+}
+
+.candidate-profiles-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--card-background);
+}
+
+.candidate-profiles-table th {
+    background-color: #f1f5f9;
+    padding: 0.5rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.candidate-profiles-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.candidate-profile-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.candidate-profile-row:hover {
+    background-color: #fcfcfc;
+}
+
+.candidate-profile-row:hover .details-button {
+    color: var(--primary-color);
+}
+
+.candidate-profiles-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.details-button {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: transparent;
+    transition:
+        color 0.2s ease-out,
+        background-color 0.2s ease-out,
+        filter 0.2s ease-out,
+        transform 0.2s ease-out;
+    cursor: pointer;
+}
+
+.details-button:hover {
+    filter: brightness(115%);
+    background-color: rgba(202, 208, 223, 0.1);
+    transform: scale(1.06);
+}
+
+.details-icon {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: filter 0.2s ease;
+}
+
+.row-count {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+/* Loading / error containers (match JobPostsPage) */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    gap: 1rem;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    gap: 1rem;
+    text-align: center;
+}
+
+.error-message {
+    color: var(--error-color);
+    font-size: 1.125rem;
+    font-weight: 500;
+}
+
+.retry-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.retry-button:hover {
+    background-color: var(--primary-hover);
+}
