@@ -148,8 +148,11 @@ export class JobAssessmentService implements IJobAssessmentService {
     private printRequirementMatches(matches: IJobRequirementMatch[]): void {
         this.logger.info("\nRequirement Analysis");
 
+        // This is diagnostic logging only (e.g. jobs rejected during screening never reach matching)
+        // and must not throw, since the assessment has already been persisted by this point.
         if (matches.length === 0) {
-            throw new Error("Expected RequirementMatches, but received empty array.");
+            this.logger.info("\t- No requirement matches to report.");
+            return;
         }
 
         this.logger.table(
