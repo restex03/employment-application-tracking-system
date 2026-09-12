@@ -1,34 +1,25 @@
 import OpenAI from "openai";
-import { ILlmInferenceProvider, StructuredInferenceRequest } from "../ILlmInferenceProvider";
-import { ILogger } from "../../Logging/ILogger";
+import { type ILlmInferenceProvider, StructuredInferenceRequest } from "../ILlmInferenceProvider";
+import { type ILogger } from "../../Logging/ILogger";
+import { type ILlmTargetOptions } from "./LlmTargetRegistry/LlmTargetRegistry";
 
-export class OllamaInferenceProvider implements ILlmInferenceProvider {
+export class OpenAiInferenceProvider implements ILlmInferenceProvider {
     private readonly client: OpenAI;
 
     constructor(
         private readonly logger: ILogger,
-        // private readonly model: string = "qwen3.5:4b"
-        // private readonly model: string = "ministral-3:8b"
-        // private readonly model: string = "granite4.2:3b"
-        // private readonly model: string = "granite4.2:8b"
-        // private readonly model: string = "gemma4:e4b-it-qat"
-        // private readonly model: string = "gemma4:e4b"
-        // private readonly model: string = "gemma3:4b"
-        // private readonly model: string = "phi4-mini:3.8b"
-        private readonly model: string = "qwen3:4b-instruct-8k"
-        // private readonly model: string = "qwen3:8b-8k"
+        private readonly llm: ILlmTargetOptions
     ) {
         this.client = new OpenAI({
-            // TODO: Move to .env
-            baseURL: "http://localhost:11434/v1",
-            apiKey: "ollama",
+            baseURL: this.llm.apiBaseUrl.toString(),
+            apiKey: this.llm.apiKey,
         });
     }
 
     public async generateStructured<T>(request: StructuredInferenceRequest<T>): Promise<T> {
         const start = performance.now();
         const response = await this.client.chat.completions.create({
-            model: this.model,
+            model: this.llm.model,
 
             temperature: request.temperature,
 
@@ -61,7 +52,7 @@ export class OllamaInferenceProvider implements ILlmInferenceProvider {
         // console.dir(response.choices[0], { depth: null });
 
         if (!content) {
-            throw new Error(`[OllamaInferenceProvider.generateStructured] Model returned no content.`);
+            throw new Error(`[OpenAiInferenceProvider.generateStructured] Model returned no content.`);
         }
 
         this.logger.debug("********************************************************");
@@ -81,7 +72,7 @@ export class OllamaInferenceProvider implements ILlmInferenceProvider {
         } catch (error) {
             this.logger.trace(`Failed to parse JSON content: ${content}`);
             throw new Error(
-                `[OllamaInferenceProvider.generateStructured] Model returned invalid JSON: ${
+                `[OpenAiInferenceProvider.generateStructured] Model returned invalid JSON: ${
                     error instanceof Error ? error.message : String(error)
                 }`
             );
@@ -99,7 +90,7 @@ export class OllamaInferenceProvider implements ILlmInferenceProvider {
                 .join("; ");
 
             throw new Error(
-                `[OllamaInferenceProvider.generateStructured] Model returned invalid structured data: ${errors}`
+                `[OpenAiInferenceProvider.generateStructured] Model returned invalid structured data: ${errors}`
             );
         }
 

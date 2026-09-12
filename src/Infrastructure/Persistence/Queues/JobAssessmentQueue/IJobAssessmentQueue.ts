@@ -1,8 +1,8 @@
 import {
     IJobAssessmentJob,
     IJobAssessmentJobRequest,
-    JobQueueStatus,
-} from "../../../Application/JobAssessment/PipelineQueue/IJobAssessmentJob";
+} from "../../../../Application/JobAssessment/PipelineQueue/IJobAssessmentJob";
+import { JobQueueStatus } from "../JobQueueStatus";
 
 export interface IJobAssessmentQueue {
     getActiveJobs(): Promise<IJobAssessmentJob[]>;

@@ -7,7 +7,7 @@ export interface IJobPostSyncResult {
 
 export interface IJobPostSyncService {
     syncJobDetails(jobPostId: string): Promise<void>;
-    syncJobs(sourceIds: string[], searchText?: string): Promise<IJobPostSyncResult>;
+    syncJobs(sourceIds: string[], searchText?: string): Promise<void>;
 
     addMany(jobs: IJobPost[]): Promise<void>;
     update(job: IJobPost): Promise<void>;

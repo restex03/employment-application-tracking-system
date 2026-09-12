@@ -16,31 +16,31 @@ export class JobPostSyncService implements IJobPostSyncService {
         private readonly logger: ILogger
     ) {}
 
-    public async syncJobs(sourceIds: string[], searchText?: string): Promise<IJobPostSyncResult> {
+    public async syncJobs(sourceIds: string[], searchText?: string): Promise<void> {
         const sourcePromises = sourceIds.map(async x => this.getSource(x));
         const sources = await Promise.all(sourcePromises);
-        let jobsDiscovered = 0;
-
+        let numSourcesSynced = 0;
+        let numJobsDiscovered = 0;
         for (const source of sources) {
-            this.logger.debug(`[JobPostSyncService.sync] Syncing source: ${source.companyName}`);
+            try {
+                this.logger.debug(`[JobPostSyncService.sync] Syncing source: ${source.companyName}`);
 
-            // TODO: Incorporate batching
-            const discoveryService = this.discoveryServiceFactory.create(source);
-            const discoveries = await discoveryService.fetchList(searchText);
-            const jobPosts = discoveries.map(discovery => this.createJobPost(discovery));
-            await this.jobPostRepository.addMany(jobPosts);
-
-            jobsDiscovered += jobPosts.length;
+                // TODO: Incorporate batching
+                const discoveryService = this.discoveryServiceFactory.create(source);
+                const discoveries = await discoveryService.fetchList(searchText);
+                const jobPosts = discoveries.map(discovery => this.createJobPost(discovery));
+                await this.jobPostRepository.addMany(jobPosts);
+                numSourcesSynced++;
+                numJobsDiscovered += jobPosts.length;
+            } catch (error) {
+                const errMsg = error instanceof Error ? error.message : String(error);
+                this.logger.error(`[JobPostSyncService.sync] Failed to sync source ${source.companyName}: ${errMsg}`);
+            }
         }
-
         this.logger.debug(
-            `[JobPostSyncService.sync] ` + `Processed ${sources.length} sources, ` + `discovered ${jobsDiscovered} jobs`
+            `[JobPostSyncService.sync] Synced ${numSourcesSynced} sources and discovered ${numJobsDiscovered} jobs.`
         );
-
-        return {
-            sourcesProcessed: sources.length,
-            jobsDiscovered,
-        };
+        this.logger.debug(`[JobPostSyncService.sync] Completed syncing all sources.`);
     }
 
     public async syncJobDetails(jobPostId: string): Promise<void> {

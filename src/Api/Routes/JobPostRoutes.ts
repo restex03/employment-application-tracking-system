@@ -4,6 +4,8 @@ import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IJobPostSyncService } from "../../Application/JobPostSync/IJobPostSyncService";
 import { IRouteRegistrar } from "../Host/IRouteRegistrar";
 import { IJobPostResultService, JobPostQueryFilters } from "../../Application/JobPost/IJobPostResultService";
+import { IJobPostSyncQueueService } from "../../Application/JobPostSync/Queue/IJobPostSyncQueueService";
+import { IJobPostSyncJobRequest } from "../../Application/JobPostSync/Queue/IJobPostSyncJob";
 
 interface JobPostParams {
     jobPostId: string;
@@ -29,6 +31,7 @@ export class JobPostRoutes implements IRouteRegistrar {
     constructor(
         private readonly jobPostResultService: IJobPostResultService,
         private readonly jobPostSyncService: IJobPostSyncService,
+        private readonly jobPostSyncQueueService: IJobPostSyncQueueService,
         private readonly logger: ILogger
     ) {}
 
@@ -91,13 +94,14 @@ export class JobPostRoutes implements IRouteRegistrar {
             try {
                 // TODO: Update this endpoint to run job in background and return a job ID for tracking progress.
                 this.logger.info(`[${request.method}]  ${request.url}`);
-                const result = await this.jobPostSyncService.syncJobs(
-                    request.body?.sourceIds,
-                    request.body?.searchText
-                );
+                const newJobSync: IJobPostSyncJobRequest = {
+                    sourceIds: request.body?.sourceIds,
+                    searchText: request.body?.searchText,
+                };
+                await this.jobPostSyncQueueService.enqueue(newJobSync);
 
-                this.logger.info(`[${request.method}]  ${request.url} Sync completed successfully`);
-                return reply.code(200).send(result);
+                this.logger.info(`[${request.method}]  ${request.url} Sync added to queue successfully`);
+                return reply.code(202).send();
             } catch (error) {
                 const errMsg = error instanceof Error ? error.message : String(error);
 

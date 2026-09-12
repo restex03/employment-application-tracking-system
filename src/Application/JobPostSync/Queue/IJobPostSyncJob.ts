@@ -1,11 +1,11 @@
 import { JobQueueStatus } from "../../../Infrastructure/Persistence/Queues/JobQueueStatus";
 
-export interface IJobAssessmentJobRequest {
-    jobPostId: string;
-    candidateProfileId: string;
+export interface IJobPostSyncJobRequest {
+    sourceIds: string[];
+    searchText?: string;
 }
 
-export interface IJobAssessmentJob extends IJobAssessmentJobRequest {
+export interface IJobPostSyncJob extends IJobPostSyncJobRequest {
     id: string;
     status: JobQueueStatus;
     error?: string;

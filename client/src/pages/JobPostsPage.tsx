@@ -527,7 +527,7 @@ function JobPostsPage() {
                             </th>
                             <th onClick={() => handleSort("createdAt")}>
                                 <div className="sortable-header">
-                                    <span>Synced At</span>
+                                    <span>Last Synced</span>
                                     <span className="sort-icon">{getSortIndicator("createdAt")}</span>
                                 </div>
                             </th>

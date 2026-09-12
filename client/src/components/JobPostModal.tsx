@@ -383,7 +383,7 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                                                     </span>
                                                 </div>
                                                 <div className="status-row">
-                                                    <span className="status-label">Created:</span>
+                                                    <span className="status-label">Created At:</span>
                                                     <span className="status-value">
                                                         {formatDate(assessment.createdAt)}
                                                     </span>

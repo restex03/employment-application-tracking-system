@@ -15,7 +15,7 @@ export class ToolsRoutes implements IRouteRegistrar {
     ) {}
 
     public register(server: FastifyInstance): void {
-        server.post("/tools/reset", async (request, reply) => {
+        server.post("/tools/reset-db", async (request, reply) => {
             try {
                 this.logger.info(`[${request.method}]  ${request.url}`);
                 this.sqliteConnection.reset();

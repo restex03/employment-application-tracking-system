@@ -44,10 +44,27 @@ export class SqliteDatabaseConnection {
         this.createJobPostDetailsTable();
         this.createCandidateProfilesTable();
         this.createJobAssessmentsTable();
-        this.createJobAssessmentsJobQueueTable();
+        this.createJobAssessmentJobQueueTable();
+        this.createJobPostSyncJobQueueTable();
+    }
+    private createJobPostSyncJobQueueTable(): void {
+        this.db.exec(`
+        CREATE TABLE IF NOT EXISTS job_post_sync_job_queue (
+            id TEXT PRIMARY KEY NOT NULL,
+            source_ids TEXT NOT NULL,
+            search_text TEXT NOT NULL,
+            status TEXT NOT NULL,
+            error TEXT,
+            warnings TEXT,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE INDEX IF NOT EXISTS ix_job_post_sync_job_queue_status_created_at
+            ON job_post_sync_job_queue(status, created_at);
+    `);
     }
 
-    private createJobAssessmentsJobQueueTable(): void {
+    private createJobAssessmentJobQueueTable(): void {
         this.db.exec(`
         CREATE TABLE IF NOT EXISTS job_assessment_job_queue (
             id TEXT PRIMARY KEY NOT NULL,

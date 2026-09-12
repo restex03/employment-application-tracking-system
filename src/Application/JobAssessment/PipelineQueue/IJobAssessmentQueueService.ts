@@ -1,4 +1,5 @@
-import { IJobAssessmentJob, IJobAssessmentJobRequest, JobQueueStatus } from "./IJobAssessmentJob";
+import { JobQueueStatus } from "../../../Infrastructure/Persistence/Queues/JobQueueStatus";
+import { IJobAssessmentJob, IJobAssessmentJobRequest } from "./IJobAssessmentJob";
 
 export interface IJobAssessmentQueueService {
     getActiveJobs(): Promise<IJobAssessmentJob[]>;

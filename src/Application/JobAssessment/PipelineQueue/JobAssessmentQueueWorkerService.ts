@@ -1,4 +1,4 @@
-import { IJobAssessmentQueue } from "../../../Infrastructure/Persistence/JobAssessmentQueue/IJobAssessmentQueue";
+import { IJobAssessmentQueue } from "../../../Infrastructure/Persistence/Queues/JobAssessmentQueue/IJobAssessmentQueue";
 import { IJobAssessmentService } from "../IJobAssessmentService";
 import { IJobAssessmentQueueWorkerService, IJobQueueWorkerOptions } from "./IJobAssessmentQueueWorkerService";
 

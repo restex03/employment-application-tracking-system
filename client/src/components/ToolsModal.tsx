@@ -18,7 +18,7 @@ function ToolsModal({ isOpen, onClose }: ToolsModalProps) {
         setResetSuccess(false);
 
         try {
-            const response = await fetch("/api/v1/tools/reset", {
+            const response = await fetch("/api/v1/tools/reset-db", {
                 method: "POST",
             });
 

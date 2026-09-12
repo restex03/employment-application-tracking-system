@@ -1,6 +1,6 @@
-import { IJobAssessmentQueue } from "../../../Infrastructure/Persistence/JobAssessmentQueue/IJobAssessmentQueue";
-import { IJobAssessmentService } from "../IJobAssessmentService";
-import { IJobAssessmentJob, IJobAssessmentJobRequest, JobQueueStatus } from "./IJobAssessmentJob";
+import { IJobAssessmentQueue } from "../../../Infrastructure/Persistence/Queues/JobAssessmentQueue/IJobAssessmentQueue";
+import { JobQueueStatus } from "../../../Infrastructure/Persistence/Queues/JobQueueStatus";
+import { IJobAssessmentJob, IJobAssessmentJobRequest } from "./IJobAssessmentJob";
 import { IJobAssessmentQueueService } from "./IJobAssessmentQueueService";
 
 export class JobAssessmentQueueService implements IJobAssessmentQueueService {

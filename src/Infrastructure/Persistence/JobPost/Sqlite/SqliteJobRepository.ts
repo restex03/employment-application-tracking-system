@@ -201,6 +201,7 @@ export class SqliteJobRepository implements IJobPostRepository {
                 remote_type = excluded.remote_type,
                 applicant_locations = excluded.applicant_locations,
                 fetched_at = CURRENT_TIMESTAMP
+
         `);
 
         this.getAllStatement = this.connection.prepare(`

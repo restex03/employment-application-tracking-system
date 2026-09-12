@@ -1,12 +1,11 @@
 import Database from "better-sqlite3";
 import { randomUUID } from "node:crypto";
-
-import { ILogger } from "../../../Logging/ILogger";
 import {
     IJobAssessmentJob,
     IJobAssessmentJobRequest,
-    JobQueueStatus,
-} from "../../../../Application/JobAssessment/PipelineQueue/IJobAssessmentJob";
+} from "../../../../../Application/JobAssessment/PipelineQueue/IJobAssessmentJob";
+import { ILogger } from "../../../../Logging/ILogger";
+import { JobQueueStatus } from "../../JobQueueStatus";
 import { IJobAssessmentQueue } from "../IJobAssessmentQueue";
 
 interface JobAssessmentJobRow {

@@ -5,7 +5,7 @@ import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { LogLevel } from "../../Infrastructure/Logging/LogLevel";
 import { IJobScreeningService } from "../JobAssessment/Screening/IJobScreeningService";
 import { JobScreeningService } from "../JobAssessment/Screening/Ollama/JobScreeningService";
-import { OllamaInferenceProvider } from "../../Infrastructure/Inference/Ollama/OllamaInferenceProvider";
+import { OpenAiInferenceProvider } from "../../Infrastructure/Inference/OpenAi/OpenAiInferenceProvider";
 import { ILlmInferenceProvider } from "../../Infrastructure/Inference/ILlmInferenceProvider";
 import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
 import { IJobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/IJobRequirementsExtractionService";
@@ -53,10 +53,18 @@ import { IJobPostResultService } from "../JobPost/IJobPostResultService";
 import { JobPostResultService } from "../JobPost/JobPostResultService";
 import { JobAssessmentQueueService } from "../JobAssessment/PipelineQueue/JobAssessmentQueueService";
 import { IJobAssessmentQueueService } from "../JobAssessment/PipelineQueue/IJobAssessmentQueueService";
-import { IJobAssessmentQueue } from "../../Infrastructure/Persistence/JobAssessmentQueue/IJobAssessmentQueue";
-import { SqliteJobAssessmentQueueRepository } from "../../Infrastructure/Persistence/JobAssessmentQueue/Sqlite/SqliteJobAssessmentQueueRepository";
 import { IJobAssessmentQueueWorkerService } from "../JobAssessment/PipelineQueue/IJobAssessmentQueueWorkerService";
 import { JobAssessmentQueueWorkerService } from "../JobAssessment/PipelineQueue/JobAssessmentQueueWorkerService";
+import {
+    ILlmTargetOptions,
+    LlmTargetRegistry,
+} from "../../Infrastructure/Inference/OpenAi/LlmTargetRegistry/LlmTargetRegistry";
+import { IJobAssessmentQueue } from "../../Infrastructure/Persistence/Queues/JobAssessmentQueue/IJobAssessmentQueue";
+import { SqliteJobAssessmentQueueRepository } from "../../Infrastructure/Persistence/Queues/JobAssessmentQueue/Sqlite/SqliteJobAssessmentQueueRepository";
+import { IJobPostSyncQueueService } from "../JobPostSync/Queue/IJobPostSyncQueueService";
+import { JobPostSyncQueueService } from "../JobPostSync/Queue/JobAssessmentQueueService";
+import { IJobPostSyncQueue } from "../../Infrastructure/Persistence/Queues/JobPostSyncQueue/IJobPostSyncQueue";
+import { SqliteJobPostSyncQueueRepository } from "../../Infrastructure/Persistence/Queues/JobPostSyncQueue/Sqlite/SqliteJobPostSyncQueueRepository";
 
 export function buildDependencies(logLevel: LogLevel): IApplicationDependencies {
     const logger: ILogger = new ConsoleLogger(logLevel);
@@ -89,7 +97,9 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
     /*
      * Inference
      */
-    const llm: ILlmInferenceProvider = new OllamaInferenceProvider(logger);
+    let llmTargetOptions: ILlmTargetOptions = LlmTargetRegistry.Qwen3_4b_Instruct_8k;
+    llmTargetOptions.apiKey = getLlmApiKeyOrDefault();
+    const llm: ILlmInferenceProvider = new OpenAiInferenceProvider(logger, llmTargetOptions);
 
     /*
      * Job post services
@@ -164,6 +174,9 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         jobAssessmentQueue,
         jobAssessmentService
     );
+
+    const jobPostSyncQueue: IJobPostSyncQueue = new SqliteJobPostSyncQueueRepository(sqliteConnection.db, logger);
+    const jobPostSyncQueueService: IJobPostSyncQueueService = new JobPostSyncQueueService(jobPostSyncQueue);
     logger.debug("[buildDependencies] Application dependencies initialized");
 
     logger.debug(`[buildDependencies] Using DB Path: ${sqliteConnection.db.name}`);
@@ -181,6 +194,8 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         jobCandidateProfileService,
         jobPostResultService,
         jobPostSyncService,
+        jobPostSyncQueueService,
+        jobPostSyncQueue,
         jobAssessmentQueue,
         jobAssessmentQueueService,
         screeningService,
@@ -201,4 +216,12 @@ function createSqliteConnection(): SqliteDatabaseConnection {
     }
 
     return new SqliteDatabaseConnection(dbPath);
+}
+function getLlmApiKeyOrDefault(): string {
+    const apiKey = process.env.OPENAI_PROVIDER_API_KEY;
+    if (!apiKey) {
+        console.warn("OPENAI_PROVIDER_API_KEY environment variable is not set.");
+        return "ollama";
+    }
+    return apiKey;
 }

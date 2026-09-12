@@ -1,9 +1,10 @@
 import { ILlmInferenceProvider } from "../../Infrastructure/Inference/ILlmInferenceProvider";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
-import { IJobAssessmentQueue } from "../../Infrastructure/Persistence/JobAssessmentQueue/IJobAssessmentQueue";
 import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
 import { SqliteDatabaseConnection } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteDatabaseConnection";
 import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
+import { IJobAssessmentQueue } from "../../Infrastructure/Persistence/Queues/JobAssessmentQueue/IJobAssessmentQueue";
+import { IJobPostSyncQueue } from "../../Infrastructure/Persistence/Queues/JobPostSyncQueue/IJobPostSyncQueue";
 import { IJobAssessmentService } from "../JobAssessment/IJobAssessmentService";
 import { IJobAssessmentQueueService } from "../JobAssessment/PipelineQueue/IJobAssessmentQueueService";
 import { IJobAssessmentQueueWorkerService } from "../JobAssessment/PipelineQueue/IJobAssessmentQueueWorkerService";
@@ -15,6 +16,7 @@ import { IJobCandidateProfileService } from "../JobCandidateProfiles/IJobCandida
 import { IJobPostResultService } from "../JobPost/IJobPostResultService";
 import { IJobPostDiscoveryServiceFactory } from "../JobPostDiscovery/IJobPostDiscoveryServiceFactory";
 import { IJobPostSyncService } from "../JobPostSync/IJobPostSyncService";
+import { IJobPostSyncQueueService } from "../JobPostSync/Queue/IJobPostSyncQueueService";
 import { IJobSourceService } from "../JobSources/IJobSourceService";
 
 export interface IApplicationDependencies {
@@ -25,6 +27,8 @@ export interface IApplicationDependencies {
     jobSourceRepository: IJobSourceRepository;
     jobPostResultService: IJobPostResultService;
     jobPostSyncService: IJobPostSyncService;
+    jobPostSyncQueue: IJobPostSyncQueue;
+    jobPostSyncQueueService: IJobPostSyncQueueService;
     jobAssessmentQueue: IJobAssessmentQueue;
     jobAssessmentQueueService: IJobAssessmentQueueService;
     jobCandidateProfileService: IJobCandidateProfileService;
