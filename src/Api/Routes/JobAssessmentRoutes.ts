@@ -74,20 +74,19 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
 
             try {
                 this.logger.info(`[${request.method}]  ${request.url}`);
-                const status = await this.jobAssessmentQueueService.getJobByIdOrThrow(jobId);
+                const job = await this.jobAssessmentQueueService.getJobByIdOrThrow(jobId);
 
-                if (status === null) {
+                return reply.code(200).send(job);
+            } catch (error) {
+                const errMsg = error instanceof Error ? error.message : String(error);
+
+                if (error instanceof NotFoundError || errMsg.includes("not found")) {
+                    this.logger.warn(`[${request.method}]  ${request.url} Job not found: ${errMsg}`);
                     return reply.code(404).send({
                         error: "Job not found.",
                     });
                 }
 
-                return reply.code(200).send({
-                    jobId,
-                    status,
-                });
-            } catch (error) {
-                const errMsg = error instanceof Error ? error.message : String(error);
                 this.logger.error(`[${request.method}]  ${request.url} Failed: ${errMsg}`);
                 return reply.code(500).send({
                     error: `Failed to get job status: ${errMsg}`,
