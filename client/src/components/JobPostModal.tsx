@@ -207,7 +207,7 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
 
                                         <div className="detail-grid">
                                             <div className="detail-item">
-                                                <span className="detail-label">Remote Type:</span>
+                                                <span className="detail-label">Remote Type</span>
                                                 <span className="detail-value">
                                                     {jobPostData.detail.remoteType || "N/A"}
                                                 </span>

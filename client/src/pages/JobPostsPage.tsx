@@ -4,7 +4,7 @@ import { useJobSources } from "../hooks/useJobSources";
 import { useSyncJobPosts } from "../hooks/useSyncJobPosts";
 import { useSyncJobsStatus } from "../hooks/useSyncJobsStatus";
 import { useJobAssessmentPolling } from "../hooks/useJobAssessmentPolling";
-import { IJobPostData } from "../types/JobPost";
+import { IJobPostData, JobApplicationStatus } from "../types/JobPost";
 import JobPostModal from "../components/JobPostModal";
 import SyncModal from "../components/SyncModal";
 import ToolsModal from "../components/ToolsModal";
@@ -567,7 +567,7 @@ function JobPostsPage() {
                                     <span className="sort-icon">{getSortIndicator("title")}</span>
                                 </div>
                             </th>
-                            <th>Remote Type</th>
+                            <th>Application Status</th>
                             <th>Detail Path</th>
                             <th onClick={() => handleSort("locations")}>
                                 <div className="sortable-header">
@@ -583,7 +583,7 @@ function JobPostsPage() {
                             </th>
                             <th onClick={() => handleSort("createdAt")}>
                                 <div className="sortable-header">
-                                    <span>Last Synced</span>
+                                    <span>Synced</span>
                                     <span className="sort-icon">{getSortIndicator("createdAt")}</span>
                                 </div>
                             </th>
@@ -618,7 +618,7 @@ function JobPostsPage() {
                                     <td>{getCompanyName(jobPost.sourceId)}</td>
                                     <td>{jobPost.requisitionId || "N/A"}</td>
                                     <td>{jobPost.title}</td>
-                                    <td>{jobPost.remoteType || "N/A"}</td>
+                                    <td>{jobPost.applicationStatus || JobApplicationStatus.Review}</td>
                                     <td className="detail-path">{jobPost.detailPath}</td>
                                     <td>{formatLocations(jobPost.locations)}</td>
                                     <td>{jobPost.daysOld || "N/A"}</td>

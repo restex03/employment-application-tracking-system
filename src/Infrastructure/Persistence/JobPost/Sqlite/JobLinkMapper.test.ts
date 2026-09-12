@@ -9,7 +9,7 @@ const createJobPostRow = (browserBaseUrl: string, detailPath: string) => ({
     detail_path: detailPath,
     locations: null,
     days_old: null,
-    remote_type: null,
+    application_status: null,
     created_at: "2026-09-10T00:00:00.000Z",
     browser_base_url: browserBaseUrl,
     job_match_score_json: null,

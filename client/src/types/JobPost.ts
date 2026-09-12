@@ -1,3 +1,10 @@
+export enum JobApplicationStatus {
+    Applied = "applied",
+    Interview = "interview",
+    Offer = "offer",
+    Rejected = "rejected",
+    Review = "review",
+}
 export interface IJobLocation {
     streetAddress?: string;
     city?: string;
@@ -32,6 +39,7 @@ export interface IJobPostData {
     requisitionId?: string;
     title: string;
     remoteType?: string;
+    applicationStatus?: JobApplicationStatus;
     detailPath: string;
     locations?: unknown[];
     daysOld?: string;

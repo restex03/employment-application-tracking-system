@@ -17,7 +17,7 @@ interface JobPostRow {
     detail_path: string;
     locations: string | null;
     days_old: string | null;
-    remote_type: string | null;
+    application_status: string | null;
     created_at: string;
     browser_base_url: string;
     job_match_score_json: string | null;
@@ -89,7 +89,7 @@ export class SqliteJobQueries implements IJobPostQueries {
                 jp.detail_path,
                 jp.locations,
                 jp.days_old,
-                jp.remote_type,
+                japp.application_status,
                 jp.created_at,
                 js.browser_base_url,
                 ja.job_match_score_json,
@@ -106,6 +106,8 @@ export class SqliteJobQueries implements IJobPostQueries {
             
             JOIN job_sources js
                 ON js.id = jp.source_id
+            LEFT JOIN job_applications japp
+                ON japp.job_post_id = jp.id
 
             LEFT JOIN (
                 SELECT
@@ -223,7 +225,7 @@ export class SqliteJobQueries implements IJobPostQueries {
             locations: this.parseJson<string[]>(row.locations),
             daysOld: row.days_old ?? undefined,
             createdAt: new Date(row.created_at),
-            remoteType: row.remote_type ?? undefined,
+            applicationStatus: row.application_status ?? undefined,
             detail: row.detail_id ? this.mapJobPostDetail(row) : undefined,
             jobLink: JobLinkMapper.mapJobLink(row),
             jobMatchScore: this.extractRawJobMatchScore(row.job_match_score_json) ?? undefined,

@@ -34,6 +34,6 @@ export interface IJobPostResponse {
     daysOld?: string;
     createdAt: Date;
     detail?: IJobPostDetailResponse;
-    remoteType?: string;
+    applicationStatus?: string;
     requirementMatchScore?: number;
 }

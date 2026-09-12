@@ -46,6 +46,25 @@ export class SqliteDatabaseConnection {
         this.createJobAssessmentsTable();
         this.createJobAssessmentJobQueueTable();
         this.createJobPostSyncJobQueueTable();
+        this.createJobApplicationsTable();
+    }
+
+    private createJobApplicationsTable(): void {
+        this.db.exec(`
+        CREATE TABLE IF NOT EXISTS job_applications (
+            id TEXT PRIMARY KEY NOT NULL,
+            job_post_id TEXT NOT NULL,
+            application_status TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (job_post_id)
+                REFERENCES job_posts(id)
+                ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS ix_job_applications_job_post_id
+            ON job_applications(job_post_id);
+    `);
     }
     private createJobPostSyncJobQueueTable(): void {
         this.db.exec(`
