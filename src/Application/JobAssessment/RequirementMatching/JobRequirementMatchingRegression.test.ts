@@ -6,6 +6,7 @@ import { ILogger } from "../../../Infrastructure/Logging/ILogger";
 import { IClassifiedJobRequirement } from "../RquirementClassification/IClassifiedJobRequirement";
 import { JobRequirementDirectMatchingService } from "./DirectMatching/JobRequirementDirectMatchingService";
 import { JobRequirementTransferableMatchingService } from "./TransferableMatching/JobRequirementTransferableMatchingService";
+import { LlmTargetRegistry } from "../../../Infrastructure/Inference/OpenAi/LlmTargetRegistry/LlmTargetRegistry";
 
 interface IStructuredInferenceRequest {
     systemPrompt: string;
@@ -23,17 +24,24 @@ const runRegressionTests = process.env.RUN_LLM_REGRESSION === "1";
 
 const regressionDescribe = runRegressionTests ? describe : describe.skip;
 
-const client = new OpenAI({
-    baseURL: process.env.OLLAMA_BASE_URL ?? "http://localhost:11434/v1",
-    apiKey: "ollama",
-});
+/**
+ * INSTRUCTIONS:
+ * Set the environment variable RUN_LLM_REGRESSION to "1" to enable regression tests.
+ * Ensure that the Ollama API is running and accessible at the specified base URL.
+ * The model to be used for the tests can be configured via modelOptions below:
+ *
+ */
+const modelOptions = LlmTargetRegistry.Qwen3_4b_Instruct_8k;
 
-const model = process.env.OLLAMA_MODEL ?? "qwen3:4b-instruct-8k";
+const client = new OpenAI({
+    baseURL: modelOptions.apiBaseUrl.toString(),
+    apiKey: modelOptions.apiKey,
+});
 
 const llm = {
     async generateStructured<T>(request: IStructuredInferenceRequest): Promise<T> {
         const response = await client.chat.completions.create({
-            model,
+            model: modelOptions.model,
             messages: [
                 {
                     role: "system",

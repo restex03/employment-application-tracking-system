@@ -1,4 +1,5 @@
 import { ICandidateProfile } from "../types/CandidateProfile";
+import { formatList, formatLocation } from "../services/formatters";
 import "./CandidateProfileModal.css";
 
 interface CandidateProfileModalProps {
@@ -9,11 +10,6 @@ interface CandidateProfileModalProps {
 
 function CandidateProfileModal({ isOpen, onClose, profile }: CandidateProfileModalProps) {
     if (!isOpen || !profile) return null;
-
-    const formatList = (values: string[] | undefined): string => {
-        if (!values || values.length === 0) return "N/A";
-        return values.join(", ");
-    };
 
     return (
         <div className="candidate-profile-modal-overlay" onClick={onClose}>
@@ -150,12 +146,7 @@ function CandidateProfileModal({ isOpen, onClose, profile }: CandidateProfileMod
                                     <span className="detail-value">
                                         {profile.preferences?.locations?.length
                                             ? profile.preferences.locations
-                                                  .map(
-                                                      loc =>
-                                                          `${[loc.city, loc.state, loc.country]
-                                                              .filter(Boolean)
-                                                              .join(", ")}`
-                                                  )
+                                                  .map(loc => formatLocation(loc))
                                                   .join("; ")
                                             : "N/A"}
                                     </span>

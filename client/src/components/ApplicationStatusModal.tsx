@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { JobApplicationStatus } from "../types/JobPost";
+import { formatDate } from "../services/formatters";
+import { getSortIndicator } from "../services/sortHelpers";
 import "./ApplicationStatusModal.css";
 
 interface ApplicationStatusModalProps {
@@ -53,20 +55,6 @@ async function fetchExistingApplication(
     }
     const data = await response.json();
     return data.job;
-}
-
-function formatDate(iso: string): string {
-    if (!iso) return "";
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return "";
-    return d.toLocaleString(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-    });
 }
 
 type SortableColumn = "fileName" | "dateAdded" | "notes";
@@ -215,12 +203,6 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
         }
     };
 
-    const getSortIndicator = (column: SortableColumn) => {
-        if (sortColumn !== column) return null;
-        if (sortDirection === "asc") return " \u2191";
-        return " \u2193";
-    };
-
     const handleFileSelect = async (file: File | null) => {
         if (!applicationId || !file) {
             return;
@@ -364,19 +346,19 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
                                                     <th onClick={() => handleSort("fileName")}>
                                                         <div className="sortable-header">
                                                             <span>File</span>
-                                                            <span className="sort-icon">{getSortIndicator("fileName")}</span>
+                                                            <span className="sort-icon">{getSortIndicator("fileName", sortColumn, sortDirection)}</span>
                                                         </div>
                                                     </th>
                                                     <th onClick={() => handleSort("dateAdded")}>
                                                         <div className="sortable-header">
                                                             <span>Date Added</span>
-                                                            <span className="sort-icon">{getSortIndicator("dateAdded")}</span>
+                                                            <span className="sort-icon">{getSortIndicator("dateAdded", sortColumn, sortDirection)}</span>
                                                         </div>
                                                     </th>
                                                     <th onClick={() => handleSort("notes")}>
                                                         <div className="sortable-header">
                                                             <span>Notes</span>
-                                                            <span className="sort-icon">{getSortIndicator("notes")}</span>
+                                                            <span className="sort-icon">{getSortIndicator("notes", sortColumn, sortDirection)}</span>
                                                         </div>
                                                     </th>
                                                 </tr>
@@ -395,7 +377,7 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
                                                             </a>
                                                         </td>
                                                         <td className="attachments-table-date-cell">
-                                                            {formatDate(attachment.dateAdded)}
+                                                            {formatDate(attachment.dateAdded, "datetimeSeconds", "")}
                                                         </td>
                                                         <td className="attachments-table-notes-cell">
                                                             <textarea

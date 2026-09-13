@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useCandidateProfiles } from "../hooks/useCandidateProfiles";
 import { ICandidateProfile } from "../types/CandidateProfile";
+import { formatList } from "../services/formatters";
 
 import "./CandidateProfilesPage.css";
 import CandidateProfileModal from "../components/CandidateProfileModal";
@@ -19,12 +20,6 @@ function CandidateProfilesPage() {
     const closeViewModal = () => {
         setIsViewModalOpen(false);
         setSelectedProfile(null);
-    };
-
-    const formatList = (values: string[], maxItems = 3): string => {
-        if (!values || values.length === 0) return "N/A";
-        const shown = values.slice(0, maxItems).join(", ");
-        return values.length > maxItems ? `${shown}, +${values.length - maxItems} more` : shown;
     };
 
     if (loading) {
@@ -88,8 +83,8 @@ function CandidateProfilesPage() {
                                         {profile.workAuthorization?.citizenshipCountry || "N/A"}
                                         {profile.workAuthorization?.requiresSponsorship ? " (Sponsorship Req.)" : ""}
                                     </td>
-                                    <td>{formatList(profile.strengths)}</td>
-                                    <td>{formatList(profile.desiredWork)}</td>
+                                    <td>{formatList(profile.strengths, 3)}</td>
+                                    <td>{formatList(profile.desiredWork, 3)}</td>
                                     <td>{profile.skills?.length ?? 0}</td>
                                     <td>
                                         <button

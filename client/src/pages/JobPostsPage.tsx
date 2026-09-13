@@ -11,13 +11,22 @@ import ToolsModal from "../components/ToolsModal";
 import ToastContainer from "../components/ToastContainer";
 import RowOptionsMenu from "../components/RowOptionsMenu";
 import ApplicationStatusModal from "../components/ApplicationStatusModal";
+import { formatDate, formatLocations } from "../services/formatters";
+import {
+    type SortDirection,
+    cycleSortDirection,
+    getSortIndicator,
+    compareNumeric,
+    compareStrings,
+    daysOldToSortableNumber,
+} from "../services/sortHelpers";
+import { getApplicationStatusColor, getScoreCategory } from "../services/statusColors";
 import "./JobPostsPage.css";
 
 const CANDIDATE_PROFILE_ID = "russell-estes";
 
 type SortableColumn =
     "company" | "requisitionId" | "title" | "locations" | "daysOld" | "createdAt" | "jobMatchScore" | null;
-type SortDirection = "asc" | "desc" | null;
 
 interface FilterState {
     company: string;
@@ -98,20 +107,18 @@ function JobPostsPage() {
     const filteredAndSortedPosts = useMemo(() => {
         let result = [...jobPosts];
 
-        // Apply sorting
-        if (sortColumn) {
+        if (sortColumn && sortDirection) {
             result.sort((a, b) => {
                 if (sortColumn === "daysOld") {
-                    const aValue = formatdaysOldSort(a.daysOld);
-                    const bValue = formatdaysOldSort(b.daysOld);
-                    return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+                    return compareNumeric(
+                        daysOldToSortableNumber(a.daysOld),
+                        daysOldToSortableNumber(b.daysOld),
+                        sortDirection
+                    );
                 }
 
                 if (sortColumn === "jobMatchScore") {
-                    // Jobs without a score sort as lowest so they don't interleave with real scores.
-                    const aValue = a.jobMatchScore ?? -1;
-                    const bValue = b.jobMatchScore ?? -1;
-                    return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+                    return compareNumeric(a.jobMatchScore ?? -1, b.jobMatchScore ?? -1, sortDirection);
                 }
 
                 let aValue: string;
@@ -142,11 +149,7 @@ function JobPostsPage() {
                         return 0;
                 }
 
-                if (sortDirection === "asc") {
-                    return aValue.localeCompare(bValue);
-                } else {
-                    return bValue.localeCompare(aValue);
-                }
+                return compareStrings(aValue, bValue, sortDirection);
             });
         }
 
@@ -198,10 +201,8 @@ function JobPostsPage() {
 
     const handleSort = (column: SortableColumn) => {
         if (sortColumn === column) {
-            // Toggle direction if same column
-            setSortDirection(sortDirection === "asc" ? "desc" : sortDirection === "desc" ? null : "asc");
+            setSortDirection(cycleSortDirection(sortDirection));
         } else {
-            // New column, default to ascending
             setSortColumn(column);
             setSortDirection("asc");
         }
@@ -224,12 +225,8 @@ function JobPostsPage() {
         setPage(1);
     };
 
-    const getSortIndicator = (column: SortableColumn) => {
-        if (sortColumn !== column) return null;
-        if (sortDirection === "asc") return " ↑";
-        if (sortDirection === "desc") return " ↓";
-        return "";
-    };
+    const getSortIndicatorFor = (column: SortableColumn) =>
+        column ? getSortIndicator(column, sortColumn, sortDirection) : null;
 
     const handleSync = async (sourceIds?: string[], searchText?: string) => {
         const result = await sync(sourceIds, searchText);
@@ -346,84 +343,22 @@ function JobPostsPage() {
         setDetailError(null);
     };
 
-    const formatDate = (dateString: string | undefined) => {
-        if (!dateString) return "N/A";
-        try {
-            const date = new Date(dateString);
-            return date.toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-            });
-        } catch {
-            return dateString;
-        }
-    };
-
-    const formatLocations = (locations: unknown[] | undefined) => {
-        if (!locations || locations.length === 0) return "N/A";
-
-        // Try to extract location info
-        const locationStrings = locations.map(loc => {
-            if (typeof loc === "string") return loc;
-            if (typeof loc === "object" && loc !== null) {
-                const obj = loc as Record<string, unknown>;
-                const parts = [obj.city as string, obj.state as string, obj.country as string].filter(Boolean);
-                return parts.length > 0 ? parts.join(", ") : "Unknown";
-            }
-            return String(loc);
-        });
-
-        return locationStrings.join("; ");
-    };
-
     const formatApplicationStatus = (status: JobApplicationStatus): string =>
         status.charAt(0) + status.slice(1).toLowerCase();
 
-    const getApplicationStatusColor = (status: JobApplicationStatus): string => {
-        switch (status) {
-            case JobApplicationStatus.Applied:
-                return "#3b82f6"; // blue-500
-            case JobApplicationStatus.Interview:
-                return "#f59e0b"; // amber-500
-            case JobApplicationStatus.Offer:
-                return "#22c55e"; // green-500
-            case JobApplicationStatus.Rejected:
-                return "#ef4444"; // red-500
-            case JobApplicationStatus.Review:
-            default:
-                return "#9ca3af"; // gray-400
-        }
-    };
-
     const renderScoreIndicator = (score: number | undefined): React.ReactNode => {
-        if (score === undefined) {
-            return (
-                <div className="score-indicator">
-                    <div className="score-circle score-missing"></div>
-                    <div className="score-label">Not Run</div>
-                </div>
-            );
-        }
-
-        let circleClass = "";
-        let label = "";
-
-        if (score >= 75) {
-            circleClass = "score-circle score-high";
-            label = "Good";
-        } else if (score >= 50) {
-            circleClass = "score-circle score-fair";
-            label = "Fair";
-        } else {
-            circleClass = "score-circle score-poor";
-            label = "Poor";
-        }
+        const category = getScoreCategory(score);
+        const labels: Record<string, string> = {
+            high: "Good",
+            fair: "Fair",
+            poor: "Poor",
+            missing: "Not Run",
+        };
 
         return (
             <div className="score-indicator">
-                <div className={circleClass}></div>
-                <div className="score-label">{label}</div>
+                <div className={`score-circle score-${category}`}></div>
+                <div className="score-label">{labels[category]}</div>
             </div>
         );
     };
@@ -572,25 +507,25 @@ function JobPostsPage() {
                             <th className="score-column" onClick={() => handleSort("jobMatchScore")}>
                                 <div className="sortable-header">
                                     <span>Job Match</span>
-                                    <span className="sort-icon">{getSortIndicator("jobMatchScore")}</span>
+                                    <span className="sort-icon">{getSortIndicatorFor("jobMatchScore")}</span>
                                 </div>
                             </th>
                             <th onClick={() => handleSort("company")}>
                                 <div className="sortable-header">
                                     <span>Company</span>
-                                    <span className="sort-icon">{getSortIndicator("company")}</span>
+                                    <span className="sort-icon">{getSortIndicatorFor("company")}</span>
                                 </div>
                             </th>
                             <th onClick={() => handleSort("requisitionId")}>
                                 <div className="sortable-header">
                                     <span>Requisition ID</span>
-                                    <span className="sort-icon">{getSortIndicator("requisitionId")}</span>
+                                    <span className="sort-icon">{getSortIndicatorFor("requisitionId")}</span>
                                 </div>
                             </th>
                             <th onClick={() => handleSort("title")}>
                                 <div className="sortable-header">
                                     <span>Title</span>
-                                    <span className="sort-icon">{getSortIndicator("title")}</span>
+                                    <span className="sort-icon">{getSortIndicatorFor("title")}</span>
                                 </div>
                             </th>
                             <th>Application Status</th>
@@ -598,19 +533,19 @@ function JobPostsPage() {
                             <th onClick={() => handleSort("locations")}>
                                 <div className="sortable-header">
                                     <span>Locations</span>
-                                    <span className="sort-icon">{getSortIndicator("locations")}</span>
+                                    <span className="sort-icon">{getSortIndicatorFor("locations")}</span>
                                 </div>
                             </th>
                             <th onClick={() => handleSort("daysOld")}>
                                 <div className="sortable-header">
                                     <span>Days Old</span>
-                                    <span className="sort-icon">{getSortIndicator("daysOld")}</span>
+                                    <span className="sort-icon">{getSortIndicatorFor("daysOld")}</span>
                                 </div>
                             </th>
                             <th onClick={() => handleSort("createdAt")}>
                                 <div className="sortable-header">
                                     <span>Synced</span>
-                                    <span className="sort-icon">{getSortIndicator("createdAt")}</span>
+                                    <span className="sort-icon">{getSortIndicatorFor("createdAt")}</span>
                                 </div>
                             </th>
                             <th>Details</th>
@@ -773,13 +708,3 @@ function JobPostsPage() {
 }
 
 export default JobPostsPage;
-
-function formatdaysOldSort(value: string | undefined): number {
-    if (!value || value === "Unknown") {
-        return Infinity;
-    }
-    if (value === "30+") {
-        return 1000;
-    }
-    return parseInt(value, 10);
-}

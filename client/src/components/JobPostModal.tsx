@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from "react";
 import DOMPurify from "dompurify";
 import { IJobPostData } from "../types/JobPost";
-import { IJobAssessment, JobAssessmentStatus, JobAssessmentReviewStatus } from "../types/JobAssessment";
+import { IJobAssessment } from "../types/JobAssessment";
 import { JobQueueStatus } from "../types/JobAssessmentJob";
+import { formatDate, formatLocation, formatList } from "../services/formatters";
+import {
+    getAssessmentStatusColor,
+    getReviewStatusColor,
+    getMatchTypeColor,
+    getScreenDispositionColor,
+} from "../services/statusColors";
 import "./JobPostModal.css";
 
 interface JobPostModalProps {
@@ -76,94 +83,15 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
 
     const jobPostData = jobPost;
 
-    const getStatusColor = (status: JobAssessmentStatus) => {
-        switch (status) {
-            case "complete":
-                return "#22c55e"; // green-500
-            case "incomplete":
-                return "#facc15"; // yellow-400
-            default:
-                return "#9ca3af"; // gray-400
-        }
-    };
-
-    const getReviewStatusColor = (status: JobAssessmentReviewStatus) => {
-        switch (status) {
-            case "accepted":
-                return "#22c55e"; // green-500
-            case "flagged":
-                return "#ef4444"; // red-500
-            case "unreviewed":
-                return "#9ca3af"; // gray-400
-            default:
-                return "#9ca3af";
-        }
-    };
-
-    const getMatchTypeColor = (matchType: string) => {
-        switch (matchType) {
-            case "direct":
-                return "#22c55e"; // green
-            case "transferable":
-                return "#facc15"; // yellow/orange
-            case "missing":
-                return "#ef4444"; // red
-            default:
-                return "#9ca3af"; // gray
-        }
-    };
-
-    const getScreenDispositionColor = (disposition: string) => {
-        switch (disposition) {
-            case "advance":
-                return "#22c55e";
-            case "reject":
-                return "#ef4444";
-            case "review":
-                return "#facc15";
-            default:
-                return "#9ca3af";
-        }
-    };
-
-    const formatDate = (dateString: string) => {
-        try {
-            const date = new Date(dateString);
-            return date.toLocaleString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-            });
-        } catch {
-            return dateString;
-        }
-    };
-
     const formatLocationsAsList = (locations: unknown[] | undefined): React.ReactNode => {
         if (!locations || locations.length === 0) return "N/A";
-
-        const locationItems = locations.map((loc, index) => {
-            let locationStr: string;
-            if (typeof loc === "string") {
-                locationStr = loc;
-            } else if (typeof loc === "object" && loc !== null) {
-                const obj = loc as Record<string, unknown>;
-                const parts = [obj.city as string, obj.state as string, obj.country as string].filter(Boolean);
-                locationStr = parts.length > 0 ? parts.join(", ") : "Unknown";
-            } else {
-                locationStr = String(loc);
-            }
-            return <li key={index}>{locationStr}</li>;
-        });
-
-        return <ul className="locations-list">{locationItems}</ul>;
-    };
-
-    const formatApplicantLocations = (applicantLocations: string[] | undefined) => {
-        if (!applicantLocations || applicantLocations.length === 0) return "N/A";
-        return applicantLocations.join(", ");
+        return (
+            <ul className="locations-list">
+                {locations.map((loc, index) => (
+                    <li key={index}>{formatLocation(loc)}</li>
+                ))}
+            </ul>
+        );
     };
 
     return (
@@ -216,7 +144,7 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                                             <div className="detail-item">
                                                 <span className="detail-label">Applicant Locations:</span>
                                                 <span className="detail-value">
-                                                    {formatApplicantLocations(jobPostData.detail.applicantLocations)}
+                                                    {formatList(jobPostData.detail.applicantLocations)}
                                                 </span>
                                             </div>
 
@@ -369,7 +297,7 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                                                     <span className="status-label">Status:</span>
                                                     <span
                                                         className="status-badge"
-                                                        style={{ backgroundColor: getStatusColor(assessment.status) }}
+                                                        style={{ backgroundColor: getAssessmentStatusColor(assessment.status) }}
                                                     >
                                                         {assessment.status}
                                                     </span>
@@ -390,7 +318,7 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                                                 <div className="status-row">
                                                     <span className="status-label">Created At:</span>
                                                     <span className="status-value">
-                                                        {formatDate(assessment.createdAt)}
+                                                        {formatDate(assessment.createdAt, "datetime")}
                                                     </span>
                                                 </div>
                                             </div>
