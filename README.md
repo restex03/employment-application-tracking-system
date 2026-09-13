@@ -86,7 +86,7 @@ data/                    # Runtime data, gitignored (see "Data Files" below)
 - Backend Runtime: Node.js + Fastify (REST API at `/api/v1`)
 - Frontend: React + Vite (served separately from the API in development)
 - Database: SQLite (active; stores job sources, job posts, candidate profiles, assessments, job applications with status/notes/attachments, and background job queues)
-- LLM Runtime: Ollama by default, with optional OpenAI-compatible provider support
+- LLM Runtime: Ollama by default, with optional Mistral API support
 - Job Sources: Workday-hosted career sites
 - Architecture: Layered architecture with dependency injection
 - Testing: Vitest for both the backend (`src/`) and frontend (`client/src/`)
@@ -97,7 +97,7 @@ data/                    # Runtime data, gitignored (see "Data Files" below)
 
 - Current Node.js LTS
 - npm
-- Ollama (unless you configure an OpenAI-compatible provider instead)
+- Ollama (unless you configure `MISTRAL_API_KEY` instead)
 
 ### Installation
 
@@ -116,15 +116,17 @@ Copy the example environment file and fill in values for your machine:
 cp .envExample .env
 ```
 
-| Variable                  | Required | Description                                                              |
-| ------------------------- | -------- | ------------------------------------------------------------------------ |
-| `DB_PATH`                 | Yes      | Path to the SQLite database file (e.g. `./data/job-app.db`).             |
-| `API_PORT`                | No       | Port the API server listens on. Defaults to `3000`.                      |
-| `WORKDAY_SOURCES`         | Yes      | Path to the Workday job sources JSON file (see "Job Sources" below).     |
-| `CANDIDATE_PROFILE`       | Yes      | Path to the candidate profile JSON file (see "Candidate Profile" below). |
-| `OLLAMA_BASE_URL`         | Yes      | Base URL of the local Ollama server.                                     |
-| `OLLAMA_MODEL`            | Yes      | Ollama model name used for job evaluation.                               |
-| `OPENAI_PROVIDER_API_KEY` | No       | If set, uses an OpenAI-compatible provider instead of Ollama.            |
+| Variable              | Required | Description                                                                |
+| --------------------- | -------- | -------------------------------------------------------------------------- |
+| `RUN_LLM_REGRESSION`  | No       | Set to `1` to enable LLM regression tests (default `0`).                   |
+| `DB_PATH`             | Yes      | Path to the SQLite database file (e.g. `./data/job-app.db`).               |
+| `TEST_MODE`           | No       | Enables test mode (default `true`).                                       |
+| `API_PORT`            | No       | Port the API server listens on. Defaults to `3000`.                        |
+| `CANDIDATE_PROFILE`   | Yes      | Path to the candidate profile JSON file (see "Candidate Profile" below).   |
+| `WORKDAY_SOURCES`     | Yes      | Path to the Workday job sources JSON file (see "Job Sources" below).       |
+| `OLLAMA_BASE_URL`     | Yes      | Base URL of the local Ollama server.                                       |
+| `OLLAMA_MODEL`        | Yes      | Ollama model name used for job evaluation.                                 |
+| `MISTRAL_API_KEY`     | No       | If set, uses the Mistral API as the LLM provider instead of Ollama.        |
 
 ### Candidate Profile Configuration
 
@@ -161,7 +163,7 @@ On first run, if no job sources exist in the database, this file is automaticall
 
 ### Ollama
 
-Ensure Ollama is installed and running before starting the application, unless `OPENAI_PROVIDER_API_KEY` is set to use an OpenAI-compatible provider instead.
+Ensure Ollama is installed and running before starting the application, unless `MISTRAL_API_KEY` is set to use the Mistral API instead.
 
 The LLM implementation is accessed through an abstraction so model and provider implementations can be changed independently of the job-evaluation workflow.
 
