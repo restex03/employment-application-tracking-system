@@ -356,8 +356,9 @@
 .application-status-badge {
     display: inline-block;
     padding: 0.25rem 0.75rem;
+    padding: 0.2rem 0.6rem;
     border-radius: var(--radius-full);
-    font-size: 0.75rem;
+    font-size: 0.625rem;
     font-weight: 600;
     color: white;
     text-transform: uppercase;
