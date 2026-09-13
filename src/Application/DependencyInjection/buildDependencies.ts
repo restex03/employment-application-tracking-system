@@ -113,7 +113,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
     /*
      * Inference
      */
-    let llmTargetOptions: ILlmTargetOptions = LlmTargetRegistry.Qwen3_4b_Instruct_8k;
+    let llmTargetOptions: ILlmTargetOptions = LlmTargetRegistry.Ministral_3_8b_hosted;
     const llm: ILlmInferenceProvider = new OpenAiInferenceProvider(logger, llmTargetOptions);
 
     /*

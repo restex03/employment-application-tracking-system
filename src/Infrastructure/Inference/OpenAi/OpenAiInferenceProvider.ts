@@ -35,7 +35,9 @@ export class OpenAiInferenceProvider implements ILlmInferenceProvider {
                     content: typeof request.input === "string" ? request.input : JSON.stringify(request.input),
                 },
             ],
-            reasoning_effort: "none",
+            ...(this.llm.reasoningEffort !== undefined && {
+                reasoning_effort: this.llm.reasoningEffort,
+            }),
             response_format: {
                 type: "json_schema",
                 json_schema: {
@@ -47,12 +49,18 @@ export class OpenAiInferenceProvider implements ILlmInferenceProvider {
         });
 
         const elapsed = performance.now() - start;
-        const content = response.choices[0]?.message?.content;
+        const choice = response.choices[0];
+        const content = choice?.message?.content;
 
-        // console.dir(response.choices[0], { depth: null });
+        if (choice?.finish_reason === "length") {
+            throw new Error(
+                `[ChatCompletionInferenceProvider.generateStructured] ` +
+                    `Model response exceeded maxTokens (${request.maxTokens}).`
+            );
+        }
 
         if (!content) {
-            throw new Error(`[OpenAiInferenceProvider.generateStructured] Model returned no content.`);
+            throw new Error(`[ChatCompletionInferenceProvider.generateStructured] ` + `Model returned no content.`);
         }
 
         this.logger.debug("********************************************************");

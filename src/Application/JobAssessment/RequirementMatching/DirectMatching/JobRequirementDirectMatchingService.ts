@@ -33,7 +33,7 @@ export class JobRequirementDirectMatchingService implements IJobRequirementDirec
             jsonSchema: JobRequirementDirectMatchResponseSchema,
             validationSchema: JobRequirementDirectMatchResponseValidationSchema,
             temperature: 0.1,
-            maxTokens: 150,
+            maxTokens: 300,
         });
 
         if (result.isDirectMatch && !result.evidence) {

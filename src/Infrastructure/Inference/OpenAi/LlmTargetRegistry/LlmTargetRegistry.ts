@@ -2,6 +2,7 @@ export interface ILlmTargetOptions {
     model: string;
     apiBaseUrl: URL;
     apiKey: string;
+    reasoningEffort?: "none" | "minimal" | "low" | "medium" | "high";
 }
 
 export class LlmTargetRegistry {

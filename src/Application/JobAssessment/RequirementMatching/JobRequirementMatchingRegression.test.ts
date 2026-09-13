@@ -6,7 +6,6 @@ import { ILogger } from "../../../Infrastructure/Logging/ILogger";
 import { IClassifiedJobRequirement } from "../RquirementClassification/IClassifiedJobRequirement";
 import { JobRequirementDirectMatchingService } from "./DirectMatching/JobRequirementDirectMatchingService";
 import { JobRequirementTransferableMatchingService } from "./TransferableMatching/JobRequirementTransferableMatchingService";
-import { LlmTargetRegistry } from "../../../Infrastructure/Inference/OpenAi/LlmTargetRegistry/LlmTargetRegistry";
 
 interface IStructuredInferenceRequest {
     systemPrompt: string;
@@ -31,50 +30,63 @@ const regressionDescribe = runRegressionTests ? describe : describe.skip;
  * The model to be used for the tests can be configured via modelOptions below:
  *
  */
-const modelOptions = LlmTargetRegistry.Qwen3_4b_Instruct_8k;
 
-const client = new OpenAI({
-    baseURL: modelOptions.apiBaseUrl.toString(),
-    apiKey: modelOptions.apiKey,
-});
+// Deferred so LlmTargetRegistry (which reads env vars at class-definition time
+// for hosted providers) is only imported when regression tests are actually enabled.
+let llm: ILlmInferenceProvider;
+let directMatchingService: JobRequirementDirectMatchingService;
+let transferableMatchingService: JobRequirementTransferableMatchingService;
 
-const llm = {
-    async generateStructured<T>(request: IStructuredInferenceRequest): Promise<T> {
-        const response = await client.chat.completions.create({
-            model: modelOptions.model,
-            messages: [
-                {
-                    role: "system",
-                    content: request.systemPrompt,
+if (runRegressionTests) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { LlmTargetRegistry } = require("../../../Infrastructure/Inference/OpenAi/LlmTargetRegistry/LlmTargetRegistry");
+    const modelOptions = LlmTargetRegistry.Qwen3_4b_Instruct_8k;
+
+    const client = new OpenAI({
+        baseURL: modelOptions.apiBaseUrl.toString(),
+        apiKey: modelOptions.apiKey,
+    });
+
+    llm = {
+        async generateStructured<T>(request: IStructuredInferenceRequest): Promise<T> {
+            const response = await client.chat.completions.create({
+                model: modelOptions.model,
+                messages: [
+                    {
+                        role: "system",
+                        content: request.systemPrompt,
+                    },
+                    {
+                        role: "user",
+                        content: JSON.stringify(request.input),
+                    },
+                ],
+                temperature: request.temperature ?? 0.1,
+                max_tokens: request.maxTokens ?? 150,
+                response_format: {
+                    type: "json_schema",
+                    json_schema: {
+                        name: request.schemaName,
+                        strict: true,
+                        schema: request.jsonSchema,
+                    },
                 },
-                {
-                    role: "user",
-                    content: JSON.stringify(request.input),
-                },
-            ],
-            temperature: request.temperature ?? 0.1,
-            max_tokens: request.maxTokens ?? 150,
-            response_format: {
-                type: "json_schema",
-                json_schema: {
-                    name: request.schemaName,
-                    strict: true,
-                    schema: request.jsonSchema,
-                },
-            },
-        });
+            });
 
-        const content = response.choices[0]?.message.content;
+            const content = response.choices[0]?.message.content;
 
-        if (!content) {
-            throw new Error("Inference returned no content.");
-        }
+            if (!content) {
+                throw new Error("Inference returned no content.");
+            }
 
-        const parsed: unknown = JSON.parse(content);
+            const parsed: unknown = JSON.parse(content);
 
-        return request.validationSchema.parse(parsed) as T;
-    },
-} as unknown as ILlmInferenceProvider;
+            return request.validationSchema.parse(parsed) as T;
+        },
+    } as unknown as ILlmInferenceProvider;
+} else {
+    llm = {} as unknown as ILlmInferenceProvider;
+}
 
 const logger = {
     debug: () => undefined,
@@ -83,9 +95,9 @@ const logger = {
     error: () => undefined,
 } as unknown as ILogger;
 
-const directMatchingService = new JobRequirementDirectMatchingService(llm, logger);
+directMatchingService = new JobRequirementDirectMatchingService(llm, logger);
 
-const transferableMatchingService = new JobRequirementTransferableMatchingService(llm, logger);
+transferableMatchingService = new JobRequirementTransferableMatchingService(llm, logger);
 
 function createRequirement(area: string, description: string): IClassifiedJobRequirement {
     return {
