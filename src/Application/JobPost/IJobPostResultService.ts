@@ -6,7 +6,7 @@ export interface JobPostQueryFilters {
     requisitionId: string;
     title: string;
     location: string;
-    daysOld: string;
+    daysOld?: number;
     jobMatchScore?: number;
 }
 

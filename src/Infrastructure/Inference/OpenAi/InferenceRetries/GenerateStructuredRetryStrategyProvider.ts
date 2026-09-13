@@ -5,6 +5,7 @@ import { FinishReasonErrorRetryStrategy } from "./Strategies/FinishReasonErrorRe
 import { InvalidJsonRetryStrategy } from "./Strategies/InvalidJsonRetryStrategy";
 import { InvalidSchemaRetryStrategy } from "./Strategies/InvalidSchemaRetryStrategy";
 import { MaxTokensExceededRetryStrategy } from "./Strategies/MaxTokensExceededRetryStrategy";
+import { RateLimitRetryStrategy } from "./Strategies/RateLimitRetryStrategy";
 import { StructuredOutputFallbackRetryStrategy } from "./Strategies/StructuredOutputFallbackRetryStrategy";
 import { TransientHttpRetryStrategy } from "./Strategies/TransientHttpRetryStrategy";
 
@@ -20,6 +21,7 @@ export class GenerateStructuredRetryStrategyProvider implements IGenerateStructu
             new InvalidJsonRetryStrategy(),
             new FinishReasonErrorRetryStrategy(),
             new StructuredOutputFallbackRetryStrategy(),
+            new RateLimitRetryStrategy(),
             new TransientHttpRetryStrategy(),
         ];
     }

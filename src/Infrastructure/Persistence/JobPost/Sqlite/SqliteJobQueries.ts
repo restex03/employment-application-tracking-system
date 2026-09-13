@@ -116,8 +116,6 @@ export class SqliteJobQueries implements IJobPostQueries {
                     job_match_score_json,
                     ROW_NUMBER() OVER (PARTITION BY job_post_id ORDER BY created_at DESC) AS row_num
                 FROM job_assessments
-                ORDER BY created_at DESC
-                LIMIT 1
             ) ja
                 ON ja.job_post_id = jp.id AND ja.row_num = 1
             LEFT JOIN job_post_details jpd
@@ -127,7 +125,11 @@ export class SqliteJobQueries implements IJobPostQueries {
                     AND (UPPER(@requisitionId) = '' OR UPPER(jp.requisition_id) LIKE '%' || UPPER(@requisitionId) || '%')
                     AND (UPPER(@title) = '' OR UPPER(jp.title) LIKE '%' || UPPER(@title) || '%')
                     AND (UPPER(@location) = '' OR UPPER(jp.locations) LIKE '%' || UPPER(@location) || '%')
-                    AND (COALESCE(TRIM(@daysOld), '') = '' OR CAST(jp.days_old AS TEXT) LIKE '%' || TRIM(@daysOld) || '%')
+                    AND (
+                        @daysOld IS NULL
+                        OR (@daysOld = -1 AND jp.days_old IS NULL)
+                        OR (jp.days_old IS NOT NULL AND jp.days_old <= @daysOld)
+                    )
                     AND (
                         @jobMatchScore IS NULL
                         OR CAST(json_extract(ja.job_match_score_json, '$.score') AS REAL) >= @jobMatchScore
@@ -157,7 +159,11 @@ export class SqliteJobQueries implements IJobPostQueries {
                     AND (UPPER(@requisitionId) = '' OR UPPER(jp.requisition_id) LIKE '%' || UPPER(@requisitionId) || '%')
                     AND (UPPER(@title) = '' OR UPPER(jp.title) LIKE '%' || UPPER(@title) || '%')
                     AND (UPPER(@location) = '' OR UPPER(jp.locations) LIKE '%' || UPPER(@location) || '%')
-                    AND (COALESCE(TRIM(@daysOld), '') = '' OR CAST(jp.days_old AS TEXT) LIKE '%' || TRIM(@daysOld) || '%')
+                    AND (
+                        @daysOld IS NULL
+                        OR (@daysOld = -1 AND jp.days_old IS NULL)
+                        OR (jp.days_old IS NOT NULL AND jp.days_old <= @daysOld)
+                    )
                     AND (
                         @jobMatchScore IS NULL
                         OR CAST(json_extract(ja.job_match_score_json, '$.score') AS REAL) >= @jobMatchScore
@@ -178,7 +184,7 @@ export class SqliteJobQueries implements IJobPostQueries {
             requisitionId: queryFilters.requisitionId?.trim() ?? "",
             title: queryFilters.title?.trim() ?? "",
             location: queryFilters.location?.trim() ?? "",
-            daysOld: queryFilters.daysOld?.trim() ?? "",
+            daysOld: queryFilters.daysOld ?? null,
             jobMatchScore: queryFilters.jobMatchScore ?? null,
         };
         const rows = this.getAllStatement.all(queryParams) as JobPostRow[];

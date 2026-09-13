@@ -1,16 +1,5 @@
-// TransientHttpRetryStrategy.ts
-
 import { IGenerateStructuredRetryStrategy, GenerateStructuredRetryDecision } from "../IGenerateStructuredRetryStrategy";
-
-function getHttpStatus(error: unknown): number | undefined {
-    if (typeof error !== "object" || error === null || !("status" in error)) {
-        return undefined;
-    }
-
-    const status = (error as { status?: unknown }).status;
-
-    return typeof status === "number" ? status : undefined;
-}
+import { getHttpStatus } from "./helpers/getHttpStatus";
 
 export class TransientHttpRetryStrategy implements IGenerateStructuredRetryStrategy {
     public readonly name = "transient-http";
@@ -25,16 +14,22 @@ export class TransientHttpRetryStrategy implements IGenerateStructuredRetryStrat
     public evaluate(error: unknown, context: { retryCount: number }): GenerateStructuredRetryDecision | null {
         const status = getHttpStatus(error);
 
-        const retryable = status === 429 || (status !== undefined && this.transient5xxStatuses.has(status));
-
-        if (!retryable) {
+        if (status === undefined || !this.transient5xxStatuses.has(status)) {
             return null;
         }
 
+        if (context.retryCount >= this.maxRetries) {
+            return {
+                shouldRetry: false,
+                delayMs: 0,
+                reason: `Transient HTTP ${status} retry limit reached ` + `(${this.maxRetries} retries).`,
+            };
+        }
+
         return {
-            shouldRetry: context.retryCount < this.maxRetries,
+            shouldRetry: true,
             delayMs: this.baseDelayMs * Math.pow(2, context.retryCount),
-            reason: `Transient HTTP ${status} response.`,
+            reason: `Transient HTTP ${status} response. ` + `Retry ${context.retryCount + 1}/${this.maxRetries}.`,
         };
     }
 }

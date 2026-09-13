@@ -234,7 +234,11 @@ export class SqliteJobRepository implements IJobPostRepository {
                     AND (UPPER(@requisitionId) = '' OR UPPER(jp.requisition_id) LIKE '%' || UPPER(@requisitionId) || '%')
                     AND (UPPER(@title) = '' OR UPPER(jp.title) LIKE '%' || UPPER(@title) || '%')
                     AND (UPPER(@location) = '' OR UPPER(jp.locations) LIKE '%' || UPPER(@location) || '%')
-                    AND (COALESCE(TRIM(@daysOld), '') = '' OR CAST(jp.days_old AS TEXT) LIKE '%' || TRIM(@daysOld) || '%')
+                    AND (
+                        @daysOld IS NULL
+                        OR (@daysOld = -1 AND jp.days_old IS NULL)
+                        OR (jp.days_old IS NOT NULL AND jp.days_old <= @daysOld)
+                    )
 
             ORDER BY jp.created_at DESC
             LIMIT @pageCount OFFSET @offset
@@ -251,7 +255,11 @@ export class SqliteJobRepository implements IJobPostRepository {
                     AND (UPPER(@requisitionId) = '' OR UPPER(jp.requisition_id) LIKE '%' || UPPER(@requisitionId) || '%')
                     AND (UPPER(@title) = '' OR UPPER(jp.title) LIKE '%' || UPPER(@title) || '%')
                     AND (UPPER(@location) = '' OR UPPER(jp.locations) LIKE '%' || UPPER(@location) || '%')
-                    AND (COALESCE(TRIM(@daysOld), '') = '' OR CAST(jp.days_old AS TEXT) LIKE '%' || TRIM(@daysOld) || '%')
+                    AND (
+                        @daysOld IS NULL
+                        OR (@daysOld = -1 AND jp.days_old IS NULL)
+                        OR (jp.days_old IS NOT NULL AND jp.days_old <= @daysOld)
+                    )
         `);
 
         this.getByIdStatement = this.connection.prepare(`
@@ -327,7 +335,7 @@ export class SqliteJobRepository implements IJobPostRepository {
             requisitionId: queryFilters.requisitionId?.trim() ?? "",
             title: queryFilters.title?.trim() ?? "",
             location: queryFilters.location?.trim() ?? "",
-            daysOld: queryFilters.daysOld?.trim() ?? "",
+            daysOld: queryFilters.daysOld ?? null,
             jobMatchScore: queryFilters.jobMatchScore,
         };
         const rows = this.getAllStatement.all(queryParams) as JobPostRow[];

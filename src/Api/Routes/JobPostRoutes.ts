@@ -48,12 +48,17 @@ export class JobPostRoutes implements IRouteRegistrar {
                     rawJobMatchScore !== undefined && `${rawJobMatchScore}`.trim() !== ""
                         ? Number(rawJobMatchScore)
                         : undefined;
+                const rawDaysOld = request.query.daysOld;
+                const daysOld =
+                    rawDaysOld !== undefined && `${rawDaysOld}`.trim() !== ""
+                        ? Number(rawDaysOld)
+                        : undefined;
                 const queryFilters = {
                     companyName: request.query.companyName?.trim() ?? "",
                     requisitionId: request.query.requisitionId?.trim() ?? "",
                     title: request.query.title?.trim() ?? "",
                     location: request.query.location?.trim() ?? "",
-                    daysOld: request.query.daysOld?.trim() ?? "",
+                    daysOld: Number.isNaN(daysOld) ? undefined : daysOld,
                     jobMatchScore: Number.isNaN(jobMatchScore) ? undefined : jobMatchScore,
                 } as JobPostQueryFilters;
                 const result = await this.jobPostResultService.getAll(pageCount, pageNumber, queryFilters);

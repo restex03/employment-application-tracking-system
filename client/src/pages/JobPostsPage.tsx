@@ -457,13 +457,46 @@ function JobPostsPage() {
                         onChange={e => handleFilterChange("locations", e.target.value)}
                         className="filter-input"
                     />
-                    <input
-                        type="text"
-                        placeholder="Filter Days Old..."
+                    <select
                         value={filters.daysOld}
                         onChange={e => handleFilterChange("daysOld", e.target.value)}
                         className="filter-input"
-                    />
+                        aria-label="Filter Days Old"
+                    >
+                        <option value="">Days Old: All</option>
+                        <option value="-1">Days Old: N/A</option>
+                        <option value="0">Days Old: =0</option>
+                        <option value="1">Days Old: &lt;=1</option>
+                        <option value="2">Days Old: &lt;=2</option>
+                        <option value="3">Days Old: &lt;=3</option>
+                        <option value="4">Days Old: &lt;=4</option>
+                        <option value="5">Days Old: &lt;=5</option>
+                        <option value="6">Days Old: &lt;=6</option>
+                        <option value="7">Days Old: &lt;=7</option>
+                        <option value="8">Days Old: &lt;=8</option>
+                        <option value="9">Days Old: &lt;=9</option>
+                        <option value="10">Days Old: &lt;=10</option>
+                        <option value="11">Days Old: &lt;=11</option>
+                        <option value="12">Days Old: &lt;=12</option>
+                        <option value="13">Days Old: &lt;=13</option>
+                        <option value="14">Days Old: &lt;=14</option>
+                        <option value="15">Days Old: &lt;=15</option>
+                        <option value="16">Days Old: &lt;=16</option>
+                        <option value="17">Days Old: &lt;=17</option>
+                        <option value="18">Days Old: &lt;=18</option>
+                        <option value="19">Days Old: &lt;=19</option>
+                        <option value="20">Days Old: &lt;=20</option>
+                        <option value="21">Days Old: &lt;=21</option>
+                        <option value="22">Days Old: &lt;=22</option>
+                        <option value="23">Days Old: &lt;=23</option>
+                        <option value="24">Days Old: &lt;=24</option>
+                        <option value="25">Days Old: &lt;=25</option>
+                        <option value="26">Days Old: &lt;=26</option>
+                        <option value="27">Days Old: &lt;=27</option>
+                        <option value="28">Days Old: &lt;=28</option>
+                        <option value="29">Days Old: &lt;=29</option>
+                        <option value="30">Days Old: &lt;=30</option>
+                    </select>
                     <select
                         value={filters.jobMatchScore}
                         onChange={e => handleFilterChange("jobMatchScore", e.target.value)}
