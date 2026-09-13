@@ -100,6 +100,12 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
 
     const jobAssessmentRepo: IJobAssessmentRepository = new SqliteJobAssessmentRepository(sqliteConnection.db, logger);
 
+    const jobApplicationRepository: IJobApplicationRepository = new JobApplicationRepository(
+        sqliteConnection.db,
+        logger
+    );
+    const fileSystemRepository: IFileSystemRepository = new FileSystemRepository(getDataDirectory(), logger);
+
     const jobPostQueries: IJobPostQueries = new SqliteJobQueries(sqliteConnection.db, logger);
     const jobAssessmentQueue: IJobAssessmentQueue = new SqliteJobAssessmentQueueRepository(sqliteConnection.db, logger);
     const jobPostSyncQueue: IJobPostSyncQueue = new SqliteJobPostSyncQueueRepository(sqliteConnection.db, logger);
@@ -108,11 +114,10 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
      * Inference
      */
     let llmTargetOptions: ILlmTargetOptions = LlmTargetRegistry.Qwen3_4b_Instruct_8k;
-    llmTargetOptions.apiKey = getLlmApiKeyOrDefault();
     const llm: ILlmInferenceProvider = new OpenAiInferenceProvider(logger, llmTargetOptions);
 
     /*
-     * Job post services
+     * Application Services
      */
     const jobPostResultService: IJobPostResultService = new JobPostResultService(
         jobPostRepository,
@@ -120,9 +125,6 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         logger
     );
 
-    /*
-     * Assessment services
-     */
     const screeningService: IJobScreeningService = new JobScreeningService(llm, logger);
 
     const requirementsExtractionService: IJobRequirementsExtractionService = new JobRequirementsExtractionService(
@@ -137,30 +139,27 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         llm,
         logger
     );
-
     const transferableMatchingService: IJobRequirementTransferableMatchingService =
         new JobRequirementTransferableMatchingService(llm, logger);
-
     const jobRequirementMatchMapper: IJobRequirementMatchMapper = new JobRequirementMatchMapper();
-
     const requirementsMatchingService: IJobRequirementsMatchingService = new JobRequirementsMatchingService(
         directMatchingService,
         transferableMatchingService,
         jobRequirementMatchMapper,
         logger
     );
+
     const jobPostDiscoveryServiceFactory: IJobPostDiscoveryServiceFactory = new JobPostDiscoveryServiceFactory(logger);
 
-    /*
-     * Job synchronization
-     */
     const jobPostSyncService: IJobPostSyncService = new JobPostSyncService(
         jobPostDiscoveryServiceFactory,
         jobSourceRepository,
         jobPostRepository,
         logger
     );
+
     const scoreCalculator: IJobMatchScoreCalculator = new JobMatchScoreCalculator();
+
     const jobAssessmentPipeline = new PipelineRunner<IJobAssessmentContext>([
         new ScreenJob(screeningService),
         new FetchJobDetails(jobPostDiscoveryServiceFactory),
@@ -192,11 +191,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         jobPostSyncService,
         logger
     );
-    const jobApplicationRepository: IJobApplicationRepository = new JobApplicationRepository(
-        sqliteConnection.db,
-        logger
-    );
-    const fileSystemRepository: IFileSystemRepository = new FileSystemRepository(getDataDirectory(), logger);
+
     const jobApplicationService: IJobApplicationService = new JobApplicationService(
         jobApplicationRepository,
         fileSystemRepository,
@@ -254,12 +249,4 @@ function getDataDirectory(): string {
     }
 
     return path.dirname(dbPath);
-}
-function getLlmApiKeyOrDefault(): string {
-    const apiKey = process.env.OPENAI_PROVIDER_API_KEY;
-    if (!apiKey) {
-        console.warn("OPENAI_PROVIDER_API_KEY environment variable is not set.");
-        return "ollama";
-    }
-    return apiKey;
 }
