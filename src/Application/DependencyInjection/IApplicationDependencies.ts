@@ -36,7 +36,7 @@ export interface IApplicationDependencies {
     jobPostSyncQueueWorkerService: IJobPostSyncQueueWorkerService;
     jobCandidateProfileService: IJobCandidateProfileService;
     jobSourceService: IJobSourceService;
-    llm: ILlmInferenceProvider;
+    inferenceProvider: ILlmInferenceProvider;
     screeningService: IJobScreeningService;
     requirementsExtractionService: IJobRequirementsExtractionService;
     requirementsClassificationService: IJobRequirementClassificationService;

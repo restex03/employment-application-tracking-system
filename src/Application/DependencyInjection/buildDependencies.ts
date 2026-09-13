@@ -74,6 +74,7 @@ import { IFileSystemRepository } from "../../Infrastructure/Persistence/FileSyst
 import { FileSystemRepository } from "../../Infrastructure/Persistence/FileSystem/FileSystemRepository";
 import { IJobApplicationService } from "../JobApplications/IJobApplicationService";
 import { JobApplicationService } from "../JobApplications/JobApplicationService";
+import { GenerateStructuredRetryStrategyProvider } from "../../Infrastructure/Inference/OpenAi/InferenceRetries/GenerateStructuredRetryStrategyProvider";
 
 export function buildDependencies(logLevel: LogLevel): IApplicationDependencies {
     const logger: ILogger = new ConsoleLogger(logLevel);
@@ -114,7 +115,9 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
      * Inference
      */
     let llmTargetOptions: ILlmTargetOptions = LlmTargetRegistry.Ministral_3_8b_hosted;
-    const llm: ILlmInferenceProvider = new OpenAiInferenceProvider(logger, llmTargetOptions);
+    const retryStrategyProvider = new GenerateStructuredRetryStrategyProvider();
+
+    const inferenceProvider = new OpenAiInferenceProvider(logger, llmTargetOptions, retryStrategyProvider);
 
     /*
      * Application Services
@@ -125,22 +128,22 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         logger
     );
 
-    const screeningService: IJobScreeningService = new JobScreeningService(llm, logger);
+    const screeningService: IJobScreeningService = new JobScreeningService(inferenceProvider, logger);
 
     const requirementsExtractionService: IJobRequirementsExtractionService = new JobRequirementsExtractionService(
-        llm,
+        inferenceProvider,
         logger
     );
 
     const requirementsClassificationService: IJobRequirementClassificationService =
-        new JobRequirementClassificationService(llm, logger);
+        new JobRequirementClassificationService(inferenceProvider, logger);
 
     const directMatchingService: IJobRequirementDirectMatchingService = new JobRequirementDirectMatchingService(
-        llm,
+        inferenceProvider,
         logger
     );
     const transferableMatchingService: IJobRequirementTransferableMatchingService =
-        new JobRequirementTransferableMatchingService(llm, logger);
+        new JobRequirementTransferableMatchingService(inferenceProvider, logger);
     const jobRequirementMatchMapper: IJobRequirementMatchMapper = new JobRequirementMatchMapper();
     const requirementsMatchingService: IJobRequirementsMatchingService = new JobRequirementsMatchingService(
         directMatchingService,
@@ -208,7 +211,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
     return {
         logger,
         sqliteConnection,
-        llm,
+        inferenceProvider,
         jobPostRepository,
         jobSourceRepository,
         jobSourceService,
