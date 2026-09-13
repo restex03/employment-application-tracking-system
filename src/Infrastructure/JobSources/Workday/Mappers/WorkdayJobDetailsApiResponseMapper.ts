@@ -30,7 +30,6 @@ export class WorkdayJobDetailsApiResponseMapper implements IWorkdayJobDetailsApi
             requisitionId: jobPostingInfo.jobReqId,
             title: jobPostingInfo.title,
             description: this.normalizeHtml(this.sanitize(jobPostingInfo.jobDescription)),
-            datePosted: jobPostingInfo.postedOn,
             employmentType: jobPostingInfo.timeType,
             locations: uniqueLocations,
             remoteType: jobPostingInfo.remoteType,

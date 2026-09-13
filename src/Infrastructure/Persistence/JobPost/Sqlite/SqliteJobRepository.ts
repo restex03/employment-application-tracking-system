@@ -14,7 +14,7 @@ interface JobPostParameters {
     title: string;
     detailPath: string;
     locations: string | null;
-    postedDate: string | null;
+    daysOld: number | null;
     remoteType: string | null;
     createdAt: string;
 }
@@ -34,7 +34,6 @@ interface JobPostDetailHydrationParameters {
     jobPostId: string;
     requisitionId: string | null;
     title: string;
-    datePosted: string | null;
     remoteType: string | null;
 }
 
@@ -49,7 +48,7 @@ interface JobPostRow {
     title: string;
     detail_path: string;
     locations: string | null;
-    days_old: string | null;
+    days_old: number | null;
     remote_type: string | null;
     created_at: string;
 
@@ -103,7 +102,7 @@ export class SqliteJobRepository implements IJobPostRepository {
                 @title,
                 @detailPath,
                 @locations,
-                @postedDate,
+                @daysOld,
                 @remoteType,
                 @createdAt
             )
@@ -163,7 +162,6 @@ export class SqliteJobRepository implements IJobPostRepository {
             SET
                 requisition_id = COALESCE(@requisitionId, requisition_id),
                 title = @title,
-                days_old = COALESCE(@datePosted, days_old),
                 remote_type = COALESCE(@remoteType, remote_type)
             WHERE id = @jobPostId
         `);
@@ -236,7 +234,7 @@ export class SqliteJobRepository implements IJobPostRepository {
                     AND (UPPER(@requisitionId) = '' OR UPPER(jp.requisition_id) LIKE '%' || UPPER(@requisitionId) || '%')
                     AND (UPPER(@title) = '' OR UPPER(jp.title) LIKE '%' || UPPER(@title) || '%')
                     AND (UPPER(@location) = '' OR UPPER(jp.locations) LIKE '%' || UPPER(@location) || '%')
-                    AND (COALESCE(TRIM(@daysOld), '') = '' OR UPPER(jp.days_old) LIKE '%' || UPPER(TRIM(@daysOld)) || '%')
+                    AND (COALESCE(TRIM(@daysOld), '') = '' OR CAST(jp.days_old AS TEXT) LIKE '%' || TRIM(@daysOld) || '%')
 
             ORDER BY jp.created_at DESC
             LIMIT @pageCount OFFSET @offset
@@ -253,7 +251,7 @@ export class SqliteJobRepository implements IJobPostRepository {
                     AND (UPPER(@requisitionId) = '' OR UPPER(jp.requisition_id) LIKE '%' || UPPER(@requisitionId) || '%')
                     AND (UPPER(@title) = '' OR UPPER(jp.title) LIKE '%' || UPPER(@title) || '%')
                     AND (UPPER(@location) = '' OR UPPER(jp.locations) LIKE '%' || UPPER(@location) || '%')
-                    AND (COALESCE(TRIM(@daysOld), '') = '' OR UPPER(jp.days_old) LIKE '%' || UPPER(TRIM(@daysOld)) || '%')
+                    AND (COALESCE(TRIM(@daysOld), '') = '' OR CAST(jp.days_old AS TEXT) LIKE '%' || TRIM(@daysOld) || '%')
         `);
 
         this.getByIdStatement = this.connection.prepare(`
@@ -402,7 +400,7 @@ export class SqliteJobRepository implements IJobPostRepository {
             title: jobPost.title,
             detailPath: jobPost.detailPath,
             locations: jobPost.locations ? JSON.stringify(jobPost.locations) : null,
-            postedDate: jobPost.daysOld ?? null,
+            daysOld: jobPost.daysOld ?? null,
             remoteType: jobPost.remoteType ?? null,
             createdAt: jobPost.createdAt.toISOString(),
         };
@@ -413,7 +411,6 @@ export class SqliteJobRepository implements IJobPostRepository {
             jobPostId,
             requisitionId: detail.requisitionId ?? null,
             title: detail.title,
-            datePosted: detail.datePosted ?? null,
             remoteType: detail.remoteType ?? null,
         };
     }
@@ -457,8 +454,6 @@ export class SqliteJobRepository implements IJobPostRepository {
 
             title: row.title,
             description: row.detail_description!,
-
-            datePosted: row.days_old ?? undefined,
             validThrough: row.detail_valid_through ?? undefined,
 
             employmentType: row.detail_employment_type ?? undefined,

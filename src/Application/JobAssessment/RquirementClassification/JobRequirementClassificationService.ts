@@ -36,7 +36,8 @@ export class JobRequirementClassificationService implements IJobRequirementClass
             jsonSchema: JobRequirementClassificationResponseSchema,
             validationSchema: JobRequirementClassificationResponseValidationSchema,
 
-            temperature: 0.1,
+            // temperature: 0.1,
+            temperature: 0,
             maxTokens: 800,
         });
 

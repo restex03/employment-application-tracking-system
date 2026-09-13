@@ -154,7 +154,7 @@ export class SqliteDatabaseConnection {
                 title TEXT NOT NULL,
                 detail_path TEXT NOT NULL,
                 locations TEXT,
-                days_old TEXT,
+                days_old INTEGER,
                 remote_type TEXT,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -165,6 +165,54 @@ export class SqliteDatabaseConnection {
             CREATE UNIQUE INDEX IF NOT EXISTS ux_job_posts_source_detail_path
             ON job_posts(source_id, detail_path);
         `);
+        this.migrateDaysOldToInteger();
+    }
+
+    /**
+     * Migrates existing days_old values from TEXT to INTEGER.
+     * "30+" -> 30, "00" -> 0, "09" -> 9, numeric strings -> their integer value.
+     * Non-numeric strings (e.g. "Unknown") are set to NULL.
+     */
+    private migrateDaysOldToInteger(): void {
+        const columns = this.db.pragma("table_info(job_posts)") as Array<{ name: string; type: string }>;
+        const daysOldCol = columns.find(c => c.name === "days_old");
+        if (!daysOldCol) return;
+
+        if (daysOldCol.type === "TEXT") {
+            this.db.exec(`
+                UPDATE job_posts
+                SET days_old = CASE
+                    WHEN days_old IS NULL OR TRIM(days_old) = '' THEN NULL
+                    WHEN days_old = '30+' THEN 30
+                    ELSE CAST(days_old AS INTEGER)
+                END
+                WHERE days_old IS NOT NULL AND TRIM(days_old) != '';
+            `);
+            // SQLite allows converting column type via a recreated table.
+            // Since we can't ALTER COLUMN TYPE directly, we use a no-op here:
+            // better-sqlite3 is dynamically typed, so the data is already stored as integers.
+            // Future INSERTs will store integers directly since the column is now declared INTEGER.
+            // For existing databases where the table was created with TEXT, we recreate the table.
+            this.db.exec(`
+                CREATE TABLE IF NOT EXISTS job_posts_new (
+                    id TEXT PRIMARY KEY NOT NULL,
+                    source_id TEXT NOT NULL,
+                    requisition_id TEXT,
+                    title TEXT NOT NULL,
+                    detail_path TEXT NOT NULL,
+                    locations TEXT,
+                    days_old INTEGER,
+                    remote_type TEXT,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (source_id) REFERENCES job_sources(id)
+                );
+                INSERT INTO job_posts_new SELECT * FROM job_posts;
+                DROP TABLE job_posts;
+                ALTER TABLE job_posts_new RENAME TO job_posts;
+                CREATE UNIQUE INDEX IF NOT EXISTS ux_job_posts_source_detail_path
+                ON job_posts(source_id, detail_path);
+            `);
+        }
     }
 
     private addJobPostRemoteTypeColumn(): void {

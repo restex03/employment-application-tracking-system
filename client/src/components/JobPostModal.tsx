@@ -156,13 +156,6 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                                             </div>
 
                                             <div className="detail-item">
-                                                <span className="detail-label">Days Old:</span>
-                                                <span className="detail-value">
-                                                    {jobPostData.detail.daysOld || "N/A"}
-                                                </span>
-                                            </div>
-
-                                            <div className="detail-item">
                                                 <span className="detail-label">Valid Through:</span>
                                                 <span className="detail-value">
                                                     {jobPostData.detail.validThrough || "N/A"}

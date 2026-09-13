@@ -70,16 +70,10 @@ describe("daysOldToSortableNumber", () => {
         expect(daysOldToSortableNumber(undefined)).toBe(Infinity);
     });
 
-    it("returns Infinity for Unknown", () => {
-        expect(daysOldToSortableNumber("Unknown")).toBe(Infinity);
-    });
-
-    it("returns 1000 for 30+", () => {
-        expect(daysOldToSortableNumber("30+")).toBe(1000);
-    });
-
-    it("parses numeric strings", () => {
-        expect(daysOldToSortableNumber("5")).toBe(5);
-        expect(daysOldToSortableNumber("15")).toBe(15);
+    it("returns the value as-is for numbers", () => {
+        expect(daysOldToSortableNumber(0)).toBe(0);
+        expect(daysOldToSortableNumber(5)).toBe(5);
+        expect(daysOldToSortableNumber(15)).toBe(15);
+        expect(daysOldToSortableNumber(30)).toBe(30);
     });
 });

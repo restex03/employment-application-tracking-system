@@ -38,11 +38,10 @@ export function compareStrings(a: string, b: string, direction: SortDirection): 
 }
 
 /**
- * Parses a daysOld string ("30+", "Unknown", "5") into a sortable number.
- * Unknown/missing sorts last (Infinity); "30+" sorts as 1000.
+ * Returns a sortable number for daysOld.
+ * Undefined/missing sorts last (Infinity).
  */
-export function daysOldToSortableNumber(value: string | undefined): number {
-    if (!value || value === "Unknown") return Infinity;
-    if (value === "30+") return 1000;
-    return parseInt(value, 10);
+export function daysOldToSortableNumber(value: number | undefined): number {
+    if (value === undefined) return Infinity;
+    return value;
 }

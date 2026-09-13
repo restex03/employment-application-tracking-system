@@ -7,7 +7,7 @@ export interface IJobPost {
     title: string;
     detailPath: string;
     locations?: unknown[];
-    daysOld?: string;
+    daysOld?: number;
     createdAt: Date;
     detail?: IJobPostDetail;
     remoteType?: string;
@@ -23,7 +23,7 @@ export interface JobPostProps {
     title: string;
     detailPath: string;
     locations?: unknown[];
-    daysOld?: string;
+    daysOld?: number;
     createdAt: Date;
     detail?: IJobPostDetail;
     remoteType?: string;
@@ -36,7 +36,7 @@ export class JobPost implements IJobPost {
     public readonly title: string;
     public readonly detailPath: string;
     public readonly locations?: unknown[];
-    public readonly daysOld?: string;
+    public readonly daysOld?: number;
     public readonly createdAt: Date;
     public detail?: IJobPostDetail;
     public readonly remoteType?: string;

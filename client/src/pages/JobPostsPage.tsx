@@ -598,7 +598,7 @@ function JobPostsPage() {
                                     </td>
                                     <td className="detail-path">{jobPost.detailPath}</td>
                                     <td>{formatLocations(jobPost.locations)}</td>
-                                    <td>{jobPost.daysOld || "N/A"}</td>
+                                    <td>{jobPost.daysOld ?? "N/A"}</td>
                                     <td>{formatDate(jobPost.createdAt)}</td>
                                     <td>
                                         <button

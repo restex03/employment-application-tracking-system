@@ -1,22 +1,22 @@
 export class WorkdayDaysOldNormalizer {
-    public normalize(postedOn: string): string {
+    public normalize(postedOn: string): number | undefined {
         if (postedOn === "Posted Today") {
-            return "00";
+            return 0;
         }
         if (postedOn === "Posted Yesterday") {
-            return "01";
+            return 1;
         }
 
         const match = postedOn.match(/^Posted (\d+) Days Ago$/);
         if (match) {
-            return match[1].length > 1 ? match[1] : `0${match[1]}`;
+            return parseInt(match[1], 10);
         }
 
-        // For "30+ Days Ago", return "30+"
+        // For "30+ Days Ago", normalize to 30
         if (postedOn.includes("30+ Days Ago")) {
-            return "30+";
+            return 30;
         }
 
-        return postedOn;
+        return undefined;
     }
 }

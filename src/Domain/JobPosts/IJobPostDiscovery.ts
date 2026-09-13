@@ -32,9 +32,9 @@ export interface IJobPostDiscovery {
     locations?: string[];
 
     /**
-     * Normalized number of days as a string (e.g., "0", "2", "30+", "Unknown")
+     * Normalized number of days as a number (e.g., 0, 2, 30)
      */
-    daysOld?: string;
+    daysOld?: number;
 
     /**
      * Hybrid | Remote | Onsite (not sure if Onsite is a valid option)

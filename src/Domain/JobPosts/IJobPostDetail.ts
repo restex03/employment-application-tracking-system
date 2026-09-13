@@ -9,7 +9,6 @@ export interface IJobPostDetail {
     title: string;
     description: string;
 
-    datePosted?: string;
     validThrough?: string;
 
     employmentType?: string;

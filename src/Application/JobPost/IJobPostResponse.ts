@@ -11,7 +11,6 @@ export interface IJobPostDetailResponse {
     requisitionId?: string;
     description: string;
 
-    datePosted?: string;
     validThrough?: string;
 
     employmentType?: string;
@@ -31,7 +30,7 @@ export interface IJobPostResponse {
     detailPath: string;
     jobLink: string;
     locations?: unknown[];
-    daysOld?: string;
+    daysOld?: number;
     createdAt: Date;
     detail?: IJobPostDetailResponse;
     applicationStatus?: string;

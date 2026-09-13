@@ -53,7 +53,7 @@ describe("WorkdayJobsResponseMapper", () => {
             title: "Senior Software Engineer",
             detailPath: "/job/USA-GA-Atlanta/Senior-Software-Engineer_R-51887",
             locations: ["Atlanta, GA"],
-            daysOld: "02",
+            daysOld: 2,
         });
     });
 

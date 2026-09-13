@@ -16,7 +16,7 @@ interface JobPostRow {
     title: string;
     detail_path: string;
     locations: string | null;
-    days_old: string | null;
+    days_old: number | null;
     application_status: string | null;
     status: string | null;
     created_at: string;
@@ -127,7 +127,7 @@ export class SqliteJobQueries implements IJobPostQueries {
                     AND (UPPER(@requisitionId) = '' OR UPPER(jp.requisition_id) LIKE '%' || UPPER(@requisitionId) || '%')
                     AND (UPPER(@title) = '' OR UPPER(jp.title) LIKE '%' || UPPER(@title) || '%')
                     AND (UPPER(@location) = '' OR UPPER(jp.locations) LIKE '%' || UPPER(@location) || '%')
-                    AND (COALESCE(TRIM(@daysOld), '') = '' OR UPPER(jp.days_old) LIKE '%' || UPPER(TRIM(@daysOld)) || '%')
+                    AND (COALESCE(TRIM(@daysOld), '') = '' OR CAST(jp.days_old AS TEXT) LIKE '%' || TRIM(@daysOld) || '%')
                     AND (
                         @jobMatchScore IS NULL
                         OR CAST(json_extract(ja.job_match_score_json, '$.score') AS REAL) >= @jobMatchScore
@@ -157,7 +157,7 @@ export class SqliteJobQueries implements IJobPostQueries {
                     AND (UPPER(@requisitionId) = '' OR UPPER(jp.requisition_id) LIKE '%' || UPPER(@requisitionId) || '%')
                     AND (UPPER(@title) = '' OR UPPER(jp.title) LIKE '%' || UPPER(@title) || '%')
                     AND (UPPER(@location) = '' OR UPPER(jp.locations) LIKE '%' || UPPER(@location) || '%')
-                    AND (COALESCE(TRIM(@daysOld), '') = '' OR UPPER(jp.days_old) LIKE '%' || UPPER(TRIM(@daysOld)) || '%')
+                    AND (COALESCE(TRIM(@daysOld), '') = '' OR CAST(jp.days_old AS TEXT) LIKE '%' || TRIM(@daysOld) || '%')
                     AND (
                         @jobMatchScore IS NULL
                         OR CAST(json_extract(ja.job_match_score_json, '$.score') AS REAL) >= @jobMatchScore
@@ -241,7 +241,6 @@ export class SqliteJobQueries implements IJobPostQueries {
             id: row.detail_id ?? undefined,
             requisitionId: row.requisition_id ?? undefined,
             description: row.detail_description!,
-            datePosted: row.days_old ?? undefined,
             validThrough: row.detail_valid_through ?? undefined,
             employmentType: row.detail_employment_type ?? undefined,
             locations: this.parseJson<IJobLocationResponse[]>(row.detail_locations),

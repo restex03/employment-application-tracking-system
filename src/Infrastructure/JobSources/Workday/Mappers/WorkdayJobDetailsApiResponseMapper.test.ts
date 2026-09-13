@@ -49,7 +49,6 @@ describe("WorkdayJobDetailsApiResponseMapper", () => {
             requisitionId: "JR-0107919",
             title: "Senior Software Engineer",
             description: "<p>Build great software.</p>",
-            datePosted: "Posted 2 Days Ago",
             employmentType: "Full time",
             locations: [
                 {
