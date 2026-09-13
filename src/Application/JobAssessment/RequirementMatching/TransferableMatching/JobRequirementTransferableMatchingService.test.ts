@@ -159,7 +159,7 @@ describe("JobRequirementTransferableMatchingService", () => {
                 jsonSchema: JobRequirementTransferableMatchResponseSchema,
                 validationSchema: JobRequirementTransferableMatchResponseValidationSchema,
                 temperature: 0.1,
-                maxTokens: 300,
+                maxTokens: 500,
             });
         });
 

@@ -33,7 +33,7 @@ export class JobRequirementTransferableMatchingService implements IJobRequiremen
             jsonSchema: JobRequirementTransferableMatchResponseSchema,
             validationSchema: JobRequirementTransferableMatchResponseValidationSchema,
             temperature: 0.1,
-            maxTokens: 300,
+            maxTokens: 500,
         });
 
         if (result.isTransferableMatch && !result.evidence) {

@@ -12,7 +12,9 @@ export interface GenerateStructuredRetryDecision {
     shouldRetry: boolean;
     delayMs: number;
     reason: string;
+
     responseFormatOverride?: StructuredResponseFormat;
+    maxTokensOverride?: number;
 }
 export interface IGenerateStructuredRetryStrategy {
     readonly name: string;

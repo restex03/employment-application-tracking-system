@@ -17,6 +17,7 @@ import { StructuredResponseFormat } from "./InferenceRetries/IGenerateStructured
 
 interface GenerateStructuredAttemptOptions {
     responseFormat: StructuredResponseFormat;
+    maxTokens: number;
 }
 
 export class OpenAiInferenceProvider implements ILlmInferenceProvider {
@@ -41,6 +42,7 @@ export class OpenAiInferenceProvider implements ILlmInferenceProvider {
 
         const attemptOptions: GenerateStructuredAttemptOptions = {
             responseFormat: "json_schema",
+            maxTokens: request.maxTokens ?? 0,
         };
 
         while (true) {
@@ -85,7 +87,7 @@ export class OpenAiInferenceProvider implements ILlmInferenceProvider {
 
             temperature: request.temperature,
 
-            max_tokens: request.maxTokens,
+            max_tokens: attemptOptions.maxTokens,
 
             messages: [
                 {
@@ -134,7 +136,11 @@ export class OpenAiInferenceProvider implements ILlmInferenceProvider {
         this.logger.debug("********************************************************");
 
         if (finishReason === "length") {
-            throw new GenerateStructuredMaxTokensExceededError(request.maxTokens ?? 0);
+            this.logger.trace(
+                `[OpenAiInferenceProvider.generateStructured] ` + `Truncated content: ${content ?? "<null>"}`
+            );
+
+            throw new GenerateStructuredMaxTokensExceededError(attemptOptions.maxTokens);
         }
 
         if (finishReason !== "stop") {
@@ -218,6 +224,16 @@ export class OpenAiInferenceProvider implements ILlmInferenceProvider {
                         `Overriding response format to ` +
                         `${decision.responseFormatOverride}`
                 );
+            }
+
+            if (decision.maxTokensOverride) {
+                this.logger.debug(
+                    `[OpenAiInferenceProvider.generateStructured] ` +
+                        `Overriding max tokens to ` +
+                        `${decision.maxTokensOverride}`
+                );
+
+                attemptOptions.maxTokens = decision.maxTokensOverride;
             }
 
             this.logger.debug(
