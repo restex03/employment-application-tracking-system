@@ -220,7 +220,15 @@ This project supports local AI through Ollama. Candidate profile information and
 
 ### Persistence
 
-SQLite persistence is implemented for job sources, discovered job posts, candidate profiles, job assessments, and the background job queues used for syncing job posts and running assessments.
+SQLite persistence is implemented for job sources, discovered job posts, candidate profiles, job assessments, job applications, and the background job queues used for syncing job posts and running assessments.
+
+### Job Posts Workspace (Frontend)
+
+The Job Posts page supports filtering (company, requisition ID, title, locations, days old, job match score) and sortable columns, background sync with live status polling, per-row job assessment status, and a per-row Options menu for tracking application status (Applied, Review, Interview, Offer, Rejected) shown as colored badges.
+
+### Candidate Profiles (Frontend)
+
+A view-only Candidate Profiles page lists profiles from `GET /api/v1/candidate-profiles` with a detail modal for reviewing skills, experience, and preferences.
 
 ### Extensible Architecture
 
