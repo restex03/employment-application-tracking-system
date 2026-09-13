@@ -5,6 +5,7 @@ import { SqliteDatabaseConnection } from "../../Infrastructure/Persistence/JobPo
 import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
 import { IJobAssessmentQueue } from "../../Infrastructure/Persistence/Queues/JobAssessmentQueue/IJobAssessmentQueue";
 import { IJobPostSyncQueue } from "../../Infrastructure/Persistence/Queues/JobPostSyncQueue/IJobPostSyncQueue";
+import { IJobApplicationService } from "../JobApplications/IJobApplicationService";
 import { IJobAssessmentService } from "../JobAssessment/IJobAssessmentService";
 import { IJobAssessmentQueueService } from "../JobAssessment/PipelineQueue/IJobAssessmentQueueService";
 import { IJobAssessmentQueueWorkerService } from "../JobAssessment/PipelineQueue/IJobAssessmentQueueWorkerService";
@@ -42,4 +43,5 @@ export interface IApplicationDependencies {
     requirementsMatchingService: IJobRequirementsMatchingService;
     jobPostDiscoveryServiceFactory: IJobPostDiscoveryServiceFactory;
     jobAssessmentQueueWorkerService: IJobAssessmentQueueWorkerService;
+    jobApplicationService: IJobApplicationService;
 }

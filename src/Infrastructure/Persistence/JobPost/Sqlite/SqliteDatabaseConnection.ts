@@ -54,7 +54,7 @@ export class SqliteDatabaseConnection {
         CREATE TABLE IF NOT EXISTS job_applications (
             id TEXT PRIMARY KEY NOT NULL,
             job_post_id TEXT NOT NULL,
-            application_status TEXT NOT NULL,
+            status TEXT NOT NULL,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
             FOREIGN KEY (job_post_id)

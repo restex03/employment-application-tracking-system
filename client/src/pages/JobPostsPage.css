@@ -353,6 +353,18 @@
     word-break: break-word;
 }
 
+.application-status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
 .job-posts-table tbody tr:last-child td {
     border-bottom: none;
 }

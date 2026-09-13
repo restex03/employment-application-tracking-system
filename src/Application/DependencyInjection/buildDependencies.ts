@@ -67,6 +67,10 @@ import { IJobPostSyncQueue } from "../../Infrastructure/Persistence/Queues/JobPo
 import { SqliteJobPostSyncQueueRepository } from "../../Infrastructure/Persistence/Queues/JobPostSyncQueue/Sqlite/SqliteJobPostSyncQueueRepository";
 import { IJobPostSyncQueueWorkerService } from "../JobPostSync/Queue/IJobPostSyncQueueWorkerService";
 import { JobPostSyncQueueWorkerService } from "../JobPostSync/Queue/JobPostSyncQueueWorkerService";
+import { IJobApplicationRepository } from "../../Infrastructure/Persistence/JobApplications/IJobApplicationRepository";
+import { JobApplicationRepository } from "../../Infrastructure/Persistence/JobApplications/JobApplicationRepository";
+import { IJobApplicationService } from "../JobApplications/IJobApplicationService";
+import { JobApplicationService } from "../JobApplications/JobApplicationService";
 
 export function buildDependencies(logLevel: LogLevel): IApplicationDependencies {
     const logger: ILogger = new ConsoleLogger(logLevel);
@@ -185,6 +189,12 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         jobPostSyncService,
         logger
     );
+    const jobApplicationRepository: IJobApplicationRepository = new JobApplicationRepository(
+        sqliteConnection.db,
+        logger
+    );
+    const jobApplicationService: IJobApplicationService = new JobApplicationService(jobApplicationRepository, logger);
+
     logger.debug("[buildDependencies] Application dependencies initialized");
 
     logger.debug(`[buildDependencies] Using DB Path: ${sqliteConnection.db.name}`);
@@ -214,6 +224,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         jobPostDiscoveryServiceFactory,
         jobAssessmentService,
         jobAssessmentQueueWorkerService,
+        jobApplicationService,
     };
 }
 

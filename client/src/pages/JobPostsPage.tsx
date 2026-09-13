@@ -9,6 +9,8 @@ import JobPostModal from "../components/JobPostModal";
 import SyncModal from "../components/SyncModal";
 import ToolsModal from "../components/ToolsModal";
 import ToastContainer from "../components/ToastContainer";
+import RowOptionsMenu from "../components/RowOptionsMenu";
+import UpdateApplicationStatusModal from "../components/UpdateApplicationStatusModal";
 import "./JobPostsPage.css";
 
 const CANDIDATE_PROFILE_ID = "russell-estes";
@@ -83,6 +85,11 @@ function JobPostsPage() {
     } = useJobAssessmentPolling({ candidateProfileId: CANDIDATE_PROFILE_ID });
     const [selectedJobPostIds, setSelectedJobPostIds] = useState<Set<string>>(new Set());
     const selectAllRef = useRef<HTMLInputElement>(null);
+    const [openOptionsRowId, setOpenOptionsRowId] = useState<string | null>(null);
+    const [statusModalJobPost, setStatusModalJobPost] = useState<IJobPostData | null>(null);
+    const [applicationStatusOverrides, setApplicationStatusOverrides] = useState<Record<string, JobApplicationStatus>>(
+        {}
+    );
 
     // Only show the polled status when it corresponds to the currently open job post.
     const modalJobStatus = selectedJobPost ? getAssessmentStatus(selectedJobPost.id) : null;
@@ -370,6 +377,25 @@ function JobPostsPage() {
         return locationStrings.join("; ");
     };
 
+    const formatApplicationStatus = (status: JobApplicationStatus): string =>
+        status.charAt(0) + status.slice(1).toLowerCase();
+
+    const getApplicationStatusColor = (status: JobApplicationStatus): string => {
+        switch (status) {
+            case JobApplicationStatus.Applied:
+                return "#3b82f6"; // blue-500
+            case JobApplicationStatus.Interview:
+                return "#f59e0b"; // amber-500
+            case JobApplicationStatus.Offer:
+                return "#22c55e"; // green-500
+            case JobApplicationStatus.Rejected:
+                return "#ef4444"; // red-500
+            case JobApplicationStatus.Review:
+            default:
+                return "#9ca3af"; // gray-400
+        }
+    };
+
     const renderScoreIndicator = (score: number | undefined): React.ReactNode => {
         if (score === undefined) {
             return (
@@ -588,12 +614,13 @@ function JobPostsPage() {
                                 </div>
                             </th>
                             <th>Details</th>
+                            <th>Options</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredAndSortedPosts.length === 0 ? (
                             <tr>
-                                <td colSpan={12} className="no-data">
+                                <td colSpan={13} className="no-data">
                                     {totalCount === 0 && Object.values(filters).every(value => !value)
                                         ? isSyncing
                                             ? "No job posts yet. A sync is currently running and the Sync button is disabled until it completes \u2014 refresh the page to check for new results."
@@ -618,7 +645,22 @@ function JobPostsPage() {
                                     <td>{getCompanyName(jobPost.sourceId)}</td>
                                     <td>{jobPost.requisitionId || "N/A"}</td>
                                     <td>{jobPost.title}</td>
-                                    <td>{jobPost.applicationStatus || JobApplicationStatus.Review}</td>
+                                    <td>
+                                        {(() => {
+                                            const status =
+                                                applicationStatusOverrides[jobPost.id] ??
+                                                jobPost.applicationStatus ??
+                                                JobApplicationStatus.Review;
+                                            return (
+                                                <span
+                                                    className="application-status-badge"
+                                                    style={{ backgroundColor: getApplicationStatusColor(status) }}
+                                                >
+                                                    {formatApplicationStatus(status)}
+                                                </span>
+                                            );
+                                        })()}
+                                    </td>
                                     <td className="detail-path">{jobPost.detailPath}</td>
                                     <td>{formatLocations(jobPost.locations)}</td>
                                     <td>{jobPost.daysOld || "N/A"}</td>
@@ -640,6 +682,16 @@ function JobPostsPage() {
                                                 <circle cx="12" cy="7.5" r="1" fill="currentColor" stroke="none" />
                                             </svg>
                                         </button>
+                                    </td>
+                                    <td onClick={e => e.stopPropagation()}>
+                                        <RowOptionsMenu
+                                            isOpen={openOptionsRowId === jobPost.id}
+                                            onToggle={() =>
+                                                setOpenOptionsRowId(prev => (prev === jobPost.id ? null : jobPost.id))
+                                            }
+                                            onClose={() => setOpenOptionsRowId(null)}
+                                            onUpdateApplicationStatus={() => setStatusModalJobPost(jobPost)}
+                                        />
                                     </td>
                                 </tr>
                             ))
@@ -702,6 +754,18 @@ function JobPostsPage() {
             />
 
             <ToolsModal isOpen={isToolsModalOpen} onClose={handleResetClose} />
+
+            <UpdateApplicationStatusModal
+                isOpen={statusModalJobPost !== null}
+                onClose={() => setStatusModalJobPost(null)}
+                jobPostId={statusModalJobPost?.id ?? ""}
+                jobTitle={statusModalJobPost?.title ?? ""}
+                onStatusSaved={status => {
+                    if (statusModalJobPost) {
+                        setApplicationStatusOverrides(prev => ({ ...prev, [statusModalJobPost.id]: status }));
+                    }
+                }}
+            />
 
             <ToastContainer toasts={assessmentToasts} onDismiss={dismissAssessmentToast} />
         </div>
