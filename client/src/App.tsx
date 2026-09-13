@@ -12,7 +12,7 @@ function App() {
     return (
         <div className="app">
             <header className="app-header">
-                <h1>Employment Application & Alignment Tracking System</h1>
+                <h1>Employment Application Tracking and Scoring System</h1>
                 <HamburgerMenu
                     items={[
                         {

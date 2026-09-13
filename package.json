@@ -1,7 +1,7 @@
 {
-    "name": "employement-application-and-alignment-tracking-system",
+    "name": "employement-application-tracking-and-scoring-system",
     "version": "1.0.0",
-    "description": "AI-powered employment application & alignment tracking system that automates job screening, evaluation, and compatibility scoring for job seekers",
+    "description": "AI-powered employment application tracking and scoring system that automates job screening, evaluation, and compatibility scoring, and application progress tracking for job seekers",
     "license": "ISC",
     "author": "",
     "type": "module",

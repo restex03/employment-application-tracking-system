@@ -1,6 +1,6 @@
-# Employment Application & Alignment Tracking System - Frontend
+# Employment Application Tracking and Scoring System - Frontend
 
-A Vite + React frontend for the Employment Application & Alignment Tracking System.
+A Vite + React frontend for the Employment Application Tracking and Scoring System.
 
 ## Getting Started
 

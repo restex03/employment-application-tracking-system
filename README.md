@@ -1,4 +1,4 @@
-# Employment Application & Alignment Tracking System (EATS)
+# Employment Application Tracking and Scoring System (EATS) (v1)
 
 A candidate-side job discovery, evaluation, and application tracking system built with TypeScript.
 
@@ -16,6 +16,7 @@ EATS helps manage the job-search lifecycle by:
 - Evaluating alignment with skills, experience, career goals, and preferences
 - Calculating compatibility scores for ranking opportunities
 - Persisting jobs and evaluation results locally
+- Tracking application status, notes, and attachments per job post
 - Providing an extensible architecture for additional job sources and evaluation strategies
 
 ## How It Works
@@ -84,7 +85,7 @@ data/                    # Runtime data, gitignored (see "Data Files" below)
 - Language: TypeScript (backend and frontend)
 - Backend Runtime: Node.js + Fastify (REST API at `/api/v1`)
 - Frontend: React + Vite (served separately from the API in development)
-- Database: SQLite (active; stores job sources, job posts, candidate profiles, assessments, and background job queues)
+- Database: SQLite (active; stores job sources, job posts, candidate profiles, assessments, job applications with status/notes/attachments, and background job queues)
 - LLM Runtime: Ollama by default, with optional OpenAI-compatible provider support
 - Job Sources: Workday-hosted career sites
 - Architecture: Layered architecture with dependency injection
@@ -218,13 +219,38 @@ Uses structured evaluation results and deterministic scoring logic to rank job o
 
 This project supports local AI through Ollama. Candidate profile information and job-evaluation prompts can remain on the local machine, while development and testing avoid charges associated with hosted LLM APIs.
 
+#### Recommended Local Models
+
+The best performing local models so far are:
+
+- `qwen3:4b-instruct-8k`
+- `qwen3:8b-8k`
+- `ministral-3:8b`
+- `granite4.2:8b`
+
+The overall best local performer on limited hardware is `qwen3:4b-instruct-8k`.
+
+#### Benchmarking
+
+Use `src/Application/JobAssessment/RequirementMatching/JobRequirementMatchingRegression.test.ts` as a benchmark when evaluating model performance. This regression suite exercises the direct and transferable requirement-matching logic against representative candidate profiles and job requirements. Run it against a candidate model to measure whether it correctly distinguishes direct matches, transferable matches, and non-matches:
+
+```
+RUN_LLM_REGRESSION=1 OLLAMA_MODEL=<model-tag> npm run test:run -- --reporter=verbose src/Application/JobAssessment/RequirementMatching/JobRequirementMatchingRegression.test.ts
+```
+
 ### Persistence
 
-SQLite persistence is implemented for job sources, discovered job posts, candidate profiles, job assessments, job applications, and the background job queues used for syncing job posts and running assessments.
+SQLite persistence is implemented for job sources, discovered job posts, candidate profiles, job assessments, job applications (including status, notes, and attachments), and the background job queues used for syncing job posts and running assessments.
 
 ### Job Posts Workspace (Frontend)
 
 The Job Posts page supports filtering (company, requisition ID, title, locations, days old, job match score) and sortable columns, background sync with live status polling, per-row job assessment status, and a per-row Options menu for tracking application status (Applied, Review, Interview, Offer, Rejected) shown as colored badges.
+
+The Application Status modal lets the user set and save the application status, add application-level notes, and upload attachments (resumes, cover letters, emails, etc.). The attachments table within the modal supports sortable columns (File, Date Added, Notes), row numbers, and inline per-attachment notes that save on blur.
+
+#### Attachment Storage (v1)
+
+Attachments are stored on the local filesystem. File content is written directly to the data directory (the parent directory of `DB_PATH`) using the attachment's UUID as the filename, with no file extension. Attachment metadata — including file name, date added, and per-attachment notes — is stored as a JSON array in the `attachments` TEXT column on the `job_applications` row. This is a v1 approach chosen for simplicity; future versions may move metadata into a dedicated table or adopt an alternative storage backend.
 
 ### Candidate Profiles (Frontend)
 
