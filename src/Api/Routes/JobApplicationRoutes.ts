@@ -56,12 +56,12 @@ export class JobApplicationRoutes implements IRouteRegistrar {
 
         server.post(
             "/job-applications/:id",
-            async (request: FastifyRequest<{ Body: { status: JobApplicationStatus } }>, reply) => {
+            async (request: FastifyRequest<{ Body: { status: JobApplicationStatus; notes?: string } }>, reply) => {
                 try {
                     this.logger.info(`[${request.method}]  ${request.url}`);
                     const { id } = request.params as { id: string };
-                    const { status } = request.body;
-                    const jobApplication = await this.jobApplicationService.UpdateStatus(id, status);
+                    const { status, notes } = request.body;
+                    const jobApplication = await this.jobApplicationService.UpdateStatus(id, status, notes ?? "");
 
                     return reply.code(200).send({
                         job: jobApplication,

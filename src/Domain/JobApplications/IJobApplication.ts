@@ -1,12 +1,15 @@
 export interface IJobApplicationAttachment {
     id: string;
     fileName: string;
+    dateAdded: string;
+    notes: string;
 }
 
 export interface IJobApplication {
     id: string;
     jobId: string;
     status: JobApplicationStatus;
+    notes: string;
     createdAt: string;
     attachments: IJobApplicationAttachment[];
 }

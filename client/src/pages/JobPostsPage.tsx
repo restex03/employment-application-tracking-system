@@ -10,7 +10,7 @@ import SyncModal from "../components/SyncModal";
 import ToolsModal from "../components/ToolsModal";
 import ToastContainer from "../components/ToastContainer";
 import RowOptionsMenu from "../components/RowOptionsMenu";
-import UpdateApplicationStatusModal from "../components/UpdateApplicationStatusModal";
+import ApplicationStatusModal from "../components/ApplicationStatusModal";
 import "./JobPostsPage.css";
 
 const CANDIDATE_PROFILE_ID = "russell-estes";
@@ -755,7 +755,7 @@ function JobPostsPage() {
 
             <ToolsModal isOpen={isToolsModalOpen} onClose={handleResetClose} />
 
-            <UpdateApplicationStatusModal
+            <ApplicationStatusModal
                 isOpen={statusModalJobPost !== null}
                 onClose={() => setStatusModalJobPost(null)}
                 jobPostId={statusModalJobPost?.id ?? ""}

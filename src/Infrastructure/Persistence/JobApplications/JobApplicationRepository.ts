@@ -13,6 +13,7 @@ interface JobApplicationRow {
     id: string;
     job_post_id: string;
     status: string;
+    notes: string | null;
     created_at: string;
     attachments: string | null;
 }
@@ -47,20 +48,21 @@ export class JobApplicationRepository implements IJobApplicationRepository {
         `);
 
         this.updateStatusStatement = connection.prepare(`
-            UPDATE job_applications SET status = @status WHERE id = @id
+            UPDATE job_applications SET status = @status, notes = @notes WHERE id = @id
         `);
 
         this.updateAttachmentsStatement = connection.prepare(`
             UPDATE job_applications SET attachments = @attachments WHERE id = @id
         `);
     }
-    public async UpdateStatus(id: string, status: JobApplicationStatus): Promise<void> {
+    public async UpdateStatus(id: string, status: JobApplicationStatus, notes: string): Promise<void> {
         this.logger.debug(
             `[JobApplicationRepository.UpdateStatus] Updating job application status for ID: ${id} to ${status}`
         );
         this.updateStatusStatement.run({
             id,
             status: status.toString(),
+            notes,
         });
     }
 
@@ -117,14 +119,39 @@ export class JobApplicationRepository implements IJobApplicationRepository {
         return { ...existing, attachments };
     }
 
+    public async updateAttachment(applicationId: string, attachment: IJobApplicationAttachment): Promise<IJobApplication> {
+        const existing = await this.getByIdOrThrow(applicationId);
+        const attachments = existing.attachments.map(item =>
+            item.id === attachment.id ? attachment : item
+        );
+
+        this.logger.debug(
+            `[JobApplicationRepository.updateAttachment] Updating attachment ${attachment.id} on application ${applicationId}`
+        );
+        this.updateAttachmentsStatement.run({
+            id: applicationId,
+            attachments: JSON.stringify(attachments),
+        });
+
+        return { ...existing, attachments };
+    }
+
     private mapRow(row: JobApplicationRow): IJobApplication {
+        const raw = row.attachments ? (JSON.parse(row.attachments) as IJobApplicationAttachment[]) : [];
+        const attachments = raw.map(item => ({
+            id: item.id,
+            fileName: item.fileName,
+            dateAdded: item.dateAdded ?? "",
+            notes: item.notes ?? "",
+        }));
         return {
             id: row.id,
             jobId: row.job_post_id,
             // row.status already stores the enum's string value (e.g. "APPLIED"), not its key.
             status: row.status as JobApplicationStatus,
+            notes: row.notes ?? "",
             createdAt: row.created_at,
-            attachments: row.attachments ? (JSON.parse(row.attachments) as IJobApplicationAttachment[]) : [],
+            attachments,
         };
     }
 }

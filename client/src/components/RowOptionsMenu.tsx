@@ -58,7 +58,7 @@ function RowOptionsMenu({ isOpen, onToggle, onClose, onUpdateApplicationStatus }
                             onClose();
                         }}
                     >
-                        Update Application Status
+                        Application Status
                     </button>
                 </div>
             )}

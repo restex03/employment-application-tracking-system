@@ -16,12 +16,12 @@ export class JobApplicationService implements IJobApplicationService {
         private readonly fileSystemRepository: IFileSystemRepository,
         private readonly logger: ILogger
     ) {}
-    public async UpdateStatus(id: string, status: JobApplicationStatus): Promise<void> {
+    public async UpdateStatus(id: string, status: JobApplicationStatus, notes: string): Promise<void> {
         this.logger.info(
             `[JobApplicationService.UpdateStatus] Updating job application status for ID: ${id} to ${status}`
         );
         await this.jobApplicationRepository.getByIdOrThrow(id);
-        await this.jobApplicationRepository.UpdateStatus(id, status);
+        await this.jobApplicationRepository.UpdateStatus(id, status, notes);
     }
     public async add(jobId: string): Promise<void> {
         this.logger.info(`[JobApplicationService.add] Adding job application`);
@@ -59,6 +59,8 @@ export class JobApplicationService implements IJobApplicationService {
         const attachment: IJobApplicationAttachment = {
             id: crypto.randomUUID(),
             fileName,
+            dateAdded: new Date().toISOString(),
+            notes: "",
         };
 
         await this.fileSystemRepository.storeFile(attachment.id, content);
@@ -86,5 +88,28 @@ export class JobApplicationService implements IJobApplicationService {
 
         const content = await this.fileSystemRepository.readFile(attachment.id);
         return { fileName: attachment.fileName, content };
+    }
+
+    public async updateAttachmentNotes(
+        applicationId: string,
+        attachmentId: string,
+        notes: string
+    ): Promise<IJobApplicationAttachment> {
+        this.logger.info(
+            `[JobApplicationService.updateAttachmentNotes] Updating notes for attachment ${attachmentId} on application: ${applicationId}`
+        );
+        const application = await this.jobApplicationRepository.getByIdOrThrow(applicationId);
+        const attachment = application.attachments.find(existing => existing.id === attachmentId);
+
+        if (!attachment) {
+            throw new NotFoundError(
+                `[JobApplicationService.updateAttachmentNotes] Attachment ${attachmentId} not found for application ${applicationId}.`,
+                "attachmentId"
+            );
+        }
+
+        const updated: IJobApplicationAttachment = { ...attachment, notes };
+        await this.jobApplicationRepository.updateAttachment(applicationId, updated);
+        return updated;
     }
 }

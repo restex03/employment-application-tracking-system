@@ -66,12 +66,20 @@ export class SqliteDatabaseConnection {
             ON job_applications(job_post_id);
     `);
         this.addJobApplicationsAttachmentsColumn();
+        this.addJobApplicationsNotesColumn();
     }
 
     private addJobApplicationsAttachmentsColumn(): void {
         const columns = this.db.pragma("table_info(job_applications)") as Array<{ name: string }>;
         if (!columns.some(column => column.name === "attachments")) {
             this.db.exec("ALTER TABLE job_applications ADD COLUMN attachments TEXT NOT NULL DEFAULT '[]'");
+        }
+    }
+
+    private addJobApplicationsNotesColumn(): void {
+        const columns = this.db.pragma("table_info(job_applications)") as Array<{ name: string }>;
+        if (!columns.some(column => column.name === "notes")) {
+            this.db.exec("ALTER TABLE job_applications ADD COLUMN notes TEXT NOT NULL DEFAULT ''");
         }
     }
     private createJobPostSyncJobQueueTable(): void {

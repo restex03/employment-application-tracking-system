@@ -13,6 +13,15 @@ interface AttachmentDownloadParams {
     attachmentId: string;
 }
 
+interface AttachmentNotesUpdateParams {
+    id: string;
+    attachmentId: string;
+}
+
+interface AttachmentNotesUpdateBody {
+    notes?: string;
+}
+
 export class AttachmentsRoutes implements IRouteRegistrar {
     constructor(
         private readonly jobApplicationService: IJobApplicationService,
@@ -37,9 +46,9 @@ export class AttachmentsRoutes implements IRouteRegistrar {
                         return reply.code(400).send({ error: "File content is required." });
                     }
 
-                    const attachment = await this.jobApplicationService.addAttachment(id, fileName, content);
+                    await this.jobApplicationService.addAttachment(id, fileName, content);
 
-                    return reply.code(201).send({ attachment });
+                    return reply.code(201).send();
                 } catch (error) {
                     const errMsg = error instanceof Error ? error.message : String(error);
                     this.logger.error(`[${request.method}]  ${request.url} Failed: ${errMsg}`);
@@ -76,6 +85,35 @@ export class AttachmentsRoutes implements IRouteRegistrar {
 
                     return reply.code(500).send({
                         error: `Failed to download attachment: ${errMsg}`,
+                    });
+                }
+            }
+        );
+
+        server.post(
+            "/job-applications/:id/attachments/:attachmentId/notes",
+            async (
+                request: FastifyRequest<{ Params: AttachmentNotesUpdateParams; Body: AttachmentNotesUpdateBody }>,
+                reply
+            ) => {
+                try {
+                    this.logger.info(`[${request.method}]  ${request.url}`);
+                    const { id, attachmentId } = request.params;
+                    const notes = request.body?.notes ?? "";
+
+                    await this.jobApplicationService.updateAttachmentNotes(id, attachmentId, notes);
+
+                    return reply.code(200).send();
+                } catch (error) {
+                    const errMsg = error instanceof Error ? error.message : String(error);
+                    this.logger.error(`[${request.method}]  ${request.url} Failed: ${errMsg}`);
+
+                    if (error instanceof NotFoundError) {
+                        return reply.code(404).send({ error: errMsg });
+                    }
+
+                    return reply.code(500).send({
+                        error: `Failed to update attachment notes: ${errMsg}`,
                     });
                 }
             }
