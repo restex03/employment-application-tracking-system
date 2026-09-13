@@ -20,6 +20,11 @@ export class LlmTargetRegistry {
         apiBaseUrl: new URL("http://localhost:11434/v1"),
         apiKey: "ollama",
     };
+    public static readonly Ministral_3_8b_hosted: ILlmTargetOptions = {
+        apiBaseUrl: new URL("https://api.mistral.ai/v1"),
+        apiKey: LlmTargetRegistry.resolveEnvOrThrow(process.env.MISTRAL_API_KEY),
+        model: "ministral-8b-2512",
+    };
     public static readonly Granite4_2_3b: ILlmTargetOptions = {
         model: "granite4.2:3b",
         apiBaseUrl: new URL("http://localhost:11434/v1"),
@@ -55,4 +60,11 @@ export class LlmTargetRegistry {
         apiBaseUrl: new URL("http://localhost:11434/v1"),
         apiKey: "ollama",
     };
+
+    private static resolveEnvOrThrow(envVar: string | undefined): string {
+        if (!envVar) {
+            throw new Error("Environment variable not set.");
+        }
+        return envVar;
+    }
 }
