@@ -1,5 +1,6 @@
 import { SqliteJobRepository } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteJobRepository";
 import { SqliteDatabaseConnection } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteDatabaseConnection";
+import path from "path";
 import { ConsoleLogger } from "../../Infrastructure/Logging/Console/ConsoleLogger";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { LogLevel } from "../../Infrastructure/Logging/LogLevel";
@@ -69,6 +70,8 @@ import { IJobPostSyncQueueWorkerService } from "../JobPostSync/Queue/IJobPostSyn
 import { JobPostSyncQueueWorkerService } from "../JobPostSync/Queue/JobPostSyncQueueWorkerService";
 import { IJobApplicationRepository } from "../../Infrastructure/Persistence/JobApplications/IJobApplicationRepository";
 import { JobApplicationRepository } from "../../Infrastructure/Persistence/JobApplications/JobApplicationRepository";
+import { IFileSystemRepository } from "../../Infrastructure/Persistence/FileSystem/IFileSystemRepository";
+import { FileSystemRepository } from "../../Infrastructure/Persistence/FileSystem/FileSystemRepository";
 import { IJobApplicationService } from "../JobApplications/IJobApplicationService";
 import { JobApplicationService } from "../JobApplications/JobApplicationService";
 
@@ -193,7 +196,12 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         sqliteConnection.db,
         logger
     );
-    const jobApplicationService: IJobApplicationService = new JobApplicationService(jobApplicationRepository, logger);
+    const fileSystemRepository: IFileSystemRepository = new FileSystemRepository(getDataDirectory(), logger);
+    const jobApplicationService: IJobApplicationService = new JobApplicationService(
+        jobApplicationRepository,
+        fileSystemRepository,
+        logger
+    );
 
     logger.debug("[buildDependencies] Application dependencies initialized");
 
@@ -236,6 +244,16 @@ function createSqliteConnection(): SqliteDatabaseConnection {
     }
 
     return new SqliteDatabaseConnection(dbPath);
+}
+
+function getDataDirectory(): string {
+    const dbPath = process.env.DB_PATH;
+
+    if (!dbPath) {
+        throw new Error("DB_PATH environment variable is not set.");
+    }
+
+    return path.dirname(dbPath);
 }
 function getLlmApiKeyOrDefault(): string {
     const apiKey = process.env.OPENAI_PROVIDER_API_KEY;

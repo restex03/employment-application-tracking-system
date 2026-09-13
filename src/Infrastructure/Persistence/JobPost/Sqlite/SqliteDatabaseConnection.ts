@@ -65,6 +65,14 @@ export class SqliteDatabaseConnection {
         CREATE INDEX IF NOT EXISTS ix_job_applications_job_post_id
             ON job_applications(job_post_id);
     `);
+        this.addJobApplicationsAttachmentsColumn();
+    }
+
+    private addJobApplicationsAttachmentsColumn(): void {
+        const columns = this.db.pragma("table_info(job_applications)") as Array<{ name: string }>;
+        if (!columns.some(column => column.name === "attachments")) {
+            this.db.exec("ALTER TABLE job_applications ADD COLUMN attachments TEXT NOT NULL DEFAULT '[]'");
+        }
     }
     private createJobPostSyncJobQueueTable(): void {
         this.db.exec(`

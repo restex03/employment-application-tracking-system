@@ -8,6 +8,7 @@ import { IRouteRegistrar } from "./IRouteRegistrar";
 import { IRouteDetails } from "./IRouteDetails";
 import { JobCandidateProfileRoutes } from "../Routes/JobCandidateProfileRoutes";
 import { JobApplicationRoutes } from "../Routes/JobApplicationRoutes";
+import { AttachmentsRoutes } from "../Routes/AttachmentsRoutes";
 
 export class HttpServer {
     private readonly app: FastifyInstance;
@@ -18,6 +19,11 @@ export class HttpServer {
         this.app = Fastify({
             logger: false,
         });
+
+        // Attachment uploads are sent as raw bytes rather than JSON.
+        this.app.addContentTypeParser("application/octet-stream", { parseAs: "buffer" }, (_request, payload, done) =>
+            done(null, payload)
+        );
 
         this.captureRoutes();
 
@@ -31,6 +37,7 @@ export class HttpServer {
                 this.dependencies.logger
             ),
             new JobApplicationRoutes(this.dependencies.jobApplicationService, this.dependencies.logger),
+            new AttachmentsRoutes(this.dependencies.jobApplicationService, this.dependencies.logger),
 
             new JobAssessmentRoutes(
                 this.dependencies.jobAssessmentService,

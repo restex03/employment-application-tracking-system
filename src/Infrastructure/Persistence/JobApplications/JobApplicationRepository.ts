@@ -4,6 +4,7 @@ import { ILogger } from "../../Logging/ILogger";
 import {
     ICreateJobApplication,
     IJobApplication,
+    IJobApplicationAttachment,
     JobApplicationStatus,
 } from "../../../Domain/JobApplications/IJobApplication";
 import { NotFoundError } from "../../../Application/Common/Errors/NotFoundError";
@@ -13,6 +14,7 @@ interface JobApplicationRow {
     job_post_id: string;
     status: string;
     created_at: string;
+    attachments: string | null;
 }
 
 export class JobApplicationRepository implements IJobApplicationRepository {
@@ -21,6 +23,7 @@ export class JobApplicationRepository implements IJobApplicationRepository {
     private readonly getByIdStatement: Database.Statement;
     private readonly getByJobIdStatement: Database.Statement;
     private readonly updateStatusStatement: Database.Statement;
+    private readonly updateAttachmentsStatement: Database.Statement;
 
     constructor(
         private readonly connection: Database.Database,
@@ -45,6 +48,10 @@ export class JobApplicationRepository implements IJobApplicationRepository {
 
         this.updateStatusStatement = connection.prepare(`
             UPDATE job_applications SET status = @status WHERE id = @id
+        `);
+
+        this.updateAttachmentsStatement = connection.prepare(`
+            UPDATE job_applications SET attachments = @attachments WHERE id = @id
         `);
     }
     public async UpdateStatus(id: string, status: JobApplicationStatus): Promise<void> {
@@ -95,6 +102,21 @@ export class JobApplicationRepository implements IJobApplicationRepository {
         return this.mapRow(row);
     }
 
+    public async addAttachment(applicationId: string, attachment: IJobApplicationAttachment): Promise<IJobApplication> {
+        const existing = await this.getByIdOrThrow(applicationId);
+        const attachments = [...existing.attachments, attachment];
+
+        this.logger.debug(
+            `[JobApplicationRepository.addAttachment] Adding attachment ${attachment.id} to application ${applicationId}`
+        );
+        this.updateAttachmentsStatement.run({
+            id: applicationId,
+            attachments: JSON.stringify(attachments),
+        });
+
+        return { ...existing, attachments };
+    }
+
     private mapRow(row: JobApplicationRow): IJobApplication {
         return {
             id: row.id,
@@ -102,6 +124,7 @@ export class JobApplicationRepository implements IJobApplicationRepository {
             // row.status already stores the enum's string value (e.g. "APPLIED"), not its key.
             status: row.status as JobApplicationStatus,
             createdAt: row.created_at,
+            attachments: row.attachments ? (JSON.parse(row.attachments) as IJobApplicationAttachment[]) : [],
         };
     }
 }

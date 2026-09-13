@@ -10,6 +10,17 @@ interface UpdateApplicationStatusModalProps {
     onStatusSaved: (status: JobApplicationStatus) => void;
 }
 
+interface IAttachment {
+    id: string;
+    fileName: string;
+}
+
+interface IExistingApplication {
+    id: string;
+    status: JobApplicationStatus;
+    attachments: IAttachment[];
+}
+
 const STATUS_OPTIONS: JobApplicationStatus[] = [
     JobApplicationStatus.Applied,
     JobApplicationStatus.Review,
@@ -29,7 +40,7 @@ const STATUS_LABELS: Record<JobApplicationStatus, string> = {
 async function fetchExistingApplication(
     jobPostId: string,
     signal?: AbortSignal
-): Promise<{ id: string; status: JobApplicationStatus } | undefined> {
+): Promise<IExistingApplication | undefined> {
     const response = await fetch(`/api/v1/job-applications/job/${jobPostId}`, { signal });
     if (response.status === 404) {
         return undefined;
@@ -50,8 +61,11 @@ function UpdateApplicationStatusModal({
 }: UpdateApplicationStatusModalProps) {
     const [applicationId, setApplicationId] = useState<string | null>(null);
     const [status, setStatus] = useState<JobApplicationStatus>(JobApplicationStatus.Applied);
+    const [attachments, setAttachments] = useState<IAttachment[]>([]);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [saving, setSaving] = useState<boolean>(false);
+    const [uploading, setUploading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -69,8 +83,10 @@ function UpdateApplicationStatusModal({
                 if (existing) {
                     setApplicationId(existing.id);
                     setStatus(existing.status);
+                    setAttachments(existing.attachments ?? []);
                 } else {
                     setApplicationId(null);
+                    setAttachments([]);
                 }
             } catch (err) {
                 if (err instanceof DOMException && err.name === "AbortError") {
@@ -104,7 +120,14 @@ function UpdateApplicationStatusModal({
             }
 
             onStatusSaved(JobApplicationStatus.Applied);
-            onClose();
+
+            // Stay open and switch into edit mode so the user can immediately set status/attachments.
+            const created = await fetchExistingApplication(jobPostId);
+            if (created) {
+                setApplicationId(created.id);
+                setStatus(created.status);
+                setAttachments(created.attachments ?? []);
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to create job application");
         } finally {
@@ -139,6 +162,38 @@ function UpdateApplicationStatusModal({
         }
     };
 
+    const handleUpload = async () => {
+        if (!applicationId || !selectedFile) {
+            return;
+        }
+
+        setUploading(true);
+        setError(null);
+
+        try {
+            const content = await selectedFile.arrayBuffer();
+            const response = await fetch(`/api/v1/job-applications/${applicationId}/attachments`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/octet-stream",
+                    "X-File-Name": selectedFile.name,
+                },
+                body: content,
+            });
+            if (!response.ok) {
+                throw new Error(`Failed to upload attachment: ${response.status}`);
+            }
+
+            const data = await response.json();
+            setAttachments(prev => [...prev, data.attachment]);
+            setSelectedFile(null);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to upload attachment");
+        } finally {
+            setUploading(false);
+        }
+    };
+
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -158,21 +213,60 @@ function UpdateApplicationStatusModal({
                             <p>Loading application status...</p>
                         </div>
                     ) : applicationId ? (
-                        <div className="form-group">
-                            <label htmlFor="application-status">Status</label>
-                            <select
-                                id="application-status"
-                                value={status}
-                                onChange={e => setStatus(e.target.value as JobApplicationStatus)}
-                                className="filter-input"
-                            >
-                                {STATUS_OPTIONS.map(option => (
-                                    <option key={option} value={option}>
-                                        {STATUS_LABELS[option]}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <>
+                            <div className="form-group">
+                                <label htmlFor="application-status">Status</label>
+                                <select
+                                    id="application-status"
+                                    value={status}
+                                    onChange={e => setStatus(e.target.value as JobApplicationStatus)}
+                                    className="filter-input"
+                                >
+                                    {STATUS_OPTIONS.map(option => (
+                                        <option key={option} value={option}>
+                                            {STATUS_LABELS[option]}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Attachments</label>
+                                {attachments.length > 0 ? (
+                                    <ul className="attachments-list">
+                                        {attachments.map(attachment => (
+                                            <li key={attachment.id}>
+                                                <a
+                                                    href={`/api/v1/job-applications/${applicationId}/attachments/${attachment.id}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    {attachment.fileName}
+                                                </a>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="attachments-empty">No attachments uploaded yet.</p>
+                                )}
+
+                                <div className="attachment-upload-row">
+                                    <input
+                                        type="file"
+                                        onChange={e => setSelectedFile(e.target.files?.[0] ?? null)}
+                                        disabled={uploading}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleUpload}
+                                        className="button-secondary"
+                                        disabled={!selectedFile || uploading}
+                                    >
+                                        {uploading ? "Uploading..." : "Upload"}
+                                    </button>
+                                </div>
+                            </div>
+                        </>
                     ) : (
                         <p className="status-modal-empty-state">
                             No application has been created for this job post yet.
@@ -187,7 +281,7 @@ function UpdateApplicationStatusModal({
 
                     <div className="form-actions">
                         <button type="button" onClick={onClose} className="button-secondary" disabled={saving}>
-                            Cancel
+                            {applicationId ? "Cancel" : "Close"}
                         </button>
                         {!loading &&
                             (applicationId ? (

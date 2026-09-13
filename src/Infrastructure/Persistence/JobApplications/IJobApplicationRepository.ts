@@ -1,6 +1,7 @@
 import {
     ICreateJobApplication,
     IJobApplication,
+    IJobApplicationAttachment,
     JobApplicationStatus,
 } from "../../../Domain/JobApplications/IJobApplication";
 
@@ -10,4 +11,5 @@ export interface IJobApplicationRepository {
     getAll(): Promise<IJobApplication[]>;
     getByIdOrThrow(id: string): Promise<IJobApplication>;
     getByJobId(jobId: string): Promise<IJobApplication | null>;
+    addAttachment(applicationId: string, attachment: IJobApplicationAttachment): Promise<IJobApplication>;
 }
