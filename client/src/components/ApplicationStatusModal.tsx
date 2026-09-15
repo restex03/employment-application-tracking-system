@@ -16,7 +16,6 @@ interface IAttachment {
     id: string;
     fileName: string;
     dateAdded: string;
-    notes: string;
 }
 
 interface IExistingApplication {
@@ -57,7 +56,7 @@ async function fetchExistingApplication(
     return data.job;
 }
 
-type SortableColumn = "fileName" | "dateAdded" | "notes";
+type SortableColumn = "fileName" | "dateAdded";
 type SortDirection = "asc" | "desc";
 
 function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatusSaved }: ApplicationStatusModalProps) {
@@ -69,9 +68,11 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
     const [saving, setSaving] = useState<boolean>(false);
     const [uploading, setUploading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
-    const [savingNotesId, setSavingNotesId] = useState<string | null>(null);
     const [sortColumn, setSortColumn] = useState<SortableColumn>("dateAdded");
     const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+    const [initialStatus, setInitialStatus] = useState<JobApplicationStatus | null>(null);
+    const [initialNotes, setInitialNotes] = useState<string | null>(null);
+    const [initialAttachments, setInitialAttachments] = useState<IAttachment[] | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -91,10 +92,17 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
                     setStatus(existing.status);
                     setApplicationNotes(existing.notes ?? "");
                     setAttachments(existing.attachments ?? []);
+                    setInitialStatus(existing.status);
+                    setInitialNotes(existing.notes ?? "");
+                    setInitialAttachments(existing.attachments ?? []);
                 } else {
                     setApplicationId(null);
+                    setStatus(JobApplicationStatus.Applied);
                     setApplicationNotes("");
                     setAttachments([]);
+                    setInitialStatus(JobApplicationStatus.Applied);
+                    setInitialNotes("");
+                    setInitialAttachments([]);
                 }
             } catch (err) {
                 if (err instanceof DOMException && err.name === "AbortError") {
@@ -128,6 +136,17 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
         });
         return sorted;
     }, [attachments, sortColumn, sortDirection]);
+
+    const hasChanges = useMemo(() => {
+        if (initialStatus === null || initialNotes === null || initialAttachments === null) {
+            return false;
+        }
+        return (
+            status !== initialStatus ||
+            applicationNotes !== initialNotes ||
+            JSON.stringify(attachments) !== JSON.stringify(initialAttachments)
+        );
+    }, [status, applicationNotes, attachments, initialStatus, initialNotes, initialAttachments]);
 
     if (!isOpen) return null;
 
@@ -177,6 +196,10 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
             }
 
             onStatusSaved(status);
+            // Update initial state to match current state after save
+            setInitialStatus(status);
+            setInitialNotes(applicationNotes);
+            setInitialAttachments(attachments);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to save application status");
         } finally {
@@ -236,34 +259,7 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
         }
     };
 
-    const handleNotesBlur = async (attachment: IAttachment, currentNotes: string) => {
-        if (!applicationId || attachment.notes === currentNotes) {
-            setSavingNotesId(null);
-            return;
-        }
 
-        setSavingNotesId(attachment.id);
-
-        try {
-            const response = await fetch(
-                `/api/v1/job-applications/${applicationId}/attachments/${attachment.id}/notes`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ notes: currentNotes }),
-                }
-            );
-            if (!response.ok) {
-                throw new Error(`Failed to update attachment notes: ${response.status}`);
-            }
-
-            await refreshApplication();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to save attachment notes");
-        } finally {
-            setSavingNotesId(null);
-        }
-    };
 
     return (
         <div className="modal-overlay" onClick={onClose}>
@@ -346,19 +342,25 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
                                                     <th onClick={() => handleSort("fileName")}>
                                                         <div className="sortable-header">
                                                             <span>File</span>
-                                                            <span className="sort-icon">{getSortIndicator("fileName", sortColumn, sortDirection)}</span>
+                                                            <span className="sort-icon">
+                                                                {getSortIndicator(
+                                                                    "fileName",
+                                                                    sortColumn,
+                                                                    sortDirection
+                                                                )}
+                                                            </span>
                                                         </div>
                                                     </th>
                                                     <th onClick={() => handleSort("dateAdded")}>
                                                         <div className="sortable-header">
                                                             <span>Date Added</span>
-                                                            <span className="sort-icon">{getSortIndicator("dateAdded", sortColumn, sortDirection)}</span>
-                                                        </div>
-                                                    </th>
-                                                    <th onClick={() => handleSort("notes")}>
-                                                        <div className="sortable-header">
-                                                            <span>Notes</span>
-                                                            <span className="sort-icon">{getSortIndicator("notes", sortColumn, sortDirection)}</span>
+                                                            <span className="sort-icon">
+                                                                {getSortIndicator(
+                                                                    "dateAdded",
+                                                                    sortColumn,
+                                                                    sortDirection
+                                                                )}
+                                                            </span>
                                                         </div>
                                                     </th>
                                                 </tr>
@@ -378,16 +380,6 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
                                                         </td>
                                                         <td className="attachments-table-date-cell">
                                                             {formatDate(attachment.dateAdded, "datetimeSeconds", "")}
-                                                        </td>
-                                                        <td className="attachments-table-notes-cell">
-                                                            <textarea
-                                                                key={`${attachment.id}-${attachment.notes}`}
-                                                                className="attachment-notes-input"
-                                                                defaultValue={attachment.notes}
-                                                                onBlur={e => handleNotesBlur(attachment, e.target.value)}
-                                                                disabled={savingNotesId === attachment.id}
-                                                                rows={2}
-                                                            />
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -413,11 +405,16 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
 
                     <div className="form-actions">
                         <button type="button" onClick={onClose} className="button-secondary" disabled={saving}>
-                            {applicationId ? "Cancel" : "Close"}
+                            {"Close"}
                         </button>
                         {!loading &&
                             (applicationId ? (
-                                <button type="button" onClick={handleSave} className="button-primary" disabled={saving}>
+                                <button
+                                    type="button"
+                                    onClick={handleSave}
+                                    className="button-primary"
+                                    disabled={saving || !hasChanges}
+                                >
                                     {saving ? "Saving..." : "Save"}
                                 </button>
                             ) : (

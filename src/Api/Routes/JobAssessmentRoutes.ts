@@ -18,6 +18,15 @@ interface JobAssessmentJobParams {
     jobId: string;
 }
 
+interface ReviewStatusParams {
+    jobPostId: string;
+    candidateProfileId: string;
+}
+
+interface ReviewStatusBody {
+    reviewStatus: string;
+}
+
 export class JobAssessmentRoutes implements IRouteRegistrar {
     constructor(
         private readonly jobAssessmentService: IJobAssessmentService,
@@ -119,6 +128,38 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
                 this.logger.error(`[${request.method}]  ${request.url} Failed: ${errMsg}`);
                 return reply.code(500).send({
                     error: `Failed to get assessment: ${errMsg}`,
+                });
+            }
+        });
+
+        server.post<{
+            Params: ReviewStatusParams;
+            Body: ReviewStatusBody;
+        }>("/job-posts/:jobPostId/assessments/:candidateProfileId/review-status", async (request, reply) => {
+            const { jobPostId, candidateProfileId } = request.params;
+            const { reviewStatus } = request.body;
+
+            try {
+                this.logger.info(`[${request.method}]  ${request.url}`);
+                await this.jobAssessmentService.updateReviewStatus(
+                    jobPostId,
+                    candidateProfileId,
+                    reviewStatus as "unreviewed" | "accepted" | "flagged"
+                );
+
+                return reply.code(200).send();
+            } catch (error) {
+                const errMsg = error instanceof Error ? error.message : String(error);
+                if (error instanceof NotFoundError) {
+                    this.logger.error(`[${request.method}]  ${request.url} Not found: ${errMsg}`);
+                    return reply.code(404).send({
+                        error: errMsg,
+                    });
+                }
+
+                this.logger.error(`[${request.method}]  ${request.url} Failed: ${errMsg}`);
+                return reply.code(500).send({
+                    error: `Failed to update review status: ${errMsg}`,
                 });
             }
         });

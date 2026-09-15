@@ -12,5 +12,4 @@ export interface IJobApplicationService {
     getByJobId(jobId: string): Promise<IJobApplication | undefined>;
     addAttachment(applicationId: string, fileName: string, content: Buffer): Promise<IJobApplicationAttachment>;
     getAttachment(applicationId: string, attachmentId: string): Promise<{ fileName: string; content: Buffer }>;
-    updateAttachmentNotes(applicationId: string, attachmentId: string, notes: string): Promise<IJobApplicationAttachment>;
 }

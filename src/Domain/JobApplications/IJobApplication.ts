@@ -2,7 +2,6 @@ export interface IJobApplicationAttachment {
     id: string;
     fileName: string;
     dateAdded: string;
-    notes: string;
 }
 
 export interface IJobApplication {

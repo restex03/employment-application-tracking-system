@@ -60,7 +60,6 @@ export class JobApplicationService implements IJobApplicationService {
             id: crypto.randomUUID(),
             fileName,
             dateAdded: new Date().toISOString(),
-            notes: "",
         };
 
         await this.fileSystemRepository.storeFile(attachment.id, content);
@@ -90,26 +89,4 @@ export class JobApplicationService implements IJobApplicationService {
         return { fileName: attachment.fileName, content };
     }
 
-    public async updateAttachmentNotes(
-        applicationId: string,
-        attachmentId: string,
-        notes: string
-    ): Promise<IJobApplicationAttachment> {
-        this.logger.info(
-            `[JobApplicationService.updateAttachmentNotes] Updating notes for attachment ${attachmentId} on application: ${applicationId}`
-        );
-        const application = await this.jobApplicationRepository.getByIdOrThrow(applicationId);
-        const attachment = application.attachments.find(existing => existing.id === attachmentId);
-
-        if (!attachment) {
-            throw new NotFoundError(
-                `[JobApplicationService.updateAttachmentNotes] Attachment ${attachmentId} not found for application ${applicationId}.`,
-                "attachmentId"
-            );
-        }
-
-        const updated: IJobApplicationAttachment = { ...attachment, notes };
-        await this.jobApplicationRepository.updateAttachment(applicationId, updated);
-        return updated;
-    }
 }

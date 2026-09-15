@@ -28,6 +28,7 @@ export class SqliteJobAssessmentRepository implements IJobAssessmentRepository {
     private readonly insertAssessmentStatement: Database.Statement;
     private readonly getAssessmentByIdStatement: Database.Statement;
     private readonly getLatestAssessmentForJobPostAndCandidateProfileStatement: Database.Statement;
+    private readonly updateReviewStatusStatement: Database.Statement;
 
     constructor(
         private readonly connection: Database.Database,
@@ -52,6 +53,10 @@ export class SqliteJobAssessmentRepository implements IJobAssessmentRepository {
             WHERE job_post_id = @jobPostId AND candidate_profile_id = @candidateProfileId 
             ORDER BY created_at DESC
             LIMIT 1
+        `);
+
+        this.updateReviewStatusStatement = this.connection.prepare(`
+            UPDATE job_assessments SET review_status = @reviewStatus WHERE id = @id
         `);
     }
     public async getLatestAssessment(
@@ -142,6 +147,15 @@ export class SqliteJobAssessmentRepository implements IJobAssessmentRepository {
 
         this.logger.info(`[JobAssessmentRepository.storeAssessment] Stored assessment: ${result.id}`);
         return result;
+    }
+
+    public async updateReviewStatus(id: string, reviewStatus: JobAssessmentReviewStatus): Promise<void> {
+        this.logger.debug(`[JobAssessmentRepository.updateReviewStatus] Updating review status for assessment: ${id}`);
+        this.updateReviewStatusStatement.run({
+            id,
+            reviewStatus,
+        });
+        this.logger.info(`[JobAssessmentRepository.updateReviewStatus] Updated review status for assessment: ${id}`);
     }
 
     private mapRowToAssessment(row: JobAssessmentRow): IJobAssessment {

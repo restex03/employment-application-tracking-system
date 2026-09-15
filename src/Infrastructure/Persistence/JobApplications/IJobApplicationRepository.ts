@@ -12,5 +12,4 @@ export interface IJobApplicationRepository {
     getByIdOrThrow(id: string): Promise<IJobApplication>;
     getByJobId(jobId: string): Promise<IJobApplication | null>;
     addAttachment(applicationId: string, attachment: IJobApplicationAttachment): Promise<IJobApplication>;
-    updateAttachment(applicationId: string, attachment: IJobApplicationAttachment): Promise<IJobApplication>;
 }

@@ -119,30 +119,12 @@ export class JobApplicationRepository implements IJobApplicationRepository {
         return { ...existing, attachments };
     }
 
-    public async updateAttachment(applicationId: string, attachment: IJobApplicationAttachment): Promise<IJobApplication> {
-        const existing = await this.getByIdOrThrow(applicationId);
-        const attachments = existing.attachments.map(item =>
-            item.id === attachment.id ? attachment : item
-        );
-
-        this.logger.debug(
-            `[JobApplicationRepository.updateAttachment] Updating attachment ${attachment.id} on application ${applicationId}`
-        );
-        this.updateAttachmentsStatement.run({
-            id: applicationId,
-            attachments: JSON.stringify(attachments),
-        });
-
-        return { ...existing, attachments };
-    }
-
     private mapRow(row: JobApplicationRow): IJobApplication {
         const raw = row.attachments ? (JSON.parse(row.attachments) as IJobApplicationAttachment[]) : [];
         const attachments = raw.map(item => ({
             id: item.id,
             fileName: item.fileName,
             dateAdded: item.dateAdded ?? "",
-            notes: item.notes ?? "",
         }));
         return {
             id: row.id,

@@ -1,5 +1,7 @@
 import { IJobAssessmentResponse } from "../../Api/Contracts/JobAssessment/IJobAssessmentResponse";
 import { IJobAssessment, JobAssessment, JobAssessmentStatus } from "../../Domain/JobAssessment/IJobAssessment";
+import { JobAssessmentReviewStatus } from "../../Domain/JobAssessment/IJobAssessment";
+import { NotFoundError } from "../../Application/Common/Errors/NotFoundError";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IJobAssessmentRepository } from "../../Infrastructure/Persistence/JobAssessments/IJobAssessmentRepository";
 import { IJobCandidateProfileRepository } from "../../Infrastructure/Persistence/JobCandidateProfiles/IJobCandidateProfileRepository";
@@ -35,6 +37,18 @@ export class JobAssessmentService implements IJobAssessmentService {
     ): Promise<IJobAssessmentResponse> {
         const result = await this.jobAssessmentRepo.getLatestAssessmentOrThrow(jobPostId, candidateProfileId);
         return mapToResponse(result);
+    }
+
+    public async updateReviewStatus(
+        jobPostId: string,
+        candidateProfileId: string,
+        reviewStatus: JobAssessmentReviewStatus
+    ): Promise<void> {
+        this.logger.info(
+            `[JobAssessmentService.updateReviewStatus] Updating review status for job post: ${jobPostId}, candidate: ${candidateProfileId}`
+        );
+        const assessment = await this.jobAssessmentRepo.getLatestAssessmentOrThrow(jobPostId, candidateProfileId);
+        await this.jobAssessmentRepo.updateReviewStatus(assessment.id, reviewStatus);
     }
     private async updateDatabase(result: IJobAssessmentResult): Promise<void> {
         const mapped = this.mapPipelineResultToDomain(result);

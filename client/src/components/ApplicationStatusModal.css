@@ -150,34 +150,6 @@
     font-size: 0.8125rem;
 }
 
-.attachments-table-notes-cell {
-    width: 40%;
-}
-
-.attachment-notes-input {
-    width: 100%;
-    padding: 0.375rem 0.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    font-size: 0.8125rem;
-    font-family: inherit;
-    color: var(--text-primary);
-    background-color: var(--card-background);
-    resize: vertical;
-    min-height: 2rem;
-}
-
-.attachment-notes-input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-}
-
-.attachment-notes-input:disabled {
-    background-color: var(--background-color);
-    opacity: 0.7;
-}
-
 .attachments-empty {
     color: var(--text-secondary);
     font-size: 0.875rem;

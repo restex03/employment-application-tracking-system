@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import DOMPurify from "dompurify";
 import { IJobPostData } from "../types/JobPost";
-import { IJobAssessment } from "../types/JobAssessment";
+import { IJobAssessment, JobAssessmentReviewStatus } from "../types/JobAssessment";
 import { JobQueueStatus } from "../types/JobAssessmentJob";
 import { formatDate, formatLocation, formatList } from "../services/formatters";
 import {
     getAssessmentStatusColor,
-    getReviewStatusColor,
     getMatchTypeColor,
     getScreenDispositionColor,
 } from "../services/statusColors";
@@ -26,6 +25,8 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
     const [assessment, setAssessment] = useState<IJobAssessment | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [reviewStatus, setReviewStatus] = useState<JobAssessmentReviewStatus | null>(null);
+    const [savingReviewStatus, setSavingReviewStatus] = useState<boolean>(false);
 
     // Fetch the assessment on open, and again once a newly queued job reports completion.
     useEffect(() => {
@@ -57,6 +58,7 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                 const data: IJobAssessment = await response.json();
                 if (!controller.signal.aborted) {
                     setAssessment(data);
+                    setReviewStatus(data.reviewStatus);
                 }
             } catch (err) {
                 if (err instanceof DOMException && err.name === "AbortError") {
@@ -92,6 +94,32 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                 ))}
             </ul>
         );
+    };
+
+    const handleReviewStatusSelect = (newStatus: JobAssessmentReviewStatus) => {
+        setReviewStatus(newStatus);
+    };
+
+    const handleSaveReviewStatus = async () => {
+        if (!assessment || !reviewStatus || savingReviewStatus) return;
+
+        setSavingReviewStatus(true);
+        try {
+            const response = await fetch(`/api/v1/job-posts/${jobPost.id}/assessments/${CANDIDATE_PROFILE_ID}/review-status`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ reviewStatus }),
+            });
+            if (!response.ok) {
+                throw new Error(`Failed to update review status: ${response.status}`);
+            }
+            // Update the assessment with the new review status
+            setAssessment({ ...assessment, reviewStatus });
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to save review status");
+        } finally {
+            setSavingReviewStatus(false);
+        }
     };
 
     return (
@@ -290,23 +318,50 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                                                     <span className="status-label">Status:</span>
                                                     <span
                                                         className="status-badge"
-                                                        style={{ backgroundColor: getAssessmentStatusColor(assessment.status) }}
+                                                        style={{
+                                                            backgroundColor: getAssessmentStatusColor(
+                                                                assessment.status
+                                                            ),
+                                                        }}
                                                     >
                                                         {assessment.status}
                                                     </span>
                                                 </div>
                                                 <div className="status-row">
                                                     <span className="status-label">Review Status:</span>
-                                                    <span
-                                                        className="status-badge"
-                                                        style={{
-                                                            backgroundColor: getReviewStatusColor(
-                                                                assessment.reviewStatus
-                                                            ),
-                                                        }}
-                                                    >
-                                                        {assessment.reviewStatus}
-                                                    </span>
+                                                    <div className="review-status-selector">
+                                                        {([
+                                                            "unreviewed",
+                                                            "accepted",
+                                                            "flagged",
+                                                        ] as JobAssessmentReviewStatus[]).map(
+                                                            status => {
+                                                                const isSelected = reviewStatus === status;
+                                                                return (
+                                                                    <span
+                                                                        key={status}
+                                                                        className={`review-status-option ${isSelected ? "selected" : ""}`}
+                                                                        style={{
+                                                                            opacity: isSelected ? 1 : 0.5,
+                                                                            cursor: "pointer",
+                                                                        }}
+                                                                        onClick={() => handleReviewStatusSelect(status)}
+                                                                    >
+                                                                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                                                                    </span>
+                                                                );
+                                                            }
+                                                        )}
+                                                    </div>
+                                                    {reviewStatus && assessment?.reviewStatus !== reviewStatus && (
+                                                        <button
+                                                            className="save-review-status-button"
+                                                            onClick={handleSaveReviewStatus}
+                                                            disabled={savingReviewStatus}
+                                                        >
+                                                            {savingReviewStatus ? "Saving..." : "Save"}
+                                                        </button>
+                                                    )}
                                                 </div>
                                                 <div className="status-row">
                                                     <span className="status-label">Created At:</span>
