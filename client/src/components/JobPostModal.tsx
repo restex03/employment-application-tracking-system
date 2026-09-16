@@ -4,12 +4,9 @@ import { IJobPostData } from "../types/JobPost";
 import { IJobAssessment, JobAssessmentReviewStatus } from "../types/JobAssessment";
 import { JobQueueStatus } from "../types/JobAssessmentJob";
 import { formatDate, formatLocation, formatList } from "../services/formatters";
-import {
-    getAssessmentStatusColor,
-    getMatchTypeColor,
-    getScreenDispositionColor,
-} from "../services/statusColors";
+
 import "./JobPostModal.css";
+import { getMatchTypeColor, getAssessmentStatusColor, getScreenDispositionColor } from "../services/statusColors";
 
 interface JobPostModalProps {
     isOpen: boolean;
@@ -105,11 +102,14 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
 
         setSavingReviewStatus(true);
         try {
-            const response = await fetch(`/api/v1/job-post-assessments/${jobPost.id}/${CANDIDATE_PROFILE_ID}/review-status`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ reviewStatus }),
-            });
+            const response = await fetch(
+                `/api/v1/job-post-assessments/${jobPost.id}/${CANDIDATE_PROFILE_ID}/review-status`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ reviewStatus }),
+                }
+            );
             if (!response.ok) {
                 throw new Error(`Failed to update review status: ${response.status}`);
             }
@@ -330,28 +330,28 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                                                 <div className="status-row">
                                                     <span className="status-label">Review Status:</span>
                                                     <div className="review-status-selector">
-                                                        {([
-                                                            "unreviewed",
-                                                            "accepted",
-                                                            "flagged",
-                                                        ] as JobAssessmentReviewStatus[]).map(
-                                                            status => {
-                                                                const isSelected = reviewStatus === status;
-                                                                return (
-                                                                    <span
-                                                                        key={status}
-                                                                        className={`review-status-option ${isSelected ? "selected" : ""}`}
-                                                                        style={{
-                                                                            opacity: isSelected ? 1 : 0.5,
-                                                                            cursor: "pointer",
-                                                                        }}
-                                                                        onClick={() => handleReviewStatusSelect(status)}
-                                                                    >
-                                                                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                                                                    </span>
-                                                                );
-                                                            }
-                                                        )}
+                                                        {(
+                                                            [
+                                                                "unreviewed",
+                                                                "accepted",
+                                                                "flagged",
+                                                            ] as JobAssessmentReviewStatus[]
+                                                        ).map(status => {
+                                                            const isSelected = reviewStatus === status;
+                                                            return (
+                                                                <span
+                                                                    key={status}
+                                                                    className={`review-status-option ${isSelected ? "selected" : ""}`}
+                                                                    style={{
+                                                                        opacity: isSelected ? 1 : 0.5,
+                                                                        cursor: "pointer",
+                                                                    }}
+                                                                    onClick={() => handleReviewStatusSelect(status)}
+                                                                >
+                                                                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                                                                </span>
+                                                            );
+                                                        })}
                                                     </div>
                                                     {reviewStatus && assessment?.reviewStatus !== reviewStatus && (
                                                         <button
@@ -483,7 +483,7 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                 </div>
 
                 <div className="modal-footer">
-                    <button className="close-button" onClick={onClose}>
+                    <button className="button-secondary" onClick={onClose}>
                         Close
                     </button>
                 </div>

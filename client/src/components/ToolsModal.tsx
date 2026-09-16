@@ -111,7 +111,7 @@ function ToolsModal({ isOpen, onClose }: ToolsModalProps) {
                 </div>
 
                 <div className="modal-footer">
-                    <button className="close-button" onClick={onClose}>
+                    <button className="button-secondary" onClick={onClose}>
                         Close
                     </button>
                 </div>

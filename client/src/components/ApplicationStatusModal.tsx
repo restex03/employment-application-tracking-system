@@ -445,12 +445,12 @@ function ApplicationStatusModal({
                                 </button>
                             )}
                         </span>
-                        <span className="handle-close-btn-col">
-                            <button type="button" onClick={onClose} className="button-secondary" disabled={saving}>
-                                {"Close"}
-                            </button>
-                        </span>
                     </div>
+                </div>
+                <div className="modal-footer">
+                    <button type="button" onClick={onClose} className="button-secondary" disabled={saving}>
+                        {"Close"}
+                    </button>
                 </div>
             </div>
         </div>

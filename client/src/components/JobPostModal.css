@@ -13,7 +13,7 @@
     animation: fadeIn 0.2s ease-out;
 }
 
-/* Modal header, close-button, modal-body, modal-footer, spinner, loading-container,
+/* Modal header, modal-body, modal-footer, close-button, spinner, loading-container,
    error-container, error-message, retry-button, @keyframes fadeIn/slideUp/spin are in shared.css. */
 
 .job-post-modal-content {
@@ -146,20 +146,6 @@
     padding: 2rem;
     text-align: center;
     color: var(--text-secondary);
-}
-
-.modal-footer .close-button {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-md);
-    font-size: 1rem;
-    font-weight: 500;
-    transition: background-color 0.2s ease;
-}
-
-.modal-footer .close-button:hover {
-    background-color: var(--primary-hover);
 }
 
 @media (max-width: 768px) {

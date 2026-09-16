@@ -13,7 +13,7 @@
     animation: fadeIn 0.2s ease-out;
 }
 
-/* Modal header, close-button, modal-body, modal-footer,
+/* Modal header, modal-body, modal-footer, close-button,
    @keyframes fadeIn/slideUp are in shared.css. */
 
 .candidate-profile-modal-content {
@@ -158,20 +158,6 @@
     padding-left: 1.25rem;
     color: var(--text-secondary);
     line-height: 1.6;
-}
-
-.modal-footer .close-button {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-md);
-    font-size: 1rem;
-    font-weight: 500;
-    transition: background-color 0.2s ease;
-}
-
-.modal-footer .close-button:hover {
-    background-color: var(--primary-hover);
 }
 
 @media (max-width: 768px) {
