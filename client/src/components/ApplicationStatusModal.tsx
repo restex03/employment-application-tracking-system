@@ -9,6 +9,7 @@ interface ApplicationStatusModalProps {
     onClose: () => void;
     jobPostId: string;
     jobTitle: string;
+    jobPostReqId: string;
     onStatusSaved: (status: JobApplicationStatus) => void;
 }
 
@@ -59,7 +60,14 @@ async function fetchExistingApplication(
 type SortableColumn = "fileName" | "dateAdded";
 type SortDirection = "asc" | "desc";
 
-function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatusSaved }: ApplicationStatusModalProps) {
+function ApplicationStatusModal({
+    isOpen,
+    onClose,
+    jobPostId,
+    jobTitle,
+    jobPostReqId,
+    onStatusSaved,
+}: ApplicationStatusModalProps) {
     const [applicationId, setApplicationId] = useState<string | null>(null);
     const [status, setStatus] = useState<JobApplicationStatus>(JobApplicationStatus.Applied);
     const [applicationNotes, setApplicationNotes] = useState<string>("");
@@ -270,8 +278,17 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
                 </div>
 
                 <div className="modal-body">
-                    <p className="status-modal-job-title">{jobTitle}</p>
-
+                    <div className="job-info-header">
+                        <div className="job-info-row">
+                            <span className="job-info-label">Job Title:</span>
+                            <span className="job-info-value">{jobTitle}</span>
+                        </div>
+                        <div className="job-info-row">
+                            <span className="job-info-label">Requisition ID:</span>
+                            <span className="job-info-value">{jobPostReqId}</span>
+                        </div>
+                    </div>
+                    <br />
                     {loading ? (
                         <div className="loading-container">
                             <div className="spinner"></div>
@@ -390,9 +407,23 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
                             </div>
                         </>
                     ) : (
-                        <p className="status-modal-empty-state">
-                            No application has been created for this job post yet.
-                        </p>
+                        <span>
+                            <p className="status-modal-empty-state">
+                                No application has been created for this job post yet.
+                                <div className="handle-create-btn-col">
+                                    {!loading && !applicationId && (
+                                        <button
+                                            type="button"
+                                            onClick={handleCreate}
+                                            className="button-primary"
+                                            disabled={saving}
+                                        >
+                                            {saving ? "Creating..." : "Create Application"}
+                                        </button>
+                                    )}
+                                </div>
+                            </p>
+                        </span>
                     )}
 
                     {error && (
@@ -402,8 +433,8 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
                     )}
 
                     <div className="form-actions">
-                        {!loading &&
-                            (applicationId ? (
+                        <span className="handle-save-btn-col">
+                            {!loading && applicationId && (
                                 <button
                                     type="button"
                                     onClick={handleSave}
@@ -412,19 +443,13 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
                                 >
                                     {saving ? "Saving..." : "Save"}
                                 </button>
-                            ) : (
-                                <button
-                                    type="button"
-                                    onClick={handleCreate}
-                                    className="button-primary"
-                                    disabled={saving}
-                                >
-                                    {saving ? "Creating..." : "Create Application"}
-                                </button>
-                            ))}
-                        <button type="button" onClick={onClose} className="button-secondary" disabled={saving}>
-                            {"Close"}
-                        </button>
+                            )}
+                        </span>
+                        <span className="handle-close-btn-col">
+                            <button type="button" onClick={onClose} className="button-secondary" disabled={saving}>
+                                {"Close"}
+                            </button>
+                        </span>
                     </div>
                 </div>
             </div>

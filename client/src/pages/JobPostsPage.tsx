@@ -727,6 +727,7 @@ function JobPostsPage() {
                 isOpen={statusModalJobPost !== null}
                 onClose={() => setStatusModalJobPost(null)}
                 jobPostId={statusModalJobPost?.id ?? ""}
+                jobPostReqId={statusModalJobPost?.requisitionId ?? ""}
                 jobTitle={statusModalJobPost?.title ?? ""}
                 onStatusSaved={status => {
                     if (statusModalJobPost) {
