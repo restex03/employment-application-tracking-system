@@ -8,7 +8,7 @@ const POLL_INTERVAL_MS = 5_000;
 const SYNC_STATUS_KEY = "job-post-sync";
 
 async function fetchActiveSyncJobs(): Promise<IJobPostSyncJob[]> {
-    const response = await fetch("/api/v1/sync-jobs");
+    const response = await fetch("/api/v1/queue-jobs/job-post-syncs");
     if (!response.ok) {
         throw new Error(`Failed to fetch sync jobs: ${response.status}`);
     }
@@ -30,7 +30,7 @@ export interface UseSyncJobsStatusResult {
 }
 
 /**
- * Tracks whether any job post sync jobs are currently active by checking GET /api/v1/sync-jobs
+ * Tracks whether any job post sync jobs are currently active by checking GET /api/v1/queue-jobs/job-post-syncs
  * on mount, then polling (via JobQueuePollingManager) until the endpoint reports no active jobs.
  */
 export function useSyncJobsStatus(pollIntervalMs: number = POLL_INTERVAL_MS): UseSyncJobsStatusResult {

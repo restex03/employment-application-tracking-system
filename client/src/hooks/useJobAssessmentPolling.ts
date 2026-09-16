@@ -33,7 +33,7 @@ const IN_FLIGHT_STATUSES: ReadonlySet<JobQueueStatus> = new Set(["QUEUED", "IN_P
 const TERMINAL_STATUSES: ReadonlySet<JobQueueStatus> = new Set(["COMPLETED", "FAILED"]);
 
 async function getJobById(jobId: string): Promise<IAssessmentJob | null> {
-    const response = await fetch(`/api/v1/assessment-jobs/${jobId}`);
+    const response = await fetch(`/api/v1/queue-jobs/assessments/${jobId}`);
     if (!response.ok) {
         return null;
     }
@@ -119,7 +119,7 @@ export function useJobAssessmentPolling({
     const enqueue = useCallback(
         async (jobPostId: string) => {
             try {
-                const response = await fetch(`/api/v1/job-posts/${jobPostId}/assessments/${candidateProfileId}`, {
+                const response = await fetch(`/api/v1/job-post-assessments/${jobPostId}/${candidateProfileId}`, {
                     method: "POST",
                 });
 
@@ -156,7 +156,7 @@ export function useJobAssessmentPolling({
 
         const hydrateActiveJobs = async () => {
             try {
-                const response = await fetch("/api/v1/assessment-jobs", { signal: controller.signal });
+                const response = await fetch("/api/v1/queue-jobs/assessments", { signal: controller.signal });
                 if (!response.ok) {
                     return;
                 }

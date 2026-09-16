@@ -22,6 +22,7 @@ export class AttachmentsRoutes implements IRouteRegistrar {
     public register(server: FastifyInstance): void {
         server.post(
             "/job-applications/:id/attachments",
+            { schema: { tags: ["Attachments"] } },
             async (request: FastifyRequest<{ Params: AttachmentUploadParams }>, reply) => {
                 try {
                     this.logger.info(`[${request.method}]  ${request.url}`);
@@ -57,6 +58,7 @@ export class AttachmentsRoutes implements IRouteRegistrar {
 
         server.get(
             "/job-applications/:id/attachments/:attachmentId",
+            { schema: { tags: ["Attachments"] } },
             async (request: FastifyRequest<{ Params: AttachmentDownloadParams }>, reply) => {
                 try {
                     this.logger.info(`[${request.method}]  ${request.url}`);

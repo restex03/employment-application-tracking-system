@@ -1,6 +1,6 @@
 import { JobQueueStatus } from "./JobAssessmentJob";
 
-/** Matches the backend's IJobPostSyncJob, as returned by GET /api/v1/sync-jobs. */
+/** Matches the backend's IJobPostSyncJob, as returned by GET /api/v1/queue-jobs/job-post-syncs. */
 export interface IJobPostSyncJob {
     id: string;
     sourceIds: string[];

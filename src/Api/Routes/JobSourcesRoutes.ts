@@ -13,7 +13,7 @@ interface JobSourceParams {
     sourceId: string;
 }
 
-export class JobSourceRoutes implements IRouteRegistrar {
+export class JobSourcesRoutes implements IRouteRegistrar {
     constructor(
         private readonly jobSourceRepository: IJobSourceRepository,
         private readonly logger: ILogger
@@ -22,7 +22,10 @@ export class JobSourceRoutes implements IRouteRegistrar {
     public register(server: FastifyInstance): void {
         server.get<{
             Querystring: JobSourceQuery;
-        }>("/job-sources", async (request, reply) => {
+        }>(
+            "/job-sources",
+            { schema: { tags: ["Job Sources"] } },
+            async (request, reply) => {
             try {
                 const { companyName } = request.query;
 
@@ -49,7 +52,10 @@ export class JobSourceRoutes implements IRouteRegistrar {
 
         server.get<{
             Params: JobSourceParams;
-        }>("/job-sources/:sourceId", async (request, reply) => {
+        }>(
+            "/job-sources/:sourceId",
+            { schema: { tags: ["Job Sources"] } },
+            async (request, reply) => {
             try {
                 const { sourceId } = request.params;
                 this.logger.info(`[${request.method}]  ${request.url}`);

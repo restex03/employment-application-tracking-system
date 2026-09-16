@@ -24,7 +24,7 @@ export function useSyncJobPosts() {
                 body.searchText = searchText.trim();
             }
 
-            const response = await fetch('/api/v1/job-posts/sync', {
+            const response = await fetch('/api/v1/job-post-syncs', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

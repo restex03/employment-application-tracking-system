@@ -11,7 +11,7 @@ export interface AssessmentJobResult {
     error?: string;
 }
 
-/** Matches the backend's IJobAssessmentJob, as returned by GET /api/v1/assessment-jobs. */
+/** Matches the backend's IJobAssessmentJob, as returned by GET /api/v1/queue-jobs/assessments. */
 export interface IAssessmentJob {
     id: string;
     jobPostId: string;

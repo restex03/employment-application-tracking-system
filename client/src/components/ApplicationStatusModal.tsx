@@ -186,7 +186,7 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
         setError(null);
 
         try {
-            const response = await fetch(`/api/v1/job-applications/${applicationId}`, {
+            const response = await fetch(`/api/v1/job-applications/${applicationId}/status`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status, notes: applicationNotes }),

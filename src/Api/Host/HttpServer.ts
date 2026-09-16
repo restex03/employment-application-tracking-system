@@ -1,14 +1,17 @@
 import Fastify, { FastifyInstance, RouteOptions } from "fastify";
 import { IApplicationDependencies } from "../../Application/DependencyInjection/IApplicationDependencies";
 import { JobAssessmentRoutes } from "../Routes/JobAssessmentRoutes";
+import { QueueJobsRoutes } from "../Routes/QueueJobsRoutes";
 import { JobPostRoutes } from "../Routes/JobPostRoutes";
-import { JobSourceRoutes } from "../Routes/JobSourceRoutes";
+import { JobPostSyncRoutes } from "../Routes/JobPostSyncRoutes";
+import { JobSourcesRoutes } from "../Routes/JobSourcesRoutes";
 import { ToolsRoutes } from "../Routes/ToolsRoutes";
 import { IRouteRegistrar } from "./IRouteRegistrar";
 import { IRouteDetails } from "./IRouteDetails";
-import { JobCandidateProfileRoutes } from "../Routes/JobCandidateProfileRoutes";
+import { CandidateProfileRoutes } from "../Routes/CandidateProfileRoutes";
 import { JobApplicationRoutes } from "../Routes/JobApplicationRoutes";
 import { AttachmentsRoutes } from "../Routes/AttachmentsRoutes";
+import { SwaggerConfig } from "./SwaggerConfig";
 
 export class HttpServer {
     private readonly app: FastifyInstance;
@@ -27,11 +30,14 @@ export class HttpServer {
 
         this.captureRoutes();
 
+        // Register Swagger on root instance to capture all routes
+        new SwaggerConfig(this.dependencies.logger).register(this.app);
+
         this.routes = [
-            new JobSourceRoutes(this.dependencies.jobSourceRepository, this.dependencies.logger),
-            new JobCandidateProfileRoutes(this.dependencies.jobCandidateProfileService, this.dependencies.logger),
-            new JobPostRoutes(
-                this.dependencies.jobPostResultService,
+            new JobSourcesRoutes(this.dependencies.jobSourceRepository, this.dependencies.logger),
+            new CandidateProfileRoutes(this.dependencies.jobCandidateProfileService, this.dependencies.logger),
+            new JobPostRoutes(this.dependencies.jobPostResultService, this.dependencies.logger),
+            new JobPostSyncRoutes(
                 this.dependencies.jobPostSyncService,
                 this.dependencies.jobPostSyncQueueService,
                 this.dependencies.logger
@@ -42,6 +48,11 @@ export class HttpServer {
             new JobAssessmentRoutes(
                 this.dependencies.jobAssessmentService,
                 this.dependencies.jobAssessmentQueueService,
+                this.dependencies.logger
+            ),
+            new QueueJobsRoutes(
+                this.dependencies.jobAssessmentQueueService,
+                this.dependencies.jobPostSyncQueueService,
                 this.dependencies.logger
             ),
 

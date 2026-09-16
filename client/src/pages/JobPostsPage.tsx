@@ -263,7 +263,7 @@ function JobPostsPage() {
                 const data: IJobPostData = await getResponse.json();
                 // If detail is undefined, sync the job detail
                 if (!data.detail) {
-                    const syncUrl = `/api/v1/job-posts/${jobPost.id}/sync`;
+                    const syncUrl = `/api/v1/job-post-syncs/${jobPost.id}`;
                     const syncResponse = await fetch(syncUrl, {
                         method: "POST",
                     });
@@ -282,7 +282,7 @@ function JobPostsPage() {
 
             // If 404, try to sync the job detail
             if (getResponse.status === 404) {
-                const syncUrl = `/api/v1/job-posts/${jobPost.id}/sync`;
+                const syncUrl = `/api/v1/job-post-syncs/${jobPost.id}`;
                 const syncResponse = await fetch(syncUrl, {
                     method: "POST",
                 });

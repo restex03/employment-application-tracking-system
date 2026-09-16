@@ -12,7 +12,10 @@ export class JobApplicationRoutes implements IRouteRegistrar {
     ) {}
 
     public register(server: FastifyInstance): void {
-        server.get("/job-applications", async (request, reply) => {
+        server.get(
+            "/job-applications",
+            { schema: { tags: ["Job Applications"] } },
+            async (request, reply) => {
             try {
                 this.logger.info(`[${request.method}]  ${request.url}`);
                 const jobs = await this.jobApplicationService.getAll();
@@ -29,7 +32,10 @@ export class JobApplicationRoutes implements IRouteRegistrar {
             }
         });
 
-        server.get("/job-applications/:id", async (request, reply) => {
+        server.get(
+            "/job-applications/:id",
+            { schema: { tags: ["Job Applications"] } },
+            async (request, reply) => {
             try {
                 this.logger.info(`[${request.method}]  ${request.url}`);
                 const { id } = request.params as { id: string };
@@ -55,7 +61,8 @@ export class JobApplicationRoutes implements IRouteRegistrar {
         });
 
         server.post(
-            "/job-applications/:id",
+            "/job-applications/:id/status",
+            { schema: { tags: ["Job Applications"] } },
             async (request: FastifyRequest<{ Body: { status: JobApplicationStatus; notes?: string } }>, reply) => {
                 try {
                     this.logger.info(`[${request.method}]  ${request.url}`);
@@ -83,7 +90,10 @@ export class JobApplicationRoutes implements IRouteRegistrar {
             }
         );
 
-        server.get("/job-applications/job/:jobId", async (request, reply) => {
+        server.get(
+            "/job-applications/job/:jobId",
+            { schema: { tags: ["Job Applications"] } },
+            async (request, reply) => {
             try {
                 this.logger.info(`[${request.method}]  ${request.url}`);
                 const { jobId } = request.params as { jobId: string };
@@ -105,7 +115,10 @@ export class JobApplicationRoutes implements IRouteRegistrar {
             }
         });
 
-        server.post("/job-applications/job/:jobId", async (request, reply) => {
+        server.post(
+            "/job-applications/job/:jobId",
+            { schema: { tags: ["Job Applications"] } },
+            async (request, reply) => {
             try {
                 this.logger.info(`[${request.method}]  ${request.url}`);
                 const { jobId } = request.params as { jobId: string };

@@ -2,29 +2,21 @@ import { FastifyInstance } from "fastify";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IRouteRegistrar } from "../Host/IRouteRegistrar";
 import { IJobAssessmentService } from "../../Application/JobAssessment/IJobAssessmentService";
-import { NotFoundError } from "../../Application/Common/Errors/NotFoundError";
 import { IJobAssessmentQueueService } from "../../Application/JobAssessment/PipelineQueue/IJobAssessmentQueueService";
+import { NotFoundError } from "../../Application/Common/Errors/NotFoundError";
+import { JobAssessmentReviewStatus } from "../../Domain/JobAssessment/IJobAssessment";
 
 interface JobPostParams {
     jobPostId: string;
     candidateProfileId: string;
 }
 
-interface JobStatusParams {
-    jobId: string;
-}
-
-interface JobAssessmentJobParams {
-    jobId: string;
-}
-
 interface ReviewStatusParams {
     jobPostId: string;
     candidateProfileId: string;
 }
-
 interface ReviewStatusBody {
-    reviewStatus: string;
+    reviewStatus: JobAssessmentReviewStatus;
 }
 
 export class JobAssessmentRoutes implements IRouteRegistrar {
@@ -37,7 +29,10 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
     public register(server: FastifyInstance): void {
         server.post<{
             Params: JobPostParams;
-        }>("/job-posts/:jobPostId/assessments/:candidateProfileId", async (request, reply) => {
+        }>(
+            "/job-post-assessments/:jobPostId/:candidateProfileId",
+            { schema: { tags: ["Job Assessments"] } },
+            async (request, reply) => {
             const { jobPostId, candidateProfileId } = request.params;
 
             try {
@@ -59,53 +54,12 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
             }
         });
 
-        server.get("/assessment-jobs", async (request, reply) => {
-            try {
-                this.logger.info(`[${request.method}]  ${request.url}`);
-                const jobs = await this.jobAssessmentQueueService.getActiveJobs();
-
-                return reply.code(200).send({
-                    jobs,
-                });
-            } catch (error) {
-                const errMsg = error instanceof Error ? error.message : String(error);
-                this.logger.error(`[${request.method}]  ${request.url} Failed: ${errMsg}`);
-                return reply.code(500).send({
-                    error: `Failed to get job assessment-jobs: ${errMsg}`,
-                });
-            }
-        });
-
-        server.get<{
-            Params: JobStatusParams;
-        }>("/assessment-jobs/:jobId", async (request, reply) => {
-            const { jobId } = request.params;
-
-            try {
-                this.logger.info(`[${request.method}]  ${request.url}`);
-                const job = await this.jobAssessmentQueueService.getJobByIdOrThrow(jobId);
-
-                return reply.code(200).send(job);
-            } catch (error) {
-                const errMsg = error instanceof Error ? error.message : String(error);
-
-                if (error instanceof NotFoundError || errMsg.includes("not found")) {
-                    this.logger.warn(`[${request.method}]  ${request.url} Job not found: ${errMsg}`);
-                    return reply.code(404).send({
-                        error: "Job not found.",
-                    });
-                }
-
-                this.logger.error(`[${request.method}]  ${request.url} Failed: ${errMsg}`);
-                return reply.code(500).send({
-                    error: `Failed to get job status: ${errMsg}`,
-                });
-            }
-        });
-
         server.get<{
             Params: JobPostParams;
-        }>("/job-posts/:jobPostId/assessments/:candidateProfileId", async (request, reply) => {
+        }>(
+            "/job-post-assessments/:jobPostId/:candidateProfileId",
+            { schema: { tags: ["Job Assessments"] } },
+            async (request, reply) => {
             const { jobPostId, candidateProfileId } = request.params;
 
             try {
@@ -135,7 +89,10 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
         server.post<{
             Params: ReviewStatusParams;
             Body: ReviewStatusBody;
-        }>("/job-posts/:jobPostId/assessments/:candidateProfileId/review-status", async (request, reply) => {
+        }>(
+            "/job-post-assessments/:jobPostId/:candidateProfileId/review-status",
+            { schema: { tags: ["Job Assessments"] } },
+            async (request, reply) => {
             const { jobPostId, candidateProfileId } = request.params;
             const { reviewStatus } = request.body;
 
@@ -144,7 +101,7 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
                 await this.jobAssessmentService.updateReviewStatus(
                     jobPostId,
                     candidateProfileId,
-                    reviewStatus as "unreviewed" | "accepted" | "flagged"
+                    reviewStatus as JobAssessmentReviewStatus
                 );
 
                 return reply.code(200).send();

@@ -108,6 +108,12 @@ npm install
 cd client && npm install
 ```
 
+For API documentation support (optional), also install:
+
+```
+npm install @fastify/swagger @fastify/swagger-ui
+```
+
 ### Environment Configuration
 
 Copy the example environment file and fill in values for your machine:
@@ -179,6 +185,26 @@ All commands below are run from the repository root unless noted otherwise.
 | `npm run dev` | Start the API server with auto-restart on file changes. |
 
 The API server starts at `http://localhost:3000` (or `API_PORT`), with routes mounted under `/api/v1` and a health check at `/health`.
+
+#### API Documentation (Swagger)
+
+Interactive API documentation is available at `http://localhost:3000/docs` when the server is running.
+
+The OpenAPI schema is generated automatically from route definitions and can be accessed at `/api/v1/documentation/json`.
+
+#### API Routes Overview
+
+| Tag | Routes | Description |
+| --- | ------ | ----------- |
+| Job Applications | `GET /job-applications`, `GET /job-applications/:id`, `POST /job-applications/:id/status`, `GET /job-applications/job/:jobId`, `POST /job-applications/job/:jobId` | Manage job applications and their status |
+| Job Posts | `GET /job-posts`, `GET /job-posts/:jobPostId` | Retrieve and filter job postings |
+| Job Assessments | `POST /job-post-assessments/:jobPostId/:candidateProfileId`, `GET /job-post-assessments/:jobPostId/:candidateProfileId`, `POST /job-post-assessments/:jobPostId/:candidateProfileId/review-status` | Run and manage job assessments |
+| Candidate Profiles | `GET /candidate-profiles`, `POST /candidate-profiles`, `GET /candidate-profiles/:id` | Manage candidate profiles |
+| Job Sources | `GET /job-sources`, `GET /job-sources/:sourceId` | Configure job source providers |
+| Job Post Syncs | `POST /job-post-syncs`, `POST /job-post-syncs/:jobPostId` | Trigger job post synchronization |
+| Queue Jobs | `GET /queue-jobs/assessments`, `GET /queue-jobs/assessments/:queueJobId`, `GET /queue-jobs/job-post-syncs` | Monitor background job queues |
+| Attachments | `POST /job-applications/:id/attachments`, `GET /job-applications/:id/attachments/:attachmentId` | Upload and download application attachments |
+| Tools | `POST /tools/reset-db` | Reset database and re-seed defaults |
 
 ### Frontend
 

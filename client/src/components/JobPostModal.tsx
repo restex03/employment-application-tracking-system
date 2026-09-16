@@ -41,7 +41,7 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
             setError(null);
 
             try {
-                const url = `/api/v1/job-posts/${jobPost.id}/assessments/${CANDIDATE_PROFILE_ID}`;
+                const url = `/api/v1/job-post-assessments/${jobPost.id}/${CANDIDATE_PROFILE_ID}`;
                 const response = await fetch(url, { signal: controller.signal });
 
                 if (response.status === 404) {
@@ -105,7 +105,7 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
 
         setSavingReviewStatus(true);
         try {
-            const response = await fetch(`/api/v1/job-posts/${jobPost.id}/assessments/${CANDIDATE_PROFILE_ID}/review-status`, {
+            const response = await fetch(`/api/v1/job-post-assessments/${jobPost.id}/${CANDIDATE_PROFILE_ID}/review-status`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ reviewStatus }),
