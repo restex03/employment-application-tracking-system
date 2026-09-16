@@ -272,7 +272,7 @@ SQLite persistence is implemented for job sources, discovered job posts, candida
 
 ### Job Posts Workspace (Frontend)
 
-The Job Posts page supports filtering (company, requisition ID, title, locations, days old, job match score) and sortable columns, background sync with live status polling, per-row job assessment status, and a per-row Options menu for tracking application status (Applied, Review, Interview, Offer, Rejected) shown as colored badges.
+The Job Posts page supports filtering (company, requisition ID, title, locations, days old, job match score) and sortable columns, background sync with live status polling, per-row job assessment status, and a per-row Options menu for tracking application status (Applied, Interview, Offer, Rejected) shown as colored badges.
 
 The Application Status modal lets the user set and save the application status, add application-level notes, and upload attachments (resumes, cover letters, emails, etc.). The attachments table within the modal supports sortable columns (File, Date Added, Notes), row numbers, and inline per-attachment notes that save on blur.
 
