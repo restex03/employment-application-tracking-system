@@ -259,8 +259,6 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
         }
     };
 
-
-
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -404,9 +402,6 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
                     )}
 
                     <div className="form-actions">
-                        <button type="button" onClick={onClose} className="button-secondary" disabled={saving}>
-                            {"Close"}
-                        </button>
                         {!loading &&
                             (applicationId ? (
                                 <button
@@ -427,6 +422,9 @@ function ApplicationStatusModal({ isOpen, onClose, jobPostId, jobTitle, onStatus
                                     {saving ? "Creating..." : "Create Application"}
                                 </button>
                             ))}
+                        <button type="button" onClick={onClose} className="button-secondary" disabled={saving}>
+                            {"Close"}
+                        </button>
                     </div>
                 </div>
             </div>
