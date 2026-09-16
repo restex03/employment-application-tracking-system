@@ -122,17 +122,17 @@ Copy the example environment file and fill in values for your machine:
 cp .envExample .env
 ```
 
-| Variable              | Required | Description                                                                |
-| --------------------- | -------- | -------------------------------------------------------------------------- |
-| `RUN_LLM_REGRESSION`  | No       | Set to `1` to enable LLM regression tests (default `0`).                   |
-| `DB_PATH`             | Yes      | Path to the SQLite database file (e.g. `./data/job-app.db`).               |
-| `TEST_MODE`           | No       | Enables test mode (default `true`).                                       |
-| `API_PORT`            | No       | Port the API server listens on. Defaults to `3000`.                        |
-| `CANDIDATE_PROFILE`   | Yes      | Path to the candidate profile JSON file (see "Candidate Profile" below).   |
-| `WORKDAY_SOURCES`     | Yes      | Path to the Workday job sources JSON file (see "Job Sources" below).       |
-| `OLLAMA_BASE_URL`     | Yes      | Base URL of the local Ollama server.                                       |
-| `OLLAMA_MODEL`        | Yes      | Ollama model name used for job evaluation.                                 |
-| `MISTRAL_API_KEY`     | No       | If set, uses the Mistral API as the LLM provider instead of Ollama.        |
+| Variable             | Required | Description                                                              |
+| -------------------- | -------- | ------------------------------------------------------------------------ |
+| `RUN_LLM_REGRESSION` | No       | Set to `1` to enable LLM regression tests (default `0`).                 |
+| `DB_PATH`            | Yes      | Path to the SQLite database file (e.g. `./data/job-app.db`).             |
+| `TEST_MODE`          | No       | Enables test mode (default `true`).                                      |
+| `API_PORT`           | No       | Port the API server listens on. Defaults to `3000`.                      |
+| `CANDIDATE_PROFILE`  | Yes      | Path to the candidate profile JSON file (see "Candidate Profile" below). |
+| `WORKDAY_SOURCES`    | Yes      | Path to the Workday job sources JSON file (see "Job Sources" below).     |
+| `OLLAMA_BASE_URL`    | Yes      | Base URL of the local Ollama server.                                     |
+| `OLLAMA_MODEL`       | Yes      | Ollama model name used for job evaluation.                               |
+| `MISTRAL_API_KEY`    | No       | If set, uses the Mistral API as the LLM provider instead of Ollama.      |
 
 ### Candidate Profile Configuration
 
@@ -194,17 +194,17 @@ The OpenAPI schema is generated automatically from route definitions and can be 
 
 #### API Routes Overview
 
-| Tag | Routes | Description |
-| --- | ------ | ----------- |
-| Job Applications | `GET /job-applications`, `GET /job-applications/:id`, `POST /job-applications/:id/status`, `GET /job-applications/job/:jobId`, `POST /job-applications/job/:jobId` | Manage job applications and their status |
-| Job Posts | `GET /job-posts`, `GET /job-posts/:jobPostId` | Retrieve and filter job postings |
-| Job Assessments | `POST /job-post-assessments/:jobPostId/:candidateProfileId`, `GET /job-post-assessments/:jobPostId/:candidateProfileId`, `POST /job-post-assessments/:jobPostId/:candidateProfileId/review-status` | Run and manage job assessments |
-| Candidate Profiles | `GET /candidate-profiles`, `POST /candidate-profiles`, `GET /candidate-profiles/:id` | Manage candidate profiles |
-| Job Sources | `GET /job-sources`, `GET /job-sources/:sourceId` | Configure job source providers |
-| Job Post Syncs | `POST /job-post-syncs`, `POST /job-post-syncs/:jobPostId` | Trigger job post synchronization |
-| Queue Jobs | `GET /queue-jobs/assessments`, `GET /queue-jobs/assessments/:queueJobId`, `GET /queue-jobs/job-post-syncs` | Monitor background job queues |
-| Attachments | `POST /job-applications/:id/attachments`, `GET /job-applications/:id/attachments/:attachmentId` | Upload and download application attachments |
-| Tools | `POST /tools/reset-db` | Reset database and re-seed defaults |
+| Tag                | Routes                                                                                                                                                                                             | Description                                 |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Job Applications   | `GET /job-applications`, `GET /job-applications/:id`, `POST /job-applications/:id/status`, `GET /job-applications/job/:jobId`, `POST /job-applications/job/:jobId`                                 | Manage job applications and their status    |
+| Job Posts          | `GET /job-posts`, `GET /job-posts/:jobPostId`                                                                                                                                                      | Retrieve and filter job postings            |
+| Job Assessments    | `POST /job-post-assessments/:jobPostId/:candidateProfileId`, `GET /job-post-assessments/:jobPostId/:candidateProfileId`, `POST /job-post-assessments/:jobPostId/:candidateProfileId/review-status` | Run and manage job assessments              |
+| Candidate Profiles | `GET /candidate-profiles`, `POST /candidate-profiles`, `GET /candidate-profiles/:id`                                                                                                               | Manage candidate profiles                   |
+| Job Sources        | `GET /job-sources`, `GET /job-sources/:sourceId`                                                                                                                                                   | Configure job source providers              |
+| Job Post Syncs     | `POST /job-post-syncs`, `POST /job-post-syncs/:jobPostId`                                                                                                                                          | Trigger job post synchronization            |
+| Queue Jobs         | `GET /queue-jobs/assessments`, `GET /queue-jobs/assessments/:queueJobId`, `GET /queue-jobs/job-post-syncs`                                                                                         | Monitor background job queues               |
+| Attachments        | `POST /job-applications/:id/attachments`, `GET /job-applications/:id/attachments/:attachmentId`                                                                                                    | Upload and download application attachments |
+| Tools              | `POST /tools/reset-db`                                                                                                                                                                             | Reset database and re-seed defaults         |
 
 ### Frontend
 
