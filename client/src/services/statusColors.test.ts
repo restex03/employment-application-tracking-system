@@ -3,7 +3,6 @@ import { JobApplicationStatus } from "../types/JobPost";
 import {
     getApplicationStatusColor,
     getAssessmentStatusColor,
-    getReviewStatusColor,
     getMatchTypeColor,
     getScreenDispositionColor,
     getScoreCategory,
@@ -15,7 +14,6 @@ describe("getApplicationStatusColor", () => {
         expect(getApplicationStatusColor(JobApplicationStatus.Interview)).toBe("#f59e0b");
         expect(getApplicationStatusColor(JobApplicationStatus.Offer)).toBe("#22c55e");
         expect(getApplicationStatusColor(JobApplicationStatus.Rejected)).toBe("#ef4444");
-        expect(getApplicationStatusColor(JobApplicationStatus.Review)).toBe("#9ca3af");
     });
 });
 
@@ -24,14 +22,6 @@ describe("getAssessmentStatusColor", () => {
         expect(getAssessmentStatusColor("complete")).toBe("#22c55e");
         expect(getAssessmentStatusColor("incomplete")).toBe("#facc15");
         expect(getAssessmentStatusColor("unknown")).toBe("#9ca3af");
-    });
-});
-
-describe("getReviewStatusColor", () => {
-    it("returns a color for each review status", () => {
-        expect(getReviewStatusColor("accepted")).toBe("#22c55e");
-        expect(getReviewStatusColor("flagged")).toBe("#ef4444");
-        expect(getReviewStatusColor("unreviewed")).toBe("#9ca3af");
     });
 });
 

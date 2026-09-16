@@ -3,7 +3,6 @@ export enum JobApplicationStatus {
     Interview = "INTERVIEW",
     Offer = "OFFER",
     Rejected = "REJECTED",
-    Review = "REVIEW",
 }
 export interface IJobLocation {
     streetAddress?: string;

@@ -616,15 +616,20 @@ function JobPostsPage() {
                                     <td>
                                         {(() => {
                                             const status =
-                                                applicationStatusOverrides[jobPost.id] ??
-                                                jobPost.applicationStatus ??
-                                                JobApplicationStatus.Review;
+                                                applicationStatusOverrides[jobPost.id] ?? jobPost.applicationStatus;
                                             return (
                                                 <span
                                                     className="application-status-badge"
-                                                    style={{ backgroundColor: getApplicationStatusColor(status) }}
+                                                    style={{
+                                                        backgroundColor:
+                                                            status === undefined
+                                                                ? "transparent"
+                                                                : getApplicationStatusColor(status),
+                                                    }}
                                                 >
-                                                    {formatApplicationStatus(status)}
+                                                    {status === undefined
+                                                        ? "transparent"
+                                                        : formatApplicationStatus(status)}
                                                 </span>
                                             );
                                         })()}

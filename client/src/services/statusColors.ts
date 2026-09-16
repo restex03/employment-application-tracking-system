@@ -21,7 +21,6 @@ export const applicationStatusColors: Record<JobApplicationStatus, string> = {
     [JobApplicationStatus.Interview]: AMBER,
     [JobApplicationStatus.Offer]: GREEN,
     [JobApplicationStatus.Rejected]: RED,
-    [JobApplicationStatus.Review]: GRAY,
 };
 
 export function getApplicationStatusColor(status: JobApplicationStatus): string {
@@ -43,19 +42,6 @@ export const reviewStatusColors: Record<JobAssessmentReviewStatus, string> = {
     flagged: RED,
     unreviewed: YELLOW,
 };
-
-export function getUnreviewedStatusColor(status: JobAssessmentReviewStatus): string {
-    const unreviewedStatus = status === "unreviewed";
-    return unreviewedStatus ? reviewStatusColors.unreviewed : GRAY;
-}
-export function getAcceptedStatusColor(status: JobAssessmentReviewStatus): string {
-    const acceptedStatus = status === "accepted";
-    return acceptedStatus ? reviewStatusColors.accepted : GRAY;
-}
-export function getFlaggedStatusColor(status: JobAssessmentReviewStatus): string {
-    const flaggedStatus = status === "flagged";
-    return flaggedStatus ? reviewStatusColors.flagged : GRAY;
-}
 
 export const matchTypeColors: Record<string, string> = {
     direct: GREEN,
