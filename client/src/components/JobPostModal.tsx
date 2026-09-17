@@ -7,6 +7,7 @@ import { formatDate, formatLocation, formatList } from "../services/formatters";
 
 import "./JobPostModal.css";
 import { getMatchTypeColor, getAssessmentStatusColor, getScreenDispositionColor } from "../services/statusColors";
+import ApplicationStatusPanel from "./ApplicationStatusPanel";
 
 interface JobPostModalProps {
     isOpen: boolean;
@@ -24,6 +25,7 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
     const [error, setError] = useState<string | null>(null);
     const [reviewStatus, setReviewStatus] = useState<JobAssessmentReviewStatus | null>(null);
     const [savingReviewStatus, setSavingReviewStatus] = useState<boolean>(false);
+    const [activeTab, setActiveTab] = useState<"details" | "application" | "assessment">("details");
 
     // Fetch the assessment on open, and again once a newly queued job reports completion.
     useEffect(() => {
@@ -133,82 +135,120 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                 </div>
 
                 <div className="modal-body">
-                    <div className="modal-columns">
-                        <div className="detail-column">
-                            {jobPostData.detail ? (
-                                <div className="job-post-detail">
-                                    <div className="detail-card">
-                                        <h3 className="detail-title">{jobPost.title}</h3>
+                    <div className="job-info-header">
+                        <div className="job-info-row">
+                            <span className="job-info-label">Job Title:</span>
+                            <span className="job-info-value">{jobPostData.title}</span>
+                        </div>
+                        <div className="job-info-row">
+                            <span className="job-info-label">Requisition ID:</span>
+                            <span className="job-info-value">{jobPostData.requisitionId}</span>
+                        </div>
+                    </div>
+                    <br />
+                    <div className="detail-tabs">
+                        <button
+                            type="button"
+                            className={`detail-tab ${activeTab === "details" ? "active" : ""}`}
+                            onClick={() => setActiveTab("details")}
+                        >
+                            Job Details
+                        </button>
+                        <button
+                            type="button"
+                            className={`detail-tab ${activeTab === "application" ? "active" : ""}`}
+                            onClick={() => setActiveTab("application")}
+                        >
+                            Application Status
+                        </button>
+                        <button
+                            type="button"
+                            className={`detail-tab ${activeTab === "assessment" ? "active" : ""}`}
+                            onClick={() => setActiveTab("assessment")}
+                        >
+                            Job Assessment
+                        </button>
+                    </div>
 
-                                        <div className="job-post-link-section">
-                                            <h4>View Job:&nbsp;</h4>
+                    {activeTab === "details" &&
+                        (jobPostData.detail ? (
+                            <div className="job-post-detail">
+                                <div className="detail-card">
+                                    <div className="job-post-link-section">
+                                        <h4>Apply Here:</h4>
 
-                                            <a href={jobPost.jobLink || "#"} target="_blank" rel="noopener noreferrer">
-                                                {jobPost.jobLink || "N/A"}
-                                            </a>
+                                        <a href={jobPostData.jobLink || "#"} target="_blank" rel="noopener noreferrer">
+                                            {jobPostData.jobLink || "N/A"}
+                                        </a>
+                                    </div>
+                                    <br></br>
+
+                                    <div className="detail-section">
+                                        <h4>Description</h4>
+                                        <div
+                                            className="detail-description"
+                                            dangerouslySetInnerHTML={{
+                                                __html: jobPostData.detail.description
+                                                    ? DOMPurify.sanitize(jobPostData.detail.description)
+                                                    : "No description available",
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div className="detail-grid">
+                                        <div className="detail-item">
+                                            <span className="detail-label">Remote Type</span>
+                                            <span className="detail-value">
+                                                {jobPostData.detail.remoteType || "N/A"}
+                                            </span>
                                         </div>
-                                        <br></br>
 
-                                        <div className="detail-section">
-                                            <h4>Description</h4>
-                                            <div
-                                                className="detail-description"
-                                                dangerouslySetInnerHTML={{
-                                                    __html: jobPostData.detail.description
-                                                        ? DOMPurify.sanitize(jobPostData.detail.description)
-                                                        : "No description available",
-                                                }}
-                                            />
+                                        <div className="detail-item">
+                                            <span className="detail-label">Applicant Locations:</span>
+                                            <span className="detail-value">
+                                                {formatList(jobPostData.detail.applicantLocations)}
+                                            </span>
                                         </div>
 
-                                        <div className="detail-grid">
-                                            <div className="detail-item">
-                                                <span className="detail-label">Remote Type</span>
-                                                <span className="detail-value">
-                                                    {jobPostData.detail.remoteType || "N/A"}
-                                                </span>
-                                            </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Employment Type:</span>
+                                            <span className="detail-value">
+                                                {jobPostData.detail.employmentType || "N/A"}
+                                            </span>
+                                        </div>
 
-                                            <div className="detail-item">
-                                                <span className="detail-label">Applicant Locations:</span>
-                                                <span className="detail-value">
-                                                    {formatList(jobPostData.detail.applicantLocations)}
-                                                </span>
-                                            </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Valid Through:</span>
+                                            <span className="detail-value">
+                                                {jobPostData.detail.validThrough || "N/A"}
+                                            </span>
+                                        </div>
 
-                                            <div className="detail-item">
-                                                <span className="detail-label">Employment Type:</span>
-                                                <span className="detail-value">
-                                                    {jobPostData.detail.employmentType || "N/A"}
-                                                </span>
-                                            </div>
-
-                                            <div className="detail-item">
-                                                <span className="detail-label">Valid Through:</span>
-                                                <span className="detail-value">
-                                                    {jobPostData.detail.validThrough || "N/A"}
-                                                </span>
-                                            </div>
-
-                                            <div className="detail-item detail-item-full-width">
-                                                <span className="detail-label">Locations:</span>
-                                                <span className="detail-value">
-                                                    {formatLocationsAsList(
-                                                        jobPostData.detail.locations || jobPost.locations
-                                                    )}
-                                                </span>
-                                            </div>
+                                        <div className="detail-item detail-item-full-width">
+                                            <span className="detail-label">Locations:</span>
+                                            <span className="detail-value">
+                                                {formatLocationsAsList(
+                                                    jobPostData.detail.locations || jobPost.locations
+                                                )}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
-                            ) : (
-                                <div className="no-detail">
-                                    <p>No detail information available for this job post.</p>
-                                    <p>Detail Path: {jobPost.detailPath}</p>
-                                </div>
-                            )}
-                        </div>
+                            </div>
+                        ) : (
+                            <div className="no-detail">
+                                <p>No detail information available for this job post.</p>
+                                <p>Detail Path: {jobPost.detailPath}</p>
+                            </div>
+                        ))}
 
+                    {activeTab === "application" && (
+                        <div className="detail-card">
+                            <ApplicationStatusPanel jobPostId={jobPost.id} onStatusSaved={() => {}} />
+                        </div>
+                    )}
+
+                    {activeTab === "assessment" && (
                         <div className="assessment-column">
                             {jobStatus === "FAILED" ? (
                                 <div className="error-container">
@@ -479,7 +519,7 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                                 </div>
                             )}
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 <div className="modal-footer">

@@ -21,7 +21,8 @@
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     width: 100%;
-    max-width: 1600px;
+    height: 100%;
+    max-width: 800px;
     max-height: 90vh;
     overflow: hidden;
     display: flex;
@@ -29,15 +30,7 @@
     animation: slideUp 0.2s ease-out;
 }
 
-.modal-columns {
-    display: flex;
-    align-items: flex-start;
-    gap: 1.5rem;
-}
-
-.detail-column,
 .assessment-column {
-    flex: 1;
     min-width: 0;
 }
 
@@ -45,6 +38,38 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+}
+
+.detail-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 1rem;
+}
+
+.detail-tab {
+    padding: 0.625rem 1.25rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition:
+        color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.detail-tab:hover {
+    color: var(--text-primary);
+}
+
+.detail-tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+    font-weight: 600;
 }
 
 .detail-card {
@@ -65,7 +90,6 @@
 
 .job-post-link-section a {
     font-family: "SF Mono", "Cascadia Code", "Consolas", "Menlo", "Liberation Mono", monospace;
-    font-size: 0.875rem;
     word-break: break-word;
 }
 
@@ -73,12 +97,12 @@
     margin-bottom: 1.5rem;
 }
 
-.detail-section h4 {
+/* .detail-section h4 {
     font-size: 1rem;
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 0.75rem;
-}
+} */
 
 .detail-description {
     color: var(--text-secondary);
@@ -152,10 +176,6 @@
     .job-post-modal-content {
         margin: 0;
         border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    }
-
-    .modal-columns {
-        flex-direction: column;
     }
 
     .detail-grid {

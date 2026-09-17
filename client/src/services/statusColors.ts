@@ -6,7 +6,6 @@
 
 import { JobApplicationStatus } from "../types/JobPost";
 import type { JobAssessmentStatus, JobAssessmentReviewStatus, JobScreenDisposition } from "../types/JobAssessment";
-import { keyof } from "zod";
 
 // Common colors
 const GREEN = "#22c55e";

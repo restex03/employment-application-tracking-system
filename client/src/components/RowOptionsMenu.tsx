@@ -55,16 +55,6 @@ function RowOptionsMenu({ isOpen, onToggle, onClose, onUpdateApplicationStatus, 
                         type="button"
                         className="row-options-item"
                         onClick={() => {
-                            onUpdateApplicationStatus();
-                            onClose();
-                        }}
-                    >
-                        Application Status
-                    </button>
-                    <button
-                        type="button"
-                        className="row-options-item"
-                        onClick={() => {
                             onDismiss();
                             onClose();
                         }}

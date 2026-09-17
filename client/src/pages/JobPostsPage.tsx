@@ -10,7 +10,6 @@ import SyncModal from "../components/SyncModal";
 import ToolsModal from "../components/ToolsModal";
 import ToastContainer from "../components/ToastContainer";
 import RowOptionsMenu from "../components/RowOptionsMenu";
-import ApplicationStatusModal from "../components/ApplicationStatusModal";
 import DismissJobModal from "../components/DismissJobModal";
 import { formatDate, formatLocations } from "../services/formatters";
 import {
@@ -127,9 +126,7 @@ function JobPostsPage() {
 
         // Hide posts dismissed in this session unless the user opted into showing dismissed posts.
         if (!filters.includeDismissed) {
-            result = result.filter(
-                jp => !(dismissedOverrides[jp.id] ?? jp.dismissed)
-            );
+            result = result.filter(jp => !(dismissedOverrides[jp.id] ?? jp.dismissed));
         }
 
         if (sortColumn && sortDirection) {
@@ -183,7 +180,15 @@ function JobPostsPage() {
         }
 
         return result;
-    }, [jobPosts, sortColumn, sortDirection, getCompanyName, applicationStatusOverrides, dismissedOverrides, filters.includeDismissed]);
+    }, [
+        jobPosts,
+        sortColumn,
+        sortDirection,
+        getCompanyName,
+        applicationStatusOverrides,
+        dismissedOverrides,
+        filters.includeDismissed,
+    ]);
 
     const allVisibleSelected =
         filteredAndSortedPosts.length > 0 && filteredAndSortedPosts.every(jp => selectedJobPostIds.has(jp.id));
@@ -796,19 +801,6 @@ function JobPostsPage() {
             />
 
             <ToolsModal isOpen={isToolsModalOpen} onClose={handleResetClose} />
-
-            <ApplicationStatusModal
-                isOpen={statusModalJobPost !== null}
-                onClose={() => setStatusModalJobPost(null)}
-                jobPostId={statusModalJobPost?.id ?? ""}
-                jobPostReqId={statusModalJobPost?.requisitionId ?? ""}
-                jobTitle={statusModalJobPost?.title ?? ""}
-                onStatusSaved={status => {
-                    if (statusModalJobPost) {
-                        setApplicationStatusOverrides(prev => ({ ...prev, [statusModalJobPost.id]: status }));
-                    }
-                }}
-            />
 
             <DismissJobModal
                 isOpen={dismissModalJobPost !== null}
