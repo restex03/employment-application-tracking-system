@@ -6,12 +6,14 @@ import { WorkdayJobDiscoveryService } from "./WorkdayJobDiscoveryService";
 import { IJobGateway } from "../../../Infrastructure/JobSources/IJobGateway";
 import { IJobPostDiscovery } from "../../../Domain/JobPosts/IJobPostDiscovery";
 import { IWorkdayJobDetailsApiResponseMapper } from "../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobDetailsApiResponseMapper";
+import { IJobSource } from "../../../Domain/JobSources/IJobSource";
 
 describe("WorkdayJobDiscoveryService", () => {
     let jobGateway: IJobGateway;
     let lookupMapper: IWorkdayJobsApiResponseMapper;
     let detailMapper: IWorkdayJobDetailsApiResponseMapper;
     let logger: ILogger;
+    let jobSource: IJobSource;
 
     let searchMock: ReturnType<typeof vi.fn>;
     let mapMock: ReturnType<typeof vi.fn>;
@@ -39,9 +41,17 @@ describe("WorkdayJobDiscoveryService", () => {
             warn: vi.fn(),
             error: vi.fn(),
         } as unknown as ILogger;
+
+        jobSource = {
+            id: "workday-test-abc-id",
+            companyName: "Workday Test",
+            baseUrl: "https://www.workday.com",
+            browserBaseUrl: "https://www.workday.com",
+        } as unknown as IJobSource;
     });
 
-    const createService = () => new WorkdayJobDiscoveryService({ jobGateway, lookupMapper, detailMapper, logger });
+    const createService = () =>
+        new WorkdayJobDiscoveryService({ jobGateway, lookupMapper, detailMapper, logger, jobSource });
 
     const createJob = (overrides: Partial<IJobPostDiscovery> = {}): IJobPostDiscovery => ({
         sourceId: crypto.randomUUID(),

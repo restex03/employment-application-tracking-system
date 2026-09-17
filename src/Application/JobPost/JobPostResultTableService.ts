@@ -3,9 +3,9 @@ import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJo
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IJobPostQueries } from "../../Infrastructure/Persistence/JobPost/IJobPostQueries";
 import { IJobPostResponse } from "./IJobPostResponse";
-import { IJobPostResultService, JobPostQueryFilters } from "./IJobPostResultService";
+import { IJobPostResultTableService, JobPostQueryFilters } from "./IJobPostResultTableService";
 
-export class JobPostResultService implements IJobPostResultService {
+export class JobPostResultTableService implements IJobPostResultTableService {
     constructor(
         private readonly jobRepository: IJobPostRepository,
         private readonly jobPostQueries: IJobPostQueries,

@@ -142,6 +142,7 @@ export class SqliteDatabaseConnection {
                 locations TEXT,
                 days_old INTEGER,
                 remote_type TEXT,
+                dismissed INTEGER NOT NULL DEFAULT 0,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
                 FOREIGN KEY (source_id)

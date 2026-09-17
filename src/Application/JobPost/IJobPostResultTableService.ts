@@ -9,9 +9,10 @@ export interface JobPostQueryFilters {
     daysOld?: number;
     jobMatchScore?: number;
     applicationStatus?: string;
+    includeDismissed?: boolean;
 }
 
-export interface IJobPostResultService {
+export interface IJobPostResultTableService {
     getAll(
         pageCount: number,
         pageNumber: number,

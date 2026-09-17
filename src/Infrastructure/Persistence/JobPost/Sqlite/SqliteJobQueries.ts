@@ -7,7 +7,7 @@ import {
 import { IJobPostQueries } from "../IJobPostQueries";
 import { ILogger } from "../../../Logging/ILogger";
 import { IJobMatchScore } from "../../../../Domain/JobAssessment/Scoring/IJobMatchScore";
-import { JobPostQueryFilters } from "../../../../Application/JobPost/IJobPostResultService";
+import { JobPostQueryFilters } from "../../../../Application/JobPost/IJobPostResultTableService";
 
 interface JobPostRow {
     id: string;
@@ -18,6 +18,7 @@ interface JobPostRow {
     locations: string | null;
     days_old: number | null;
     application_status: string | null;
+    dismissed: number;
     status: string | null;
     created_at: string;
     browser_base_url: string;
@@ -51,6 +52,7 @@ export class SqliteJobQueries implements IJobPostQueries {
                 jp.locations,
                 jp.days_old,
                 jp.remote_type,
+                jp.dismissed,
                 jp.created_at,
                 js.browser_base_url,
                 ja.job_match_score_json,
@@ -91,6 +93,7 @@ export class SqliteJobQueries implements IJobPostQueries {
                 jp.locations,
                 jp.days_old,
                 japp.status AS application_status,
+                jp.dismissed,
                 jp.created_at,
                 js.browser_base_url,
                 ja.job_match_score_json,
@@ -139,6 +142,7 @@ export class SqliteJobQueries implements IJobPostQueries {
                         OR (@applicationStatus = 'NONE' AND japp.status IS NULL)
                         OR (japp.status IS NOT NULL AND japp.status = @applicationStatus)
                     )
+                    AND (@includeDismissed = 1 OR jp.dismissed = 0)
 
             ORDER BY jp.created_at DESC
             LIMIT @pageCount OFFSET @offset
@@ -181,6 +185,7 @@ export class SqliteJobQueries implements IJobPostQueries {
                         OR (@applicationStatus = 'NONE' AND japp.status IS NULL)
                         OR (japp.status IS NOT NULL AND japp.status = @applicationStatus)
                     )
+                    AND (@includeDismissed = 1 OR jp.dismissed = 0)
         `);
     }
 
@@ -200,6 +205,7 @@ export class SqliteJobQueries implements IJobPostQueries {
             daysOld: queryFilters.daysOld ?? null,
             jobMatchScore: queryFilters.jobMatchScore ?? null,
             applicationStatus: queryFilters.applicationStatus?.trim() || null,
+            includeDismissed: queryFilters.includeDismissed ? 1 : 0,
         };
         const rows = this.getAllStatement.all(queryParams) as JobPostRow[];
 
@@ -248,6 +254,7 @@ export class SqliteJobQueries implements IJobPostQueries {
             createdAt: new Date(row.created_at),
             status: row.status ?? undefined,
             applicationStatus: row.application_status ?? undefined,
+            dismissed: !!row.dismissed,
             detail: row.detail_id ? this.mapJobPostDetail(row) : undefined,
             jobLink: JobLinkMapper.mapJobLink(row),
             jobMatchScore: this.extractRawJobMatchScore(row.job_match_score_json) ?? undefined,

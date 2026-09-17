@@ -11,6 +11,7 @@ import ToolsModal from "../components/ToolsModal";
 import ToastContainer from "../components/ToastContainer";
 import RowOptionsMenu from "../components/RowOptionsMenu";
 import ApplicationStatusModal from "../components/ApplicationStatusModal";
+import DismissJobModal from "../components/DismissJobModal";
 import { formatDate, formatLocations } from "../services/formatters";
 import {
     type SortDirection,
@@ -26,7 +27,15 @@ import "./JobPostsPage.css";
 const CANDIDATE_PROFILE_ID = "russell-estes";
 
 type SortableColumn =
-    "company" | "requisitionId" | "title" | "locations" | "daysOld" | "createdAt" | "jobMatchScore" | "applicationStatus" | null;
+    | "company"
+    | "requisitionId"
+    | "title"
+    | "locations"
+    | "daysOld"
+    | "createdAt"
+    | "jobMatchScore"
+    | "applicationStatus"
+    | null;
 
 interface FilterState {
     company: string;
@@ -36,6 +45,7 @@ interface FilterState {
     daysOld: string;
     jobMatchScore: string;
     applicationStatus: string;
+    includeDismissed: boolean;
 }
 
 function JobPostsPage() {
@@ -47,6 +57,7 @@ function JobPostsPage() {
         daysOld: "",
         jobMatchScore: "",
         applicationStatus: "",
+        includeDismissed: false,
     });
     const {
         jobPosts,
@@ -64,6 +75,7 @@ function JobPostsPage() {
         daysOld: filters.daysOld,
         jobMatchScore: filters.jobMatchScore,
         applicationStatus: filters.applicationStatus,
+        includeDismissed: filters.includeDismissed ? "true" : "",
     });
     const { jobSources, getCompanyName, loading: sourcesLoading, error: sourcesError } = useJobSources();
     const {
@@ -100,6 +112,8 @@ function JobPostsPage() {
     const selectAllRef = useRef<HTMLInputElement>(null);
     const [openOptionsRowId, setOpenOptionsRowId] = useState<string | null>(null);
     const [statusModalJobPost, setStatusModalJobPost] = useState<IJobPostData | null>(null);
+    const [dismissModalJobPost, setDismissModalJobPost] = useState<IJobPostData | null>(null);
+    const [dismissedOverrides, setDismissedOverrides] = useState<Record<string, boolean>>({});
     const [applicationStatusOverrides, setApplicationStatusOverrides] = useState<Record<string, JobApplicationStatus>>(
         {}
     );
@@ -110,6 +124,13 @@ function JobPostsPage() {
     // Sort the posts returned by the API.
     const filteredAndSortedPosts = useMemo(() => {
         let result = [...jobPosts];
+
+        // Hide posts dismissed in this session unless the user opted into showing dismissed posts.
+        if (!filters.includeDismissed) {
+            result = result.filter(
+                jp => !(dismissedOverrides[jp.id] ?? jp.dismissed)
+            );
+        }
 
         if (sortColumn && sortDirection) {
             result.sort((a, b) => {
@@ -162,7 +183,7 @@ function JobPostsPage() {
         }
 
         return result;
-    }, [jobPosts, sortColumn, sortDirection, getCompanyName, applicationStatusOverrides]);
+    }, [jobPosts, sortColumn, sortDirection, getCompanyName, applicationStatusOverrides, dismissedOverrides, filters.includeDismissed]);
 
     const allVisibleSelected =
         filteredAndSortedPosts.length > 0 && filteredAndSortedPosts.every(jp => selectedJobPostIds.has(jp.id));
@@ -221,6 +242,11 @@ function JobPostsPage() {
         setPage(1);
     };
 
+    const handleDismissedToggle = (checked: boolean) => {
+        setFilters(prev => ({ ...prev, includeDismissed: checked }));
+        setPage(1);
+    };
+
     const clearAllFilters = () => {
         setFilters({
             company: "",
@@ -230,6 +256,7 @@ function JobPostsPage() {
             daysOld: "",
             jobMatchScore: "",
             applicationStatus: "",
+            includeDismissed: false,
         });
         setPage(1);
     };
@@ -543,6 +570,14 @@ function JobPostsPage() {
                         <option value={JobApplicationStatus.Offer}>Application Status: Offer</option>
                         <option value={JobApplicationStatus.Rejected}>Application Status: Rejected</option>
                     </select>
+                    <label className="filter-checkbox-label">
+                        <input
+                            type="checkbox"
+                            checked={filters.includeDismissed}
+                            onChange={e => handleDismissedToggle(e.target.checked)}
+                        />
+                        Show Dismissed Jobs
+                    </label>
                     <button onClick={clearAllFilters} className="clear-filters-button">
                         Clear
                     </button>
@@ -697,6 +732,7 @@ function JobPostsPage() {
                                             }
                                             onClose={() => setOpenOptionsRowId(null)}
                                             onUpdateApplicationStatus={() => setStatusModalJobPost(jobPost)}
+                                            onDismiss={() => setDismissModalJobPost(jobPost)}
                                         />
                                     </td>
                                 </tr>
@@ -771,6 +807,16 @@ function JobPostsPage() {
                     if (statusModalJobPost) {
                         setApplicationStatusOverrides(prev => ({ ...prev, [statusModalJobPost.id]: status }));
                     }
+                }}
+            />
+
+            <DismissJobModal
+                isOpen={dismissModalJobPost !== null}
+                onClose={() => setDismissModalJobPost(null)}
+                jobPostId={dismissModalJobPost?.id ?? ""}
+                jobTitle={dismissModalJobPost?.title ?? ""}
+                onDismissed={id => {
+                    setDismissedOverrides(prev => ({ ...prev, [id]: true }));
                 }}
             />
 

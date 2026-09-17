@@ -44,6 +44,7 @@ export interface IJobPostData {
     createdAt: string;
     detail?: IJobPostDetail;
     jobLink: string;
+    dismissed: boolean;
 }
 
 export interface IJobPostsResponse {
@@ -64,4 +65,5 @@ export interface QueryFilterParams {
     daysOld?: string;
     jobMatchScore?: string;
     applicationStatus?: string;
+    includeDismissed?: string;
 }

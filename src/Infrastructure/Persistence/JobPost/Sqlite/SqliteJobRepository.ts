@@ -5,7 +5,7 @@ import { IJobPost, JobPost } from "../../../../Domain/JobPosts/IJobPost";
 import { IJobLocation, IJobPostDetail } from "../../../../Domain/JobPosts/IJobPostDetail";
 import { IJobPostRepository } from "../IJobPostRepository";
 import { ILogger } from "../../../Logging/ILogger";
-import { JobPostQueryFilters } from "../../../../Application/JobPost/IJobPostResultService";
+import { JobPostQueryFilters } from "../../../../Application/JobPost/IJobPostResultTableService";
 
 interface JobPostParameters {
     id: string;
@@ -69,6 +69,7 @@ export class SqliteJobRepository implements IJobPostRepository {
     private readonly getAllStatement: Database.Statement;
     private readonly getAllCountStatement: Database.Statement;
     private readonly getByIdStatement: Database.Statement;
+    private readonly setDismissedStatement: Database.Statement;
 
     constructor(
         private readonly connection: Database.Database,
@@ -291,6 +292,12 @@ export class SqliteJobRepository implements IJobPostRepository {
 
             LIMIT 1
         `);
+
+        this.setDismissedStatement = this.connection.prepare(`
+            UPDATE job_posts
+            SET dismissed = @dismissed
+            WHERE id = @id
+        `);
     }
     public async update(jobPost: IJobPost): Promise<void> {
         const persist = this.connection.transaction((jobPost: IJobPost) => {
@@ -372,6 +379,10 @@ export class SqliteJobRepository implements IJobPostRepository {
             throw new Error(`Job post not found: ${id}`);
         }
         return jobPost;
+    }
+
+    public async setDismissed(id: string, dismissed: boolean): Promise<void> {
+        this.setDismissedStatement.run({ id, dismissed: dismissed ? 1 : 0 });
     }
 
     private persist(jobPost: IJobPost): string {

@@ -27,6 +27,7 @@ export function useJobPosts(initialParams?: PaginationParams, queryParams?: Quer
                 ["daysOld", queryParams?.daysOld ?? ""],
                 ["jobMatchScore", queryParams?.jobMatchScore ?? ""],
                 ["applicationStatus", queryParams?.applicationStatus ?? ""],
+                ["includeDismissed", queryParams?.includeDismissed ?? ""],
             ];
             for (const [key, value] of filterEntries) {
                 const normalizedValue = value.trim();
@@ -58,6 +59,7 @@ export function useJobPosts(initialParams?: PaginationParams, queryParams?: Quer
             queryParams?.daysOld,
             queryParams?.jobMatchScore,
             queryParams?.applicationStatus,
+            queryParams?.includeDismissed,
         ]
     );
 

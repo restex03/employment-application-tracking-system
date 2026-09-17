@@ -35,4 +35,5 @@ export interface IJobPostResponse {
     detail?: IJobPostDetailResponse;
     applicationStatus?: string;
     requirementMatchScore?: number;
+    dismissed: boolean;
 }

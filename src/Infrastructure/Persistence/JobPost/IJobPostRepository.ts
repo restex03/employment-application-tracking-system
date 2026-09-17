@@ -1,4 +1,4 @@
-import { JobPostQueryFilters } from "../../../Application/JobPost/IJobPostResultService";
+import { JobPostQueryFilters } from "../../../Application/JobPost/IJobPostResultTableService";
 import { IJobPost } from "../../../Domain/JobPosts/IJobPost";
 
 export interface IJobPostRepository {
@@ -12,4 +12,5 @@ export interface IJobPostRepository {
     ): Promise<{ data: IJobPost[]; totalCount: number }>;
     getById(id: string): Promise<IJobPost | undefined>;
     getByIdOrThrow(id: string): Promise<IJobPost>;
+    setDismissed(id: string, dismissed: boolean): Promise<void>;
 }

@@ -50,8 +50,8 @@ import { IJobAssessmentRepository } from "../../Infrastructure/Persistence/JobAs
 import { SqliteJobAssessmentRepository } from "../../Infrastructure/Persistence/JobAssessments/Sqlite/SqliteJobAssessmentRepository";
 import { IJobPostQueries } from "../../Infrastructure/Persistence/JobPost/IJobPostQueries";
 import { SqliteJobQueries } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteJobQueries";
-import { IJobPostResultService } from "../JobPost/IJobPostResultService";
-import { JobPostResultService } from "../JobPost/JobPostResultService";
+import { IJobPostResultTableService } from "../JobPost/IJobPostResultTableService";
+import { JobPostResultTableService } from "../JobPost/JobPostResultTableService";
 import { JobAssessmentQueueService } from "../JobAssessment/PipelineQueue/JobAssessmentQueueService";
 import { IJobAssessmentQueueService } from "../JobAssessment/PipelineQueue/IJobAssessmentQueueService";
 import { IJobAssessmentQueueWorkerService } from "../JobAssessment/PipelineQueue/IJobAssessmentQueueWorkerService";
@@ -75,6 +75,8 @@ import { FileSystemRepository } from "../../Infrastructure/Persistence/FileSyste
 import { IJobApplicationService } from "../JobApplications/IJobApplicationService";
 import { JobApplicationService } from "../JobApplications/JobApplicationService";
 import { GenerateStructuredRetryStrategyProvider } from "../../Infrastructure/Inference/OpenAi/InferenceRetries/GenerateStructuredRetryStrategyProvider";
+import { JobPostService } from "../JobPost/JobPostService";
+import { IJobPostService } from "../JobPost/IJobPostService";
 
 export function buildDependencies(logLevel: LogLevel): IApplicationDependencies {
     const logger: ILogger = new ConsoleLogger(logLevel);
@@ -122,7 +124,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
     /*
      * Application Services
      */
-    const jobPostResultService: IJobPostResultService = new JobPostResultService(
+    const jobPostResultService: IJobPostResultTableService = new JobPostResultTableService(
         jobPostRepository,
         jobPostQueries,
         logger
@@ -200,6 +202,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         fileSystemRepository,
         logger
     );
+    const jobPostService: IJobPostService = new JobPostService(jobPostRepository, logger);
 
     logger.debug("[buildDependencies] Application dependencies initialized");
 
@@ -219,6 +222,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         jobPostResultService,
         jobPostSyncService,
         jobPostSyncQueueService,
+        jobPostService,
         jobPostSyncQueueWorkerService,
         jobPostSyncQueue,
         jobAssessmentQueue,
