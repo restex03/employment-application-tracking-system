@@ -2,6 +2,9 @@ export type JobPollingStatus = "QUEUED" | "IN_PROGRESS" | "COMPLETED" | "FAILED"
 
 export type JobPollingSettledCallback<TJob> = (jobId: string, job: TJob) => void;
 
+/** Fires on every successful poll with the latest fetched job, whether or not it is terminal. */
+export type JobPollingUpdateCallback<TJob> = (jobId: string, job: TJob) => void;
+
 /** Opaque timer handle, avoiding the conflicting DOM (number) vs Node (Timeout) setInterval return types. */
 export type PollingTimerHandle = unknown;
 
@@ -10,6 +13,8 @@ export interface JobQueuePollingManagerOptions<TJob> {
     getJobById: (jobId: string) => Promise<TJob | null>;
     /** Determines whether a job has reached a terminal state, at which point polling stops. */
     isTerminal: (job: TJob) => boolean;
+    /** Optional, fires on every successful fetch with the latest job data (terminal or not). */
+    onPoll?: JobPollingUpdateCallback<TJob>;
     pollIntervalMs?: number;
     setIntervalFn?: (handler: () => void, timeoutMs: number) => PollingTimerHandle;
     clearIntervalFn?: (handle: PollingTimerHandle) => void;
@@ -25,6 +30,7 @@ const DEFAULT_POLL_INTERVAL_MS = 10_000;
 export class JobQueuePollingManager<TJob> {
     private readonly getJobById: (jobId: string) => Promise<TJob | null>;
     private readonly isTerminal: (job: TJob) => boolean;
+    private readonly onPoll: JobPollingUpdateCallback<TJob> | undefined;
     private readonly pollIntervalMs: number;
     private readonly setIntervalFn: (handler: () => void, timeoutMs: number) => PollingTimerHandle;
     private readonly clearIntervalFn: (handle: PollingTimerHandle) => void;
@@ -33,6 +39,7 @@ export class JobQueuePollingManager<TJob> {
     constructor(options: JobQueuePollingManagerOptions<TJob>) {
         this.getJobById = options.getJobById;
         this.isTerminal = options.isTerminal;
+        this.onPoll = options.onPoll;
         this.pollIntervalMs = options.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS;
         // Wrapped (not passed directly) so the global timer functions aren't invoked with the wrong `this`.
         this.setIntervalFn = options.setIntervalFn ?? ((handler, timeout) => setInterval(handler, timeout));
@@ -96,6 +103,10 @@ export class JobQueuePollingManager<TJob> {
         }
 
         // Re-check after the async status fetch in case it was removed mid-flight.
+        if (job !== null && this.timers.has(jobId)) {
+            this.onPoll?.(jobId, job);
+        }
+
         if (job !== null && this.isTerminal(job) && this.timers.has(jobId)) {
             this.remove(jobId);
             onSettled(jobId, job);

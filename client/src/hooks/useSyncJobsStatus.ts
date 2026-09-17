@@ -25,7 +25,9 @@ export interface UseSyncJobsStatusResult {
     initialCheckComplete: boolean;
     /** True while one or more sync jobs are queued or in progress. */
     isSyncing: boolean;
-    /** Marks syncing as active and (re)starts polling, e.g. right after a new sync job was enqueued. */
+    /** Number of job post sync jobs currently queued or in progress. */
+    activeSyncJobCount: number;
+    /** Marks syncing as active and (Re)starts polling, e.g. right after a new sync job was enqueued. */
     startPolling: () => void;
 }
 
@@ -36,19 +38,24 @@ export interface UseSyncJobsStatusResult {
 export function useSyncJobsStatus(pollIntervalMs: number = POLL_INTERVAL_MS): UseSyncJobsStatusResult {
     const [initialCheckComplete, setInitialCheckComplete] = useState(false);
     const [isSyncing, setIsSyncing] = useState(false);
+    const [activeSyncJobCount, setActiveSyncJobCount] = useState(0);
 
     const managerRef = useRef<JobQueuePollingManager<IJobPostSyncJob[]> | null>(null);
     if (!managerRef.current) {
         managerRef.current = new JobQueuePollingManager<IJobPostSyncJob[]>({
             getJobById: fetchActiveSyncJobs,
             isTerminal: isSyncSettled,
+            onPoll: (_key, jobs) => setActiveSyncJobCount(jobs.length),
             pollIntervalMs,
         });
     }
 
     const startPolling = useCallback(() => {
         setIsSyncing(true);
-        managerRef.current?.add(SYNC_STATUS_KEY, () => setIsSyncing(false));
+        managerRef.current?.add(SYNC_STATUS_KEY, () => {
+            setIsSyncing(false);
+            setActiveSyncJobCount(0);
+        });
     }, []);
 
     useEffect(() => {
@@ -62,6 +69,7 @@ export function useSyncJobsStatus(pollIntervalMs: number = POLL_INTERVAL_MS): Us
                 }
                 setInitialCheckComplete(true);
                 if (jobs.length > 0) {
+                    setActiveSyncJobCount(jobs.length);
                     startPolling();
                 }
             } catch (error) {
@@ -81,5 +89,5 @@ export function useSyncJobsStatus(pollIntervalMs: number = POLL_INTERVAL_MS): Us
         // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount; startPolling is stable in practice
     }, []);
 
-    return { initialCheckComplete, isSyncing, startPolling };
+    return { initialCheckComplete, isSyncing, activeSyncJobCount, startPolling };
 }

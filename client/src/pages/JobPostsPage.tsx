@@ -77,6 +77,7 @@ function JobPostsPage() {
     const {
         initialCheckComplete: syncStatusCheckComplete,
         isSyncing,
+        activeSyncJobCount,
         startPolling: startSyncPolling,
     } = useSyncJobsStatus();
     const [selectedJobPost, setSelectedJobPost] = useState<IJobPostData | null>(null);
@@ -406,6 +407,12 @@ function JobPostsPage() {
                         <span className="active-jobs-indicator" title="Job assessments currently being processed">
                             <span className="active-jobs-spinner"></span>
                             {activeAssessmentJobCount} assessment{activeAssessmentJobCount === 1 ? "" : "s"} running
+                        </span>
+                    )}
+                    {activeSyncJobCount > 0 && (
+                        <span className="active-jobs-indicator" title="Job post syncs currently being processed">
+                            <span className="active-jobs-spinner"></span>
+                            {activeSyncJobCount} sync job{activeSyncJobCount === 1 ? "" : "s"} running
                         </span>
                     )}
                     <button
