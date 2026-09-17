@@ -28,7 +28,6 @@ interface IExistingApplication {
 
 const STATUS_OPTIONS: JobApplicationStatus[] = [
     JobApplicationStatus.Applied,
-    JobApplicationStatus.Review,
     JobApplicationStatus.Interview,
     JobApplicationStatus.Offer,
     JobApplicationStatus.Rejected,
@@ -36,7 +35,6 @@ const STATUS_OPTIONS: JobApplicationStatus[] = [
 
 const STATUS_LABELS: Record<JobApplicationStatus, string> = {
     [JobApplicationStatus.Applied]: "Applied",
-    [JobApplicationStatus.Review]: "Review",
     [JobApplicationStatus.Interview]: "Interview",
     [JobApplicationStatus.Offer]: "Offer",
     [JobApplicationStatus.Rejected]: "Rejected",

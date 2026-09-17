@@ -26,7 +26,7 @@ import "./JobPostsPage.css";
 const CANDIDATE_PROFILE_ID = "russell-estes";
 
 type SortableColumn =
-    "company" | "requisitionId" | "title" | "locations" | "daysOld" | "createdAt" | "jobMatchScore" | null;
+    "company" | "requisitionId" | "title" | "locations" | "daysOld" | "createdAt" | "jobMatchScore" | "applicationStatus" | null;
 
 interface FilterState {
     company: string;
@@ -148,6 +148,10 @@ function JobPostsPage() {
                         aValue = a.createdAt;
                         bValue = b.createdAt;
                         break;
+                    case "applicationStatus":
+                        aValue = applicationStatusOverrides[a.id] ?? a.applicationStatus ?? "";
+                        bValue = applicationStatusOverrides[b.id] ?? b.applicationStatus ?? "";
+                        break;
                     default:
                         return 0;
                 }
@@ -157,7 +161,7 @@ function JobPostsPage() {
         }
 
         return result;
-    }, [jobPosts, sortColumn, sortDirection, getCompanyName]);
+    }, [jobPosts, sortColumn, sortDirection, getCompanyName, applicationStatusOverrides]);
 
     const allVisibleSelected =
         filteredAndSortedPosts.length > 0 && filteredAndSortedPosts.every(jp => selectedJobPostIds.has(jp.id));
@@ -578,7 +582,12 @@ function JobPostsPage() {
                                     <span className="sort-icon">{getSortIndicatorFor("title")}</span>
                                 </div>
                             </th>
-                            <th>Application Status</th>
+                            <th onClick={() => handleSort("applicationStatus")}>
+                                <div className="sortable-header">
+                                    <span>Application Status</span>
+                                    <span className="sort-icon">{getSortIndicatorFor("applicationStatus")}</span>
+                                </div>
+                            </th>
                             <th>Detail Path</th>
                             <th onClick={() => handleSort("locations")}>
                                 <div className="sortable-header">
