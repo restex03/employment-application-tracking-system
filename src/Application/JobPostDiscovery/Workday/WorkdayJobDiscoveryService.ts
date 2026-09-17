@@ -1,5 +1,6 @@
 import { IJobPostDetail } from "../../../Domain/JobPosts/IJobPostDetail";
 import { IJobPostDiscovery } from "../../../Domain/JobPosts/IJobPostDiscovery";
+import { IJobSource } from "../../../Domain/JobSources/IJobSource";
 import { IJobGateway } from "../../../Infrastructure/JobSources/IJobGateway";
 import { IWorkdayJobDetailsApiResponseMapper } from "../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobDetailsApiResponseMapper";
 import { IWorkdayJobsApiResponseMapper } from "../../../Infrastructure/JobSources/Workday/Mappers/WorkdayJobsApiResponseMapper";
@@ -20,6 +21,7 @@ interface WorkdayJobDiscoveryServiceOptions {
     readonly lookupMapper: IWorkdayJobsApiResponseMapper;
     readonly detailMapper: IWorkdayJobDetailsApiResponseMapper;
     readonly jobGateway: IJobGateway;
+    readonly jobSource: IJobSource;
     readonly logger: ILogger;
 }
 
@@ -27,16 +29,20 @@ export class WorkdayJobDiscoveryService implements IJobPostDiscoveryService {
     private readonly lookupMapper: IWorkdayJobsApiResponseMapper;
     private readonly detailMapper: IWorkdayJobDetailsApiResponseMapper;
     private readonly jobGateway: IJobGateway;
+    private readonly jobSource: IJobSource;
     private readonly logger: ILogger;
 
     public constructor(opts: WorkdayJobDiscoveryServiceOptions) {
         this.lookupMapper = opts.lookupMapper;
         this.detailMapper = opts.detailMapper;
         this.jobGateway = opts.jobGateway;
+        this.jobSource = opts.jobSource;
         this.logger = opts.logger;
     }
     async fetchList(searchText?: string): Promise<IJobPostDiscovery[]> {
-        this.logger.info(`[WorkdayJobDiscoveryService.fetchJobs] Fetching jobs...`);
+        this.logger.info(
+            `[WorkdayJobDiscoveryService.fetchJobs] Fetching jobs from source: ${this.jobSource.companyName}...`
+        );
         const jobs = new Map<string, IJobPostDiscovery>();
         let offset = 0;
         const limit = 20;

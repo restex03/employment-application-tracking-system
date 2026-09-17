@@ -1,5 +1,5 @@
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
-import { IJobPostSyncResult, IJobPostSyncService } from "./IJobPostSyncService";
+import { IJobPostSyncService } from "./IJobPostSyncService";
 import { IJobPostDiscoveryServiceFactory } from "../JobPostDiscovery/IJobPostDiscoveryServiceFactory";
 import { IJobSource } from "../../Domain/JobSources/IJobSource";
 import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
