@@ -63,4 +63,5 @@ export interface QueryFilterParams {
     location?: string;
     daysOld?: string;
     jobMatchScore?: string;
+    applicationStatus?: string;
 }

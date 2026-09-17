@@ -134,6 +134,11 @@ export class SqliteJobQueries implements IJobPostQueries {
                         @jobMatchScore IS NULL
                         OR CAST(json_extract(ja.job_match_score_json, '$.score') AS REAL) >= @jobMatchScore
                     )
+                    AND (
+                        @applicationStatus IS NULL
+                        OR (@applicationStatus = 'NONE' AND japp.status IS NULL)
+                        OR (japp.status IS NOT NULL AND japp.status = @applicationStatus)
+                    )
 
             ORDER BY jp.created_at DESC
             LIMIT @pageCount OFFSET @offset
@@ -145,6 +150,9 @@ export class SqliteJobQueries implements IJobPostQueries {
 
             JOIN job_sources js
                 ON js.id = jp.source_id
+
+            LEFT JOIN job_applications japp
+                ON japp.job_post_id = jp.id
 
             LEFT JOIN (
                 SELECT
@@ -168,6 +176,11 @@ export class SqliteJobQueries implements IJobPostQueries {
                         @jobMatchScore IS NULL
                         OR CAST(json_extract(ja.job_match_score_json, '$.score') AS REAL) >= @jobMatchScore
                     )
+                    AND (
+                        @applicationStatus IS NULL
+                        OR (@applicationStatus = 'NONE' AND japp.status IS NULL)
+                        OR (japp.status IS NOT NULL AND japp.status = @applicationStatus)
+                    )
         `);
     }
 
@@ -186,6 +199,7 @@ export class SqliteJobQueries implements IJobPostQueries {
             location: queryFilters.location?.trim() ?? "",
             daysOld: queryFilters.daysOld ?? null,
             jobMatchScore: queryFilters.jobMatchScore ?? null,
+            applicationStatus: queryFilters.applicationStatus?.trim() || null,
         };
         const rows = this.getAllStatement.all(queryParams) as JobPostRow[];
 

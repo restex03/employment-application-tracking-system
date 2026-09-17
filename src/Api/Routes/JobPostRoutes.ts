@@ -17,6 +17,7 @@ export interface JobPostQuery {
     location?: string;
     daysOld?: string;
     jobMatchScore?: number;
+    applicationStatus?: string;
 }
 
 export class JobPostRoutes implements IRouteRegistrar {
@@ -51,6 +52,7 @@ export class JobPostRoutes implements IRouteRegistrar {
                     location: request.query.location?.trim() ?? "",
                     daysOld: Number.isNaN(daysOld) ? undefined : daysOld,
                     jobMatchScore: Number.isNaN(jobMatchScore) ? undefined : jobMatchScore,
+                    applicationStatus: request.query.applicationStatus?.trim() || undefined,
                 } as JobPostQueryFilters;
                 const result = await this.jobPostResultService.getAll(pageCount, pageNumber, queryFilters);
                 return result;

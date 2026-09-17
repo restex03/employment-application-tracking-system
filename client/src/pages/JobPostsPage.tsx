@@ -35,6 +35,7 @@ interface FilterState {
     locations: string;
     daysOld: string;
     jobMatchScore: string;
+    applicationStatus: string;
 }
 
 function JobPostsPage() {
@@ -45,6 +46,7 @@ function JobPostsPage() {
         locations: "",
         daysOld: "",
         jobMatchScore: "",
+        applicationStatus: "",
     });
     const {
         jobPosts,
@@ -61,6 +63,7 @@ function JobPostsPage() {
         location: filters.locations,
         daysOld: filters.daysOld,
         jobMatchScore: filters.jobMatchScore,
+        applicationStatus: filters.applicationStatus,
     });
     const { jobSources, getCompanyName, loading: sourcesLoading, error: sourcesError } = useJobSources();
     const {
@@ -221,6 +224,7 @@ function JobPostsPage() {
             locations: "",
             daysOld: "",
             jobMatchScore: "",
+            applicationStatus: "",
         });
         setPage(1);
     };
@@ -514,6 +518,19 @@ function JobPostsPage() {
                         <option value="90">Job Match Score: &gt;=90</option>
                         <option value="95">Job Match Score: &gt;=95</option>
                         <option value="100">Job Match Score: 100</option>
+                    </select>
+                    <select
+                        value={filters.applicationStatus}
+                        onChange={e => handleFilterChange("applicationStatus", e.target.value)}
+                        className="filter-input"
+                        aria-label="Filter Application Status"
+                    >
+                        <option value="">Application Status: All</option>
+                        <option value="NONE">Application Status: None</option>
+                        <option value={JobApplicationStatus.Applied}>Application Status: Applied</option>
+                        <option value={JobApplicationStatus.Interview}>Application Status: Interview</option>
+                        <option value={JobApplicationStatus.Offer}>Application Status: Offer</option>
+                        <option value={JobApplicationStatus.Rejected}>Application Status: Rejected</option>
                     </select>
                     <button onClick={clearAllFilters} className="clear-filters-button">
                         Clear
