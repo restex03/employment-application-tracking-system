@@ -144,6 +144,14 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                             <span className="job-info-label">Requisition ID:</span>
                             <span className="job-info-value">{jobPostData.requisitionId}</span>
                         </div>
+                        <div className="job-info-row">
+                            <span className="job-info-label">Apply Here:</span>
+                            <span className="job-info-value" title={jobPostData.jobLink || "N/A"}>
+                                <a href={jobPostData.jobLink || "#"} target="_blank" rel="noopener noreferrer">
+                                    {jobPostData.jobLink || "N/A"}
+                                </a>
+                            </span>
+                        </div>
                     </div>
                     <br />
                     <div className="detail-tabs">
@@ -174,15 +182,6 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                         (jobPostData.detail ? (
                             <div className="job-post-detail">
                                 <div className="detail-card">
-                                    <div className="job-post-link-section">
-                                        <h4>Apply Here:</h4>
-
-                                        <a href={jobPostData.jobLink || "#"} target="_blank" rel="noopener noreferrer">
-                                            {jobPostData.jobLink || "N/A"}
-                                        </a>
-                                    </div>
-                                    <br></br>
-
                                     <div className="detail-section">
                                         <h4>Description</h4>
                                         <div

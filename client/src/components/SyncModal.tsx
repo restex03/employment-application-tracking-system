@@ -108,7 +108,7 @@ function SyncModal({
 
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-content sync-modal" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
                     <h2>Sync Job Posts</h2>
                     <button className="close-button" onClick={onClose}>

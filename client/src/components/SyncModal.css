@@ -13,6 +13,9 @@
     flex-direction: column;
     animation: slideUp 0.2s ease-out;
 }
+.modal-content.sync-modal {
+    max-width: 600px; /* Adjust the max-width specifically for the sync modal */
+}
 
 .sync-form {
     display: flex;

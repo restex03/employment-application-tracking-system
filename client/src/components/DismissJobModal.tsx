@@ -51,11 +51,12 @@ function DismissJobModal({ isOpen, onClose, jobPostId, jobTitle, onDismissed }: 
                     </button>
                 </div>
                 <div className="modal-body">
-                    <p className="dismiss-job-confirmation">
-                        Are you sure you want to dismiss <strong>{jobTitle}</strong>?
-                    </p>
+                    <p className="dismiss-job-confirmation">Are you sure you want to dismiss:</p>
+                    <p className="dismiss-job-title">{jobTitle}?</p>
                     <p className="dismiss-job-hint">
-                        Dismissed job posts are hidden from the table unless &quot;Show Dismissed&quot; is checked.
+                        <i>
+                            Dismissed job posts are hidden from the table unless &quot;Show Dismissed&quot; is checked.
+                        </i>
                     </p>
                     {error && (
                         <div className="error-message">

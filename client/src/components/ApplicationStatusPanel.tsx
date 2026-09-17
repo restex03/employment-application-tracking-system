@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { JobApplicationStatus } from "../types/JobPost";
 import { formatDate } from "../services/formatters";
 import { getSortIndicator } from "../services/sortHelpers";
-import "./ApplicationStatusModal.css";
+import "./ApplicationStatusPanel.css";
 
 interface ApplicationStatusPanelProps {
     jobPostId: string;
