@@ -1,19 +1,6 @@
 /* Modal overlay, header, modal-body, modal-footer, close-button,
    button-primary, button-secondary, @keyframes fadeIn/slideUp are in shared.css. */
 
-.modal-content {
-    background-color: var(--card-background);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    width: 100%;
-    max-width: 450px;
-    max-height: 90vh;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    animation: slideUp 0.2s ease-out;
-}
-
 .dismiss-job-confirmation {
     font-size: 1rem;
     color: var(--text-primary);
