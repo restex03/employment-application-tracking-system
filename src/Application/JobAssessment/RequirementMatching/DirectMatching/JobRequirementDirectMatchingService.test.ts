@@ -14,8 +14,9 @@ describe("JobRequirementDirectMatchingService", () => {
     let service: JobRequirementDirectMatchingService;
 
     const requirement: IClassifiedJobRequirement = {
-        area: "Public Cloud Platform",
         description: "Experience with cloud platforms: AWS, GCP, or Azure.",
+        name: "Public Cloud Platform",
+        sentenceCapture: "Experience with cloud platforms: AWS, GCP, or Azure.",
         category: "technical_skill",
     };
 

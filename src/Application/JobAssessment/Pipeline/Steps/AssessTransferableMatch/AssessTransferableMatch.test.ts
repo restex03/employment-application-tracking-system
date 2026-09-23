@@ -11,8 +11,9 @@ describe("AssessTransferableMatch", () => {
     let step: AssessTransferableMatch;
 
     const requirement: IClassifiedJobRequirement = {
-        area: "Java / Spring Boot",
         description: "Experience developing backend services using Java and Spring Boot.",
+        name: "Java / Spring Boot",
+        sentenceCapture: "Experience developing backend services using Java and Spring Boot.",
         category: "technical_skill",
     };
 

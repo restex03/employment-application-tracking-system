@@ -8,8 +8,9 @@ describe("JobRequirementMatchMapper", () => {
     const mapper = new JobRequirementMatchMapper();
 
     const requirement: IClassifiedJobRequirement = {
-        area: "Backend Development",
         description: "Experience developing backend services using Java and Spring Boot.",
+        name: "Backend Development",
+        sentenceCapture: "Experience developing backend services using Java and Spring Boot.",
         category: "technical_skill",
     };
 
@@ -104,8 +105,9 @@ describe("JobRequirementMatchMapper", () => {
             };
 
             const differentRequirement: IClassifiedJobRequirement = {
-                area: requirement.area,
+                name: requirement.name,
                 description: requirement.description,
+                sentenceCapture: requirement.sentenceCapture,
                 category: requirement.category,
             };
 
@@ -267,8 +269,9 @@ describe("JobRequirementMatchMapper", () => {
             };
 
             const differentRequirement: IClassifiedJobRequirement = {
-                area: "Cloud Platform",
                 description: "Experience with AWS.",
+                name: "Cloud Platform",
+                sentenceCapture: "Experience with AWS.",
                 category: "technical_skill",
             };
 

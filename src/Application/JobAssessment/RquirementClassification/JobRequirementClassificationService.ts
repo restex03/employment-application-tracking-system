@@ -27,7 +27,7 @@ export class JobRequirementClassificationService implements IJobRequirementClass
             input: {
                 requirements: requirements.map((requirement, index) => ({
                     index,
-                    area: requirement.area,
+                    name: requirement.name,
                     description: requirement.description,
                 })),
             },

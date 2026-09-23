@@ -40,7 +40,12 @@ describe("JobAssessmentService", () => {
     } as IJobPost;
 
     const requirementMatch: IJobRequirementMatch = {
-        requirement: { area: "Java", description: "Java experience", category: "technical_skill" },
+        requirement: {
+            name: "Java",
+            description: "Java experience",
+            sentenceCapture: "Java experience",
+            category: "technical_skill",
+        },
         matchType: "direct",
         evidence: "Candidate has Java experience.",
     };

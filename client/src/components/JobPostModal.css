@@ -446,7 +446,7 @@
     padding: 0.25rem 0;
 }
 
-.match-list-area {
+.match-list-name {
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-primary);

@@ -11,8 +11,9 @@ describe("AssessDirectMatch", () => {
     let step: AssessDirectMatch;
 
     const requirement: IClassifiedJobRequirement = {
-        area: "Public Cloud Platform",
         description: "Experience with AWS, GCP, or Azure.",
+        name: "Public Cloud Platform",
+        sentenceCapture: "Experience with AWS, GCP, or Azure.",
         category: "technical_skill",
     };
 

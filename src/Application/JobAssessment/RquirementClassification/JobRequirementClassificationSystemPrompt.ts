@@ -15,7 +15,7 @@ Do NOT:
 - merge requirements
 - split requirements
 - rewrite requirements
-- return requirement area
+- return requirement name
 - return requirement description
 - evaluate a candidate
 - score the job

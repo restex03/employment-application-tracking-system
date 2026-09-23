@@ -99,10 +99,11 @@ directMatchingService = new JobRequirementDirectMatchingService(llm, logger);
 
 transferableMatchingService = new JobRequirementTransferableMatchingService(llm, logger);
 
-function createRequirement(area: string, description: string): IClassifiedJobRequirement {
+function createRequirement(name: string, description: string): IClassifiedJobRequirement {
     return {
-        area,
+        name,
         description,
+        sentenceCapture: description,
         category: "technical_skill",
     };
 }

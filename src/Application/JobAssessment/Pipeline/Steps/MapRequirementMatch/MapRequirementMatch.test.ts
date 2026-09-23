@@ -12,8 +12,9 @@ describe("MapRequirementMatch", () => {
     let step: MapRequirementMatch;
 
     const requirement: IClassifiedJobRequirement = {
-        area: "Backend Development",
         description: "Experience developing backend services.",
+        name: "Backend Development",
+        sentenceCapture: "Experience developing backend services.",
         category: "technical_skill",
     };
 

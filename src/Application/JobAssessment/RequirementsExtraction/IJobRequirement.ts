@@ -1,4 +1,5 @@
 export interface IJobRequirement {
-    area: string;
+    name: string;
     description: string;
+    sentenceCapture: string;
 }

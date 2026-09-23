@@ -51,7 +51,7 @@ export class JobRequirementsMatchingService implements IJobRequirementsMatchingS
         requirement: IClassifiedJobRequirement,
         profile: ICandidateProfile
     ): Promise<IJobRequirementMatch> {
-        this.logger.info(`[JobRequirementsMatchingService.matchSingle] Matching: ${requirement.area}`);
+        this.logger.info(`[JobRequirementsMatchingService.matchSingle] Matching: ${requirement.name}`);
 
         const context: IJobRequirementMatchingContext = {
             requirement,
@@ -63,7 +63,7 @@ export class JobRequirementsMatchingService implements IJobRequirementsMatchingS
         if (result.status === PipelineStepStatus.Failed) {
             const step = result.lastStepReached ? ` at ${result.lastStepReached}` : "";
 
-            const reason = result.reason ?? `Requirement matching failed for ${requirement.area}`;
+            const reason = result.reason ?? `Requirement matching failed for ${requirement.name}`;
 
             this.logger.error(`[JobRequirementsMatchingService.matchSingle] Failed${step}: ${reason}`);
 
@@ -71,7 +71,7 @@ export class JobRequirementsMatchingService implements IJobRequirementsMatchingS
         }
 
         if (!context.match) {
-            const reason = `Requirement matching produced no match: ${requirement.area}`;
+            const reason = `Requirement matching produced no match: ${requirement.name}`;
 
             this.logger.error(`[JobRequirementsMatchingService.matchSingle] ${reason}`);
 
@@ -84,7 +84,7 @@ export class JobRequirementsMatchingService implements IJobRequirementsMatchingS
     }
 
     private logMatch(match: IJobRequirementMatch): void {
-        this.logger.info(`\t- ${match.requirement.area}`);
+        this.logger.info(`\t- ${match.requirement.name}`);
         this.logger.info(`\t\t- Match: ${match.matchType}`);
 
         if (match.evidence) {

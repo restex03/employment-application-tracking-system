@@ -6,16 +6,23 @@ export const JobRequirementsResponseSchema = {
             items: {
                 type: "object",
                 properties: {
-                    area: {
+                    name: {
                         type: "string",
-                        maxLength: 80,
+                        minLength: 1,
+                        maxLength: 300,
                     },
                     description: {
                         type: "string",
+                        minLength: 1,
                         maxLength: 500,
                     },
+                    sentenceCapture: {
+                        type: "string",
+                        minLength: 1,
+                        maxLength: 1000,
+                    },
                 },
-                required: ["area", "description"],
+                required: ["name", "description", "sentenceCapture"],
                 additionalProperties: false,
             },
         },

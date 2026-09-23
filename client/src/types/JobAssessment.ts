@@ -11,8 +11,9 @@ export type JobRequirementCategory =
     | "other";
 
 export interface IJobRequirement {
-    area: string;
+    name: string;
     description: string;
+    sentenceCapture: string;
 }
 
 export interface IClassifiedJobRequirement extends IJobRequirement {

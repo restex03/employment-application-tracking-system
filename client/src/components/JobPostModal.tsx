@@ -477,8 +477,8 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                                                                                 {symbol}
                                                                             </span>
                                                                             <div className="match-content">
-                                                                                <span className="match-list-area">
-                                                                                    {match.requirement.area}
+                                                                                <span className="match-list-name">
+                                                                                    {match.requirement.name}
                                                                                 </span>
                                                                                 <div className="match-detail-panel">
                                                                                     <p className="match-detail-row">

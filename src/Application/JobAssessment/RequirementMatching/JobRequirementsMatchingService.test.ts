@@ -18,8 +18,9 @@ describe("JobRequirementsMatchingService", () => {
     } as ICandidateProfile;
 
     const requirement: IClassifiedJobRequirement = {
-        area: "Java / Spring Boot",
         description: "Experience developing backend services using Java and Spring Boot.",
+        name: "Java / Spring Boot",
+        sentenceCapture: "Experience developing backend services using Java and Spring Boot.",
         category: "technical_skill",
     };
 
@@ -122,24 +123,27 @@ describe("JobRequirementsMatchingService", () => {
     it("preserves requirement order when matching multiple requirements", async () => {
         const requirements: IClassifiedJobRequirement[] = [
             {
-                area: "AWS",
                 description: "Experience with AWS.",
+                name: "AWS",
+                sentenceCapture: "Experience with AWS.",
                 category: "technical_skill",
             },
             {
-                area: "Java",
                 description: "Experience with Java.",
+                name: "Java",
+                sentenceCapture: "Experience with Java.",
                 category: "technical_skill",
             },
             {
-                area: "Ansible",
                 description: "Experience with Ansible.",
+                name: "Ansible",
+                sentenceCapture: "Experience with Ansible.",
                 category: "technical_skill",
             },
         ];
 
         vi.mocked(directMatchingService.assess).mockImplementation(async requirement => {
-            if (requirement.area === "AWS") {
+            if (requirement.name === "AWS") {
                 return {
                     requirement,
                     isDirectMatch: true,
@@ -155,7 +159,7 @@ describe("JobRequirementsMatchingService", () => {
         });
 
         vi.mocked(transferableMatchingService.assess).mockImplementation(async requirement => {
-            if (requirement.area === "Java") {
+            if (requirement.name === "Java") {
                 return {
                     requirement,
                     isTransferableMatch: true,

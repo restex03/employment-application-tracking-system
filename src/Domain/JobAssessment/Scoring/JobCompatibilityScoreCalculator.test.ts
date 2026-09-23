@@ -9,8 +9,9 @@ describe("JobMatchScoreCalculator", () => {
     function createMatch(matchType: "direct" | "transferable" | "missing"): IJobRequirementMatch {
         return {
             requirement: {
-                area: "Test",
                 description: "Test requirement",
+                name: "Test",
+                sentenceCapture: "Test requirement",
                 category: "technical_skill",
             },
             matchType,

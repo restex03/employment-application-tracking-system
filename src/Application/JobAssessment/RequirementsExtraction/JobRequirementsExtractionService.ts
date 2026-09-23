@@ -19,24 +19,39 @@ export class JobRequirementsExtractionService implements IJobRequirementsExtract
 
         this.logger.info(`[JobRequirementsExtractionService.extract] Extracting job requirements`);
         const jobDescription = this.stripMarkup(job.description);
+        const normalizedDescription = this.normalizeWhitespace(jobDescription);
+
+        const validationSchema = JobRequirementsResponseValidationSchema.superRefine((response, ctx) => {
+            response.requirements.forEach((requirement, index) => {
+                if (!normalizedDescription.includes(this.normalizeWhitespace(requirement.sentenceCapture))) {
+                    ctx.addIssue({
+                        code: "custom",
+                        path: ["requirements", index, "sentenceCapture"],
+                        message: "sentenceCapture must be text copied verbatim from the job posting",
+                    });
+                }
+            });
+        });
+
         const result = await this.llm.generateStructured({
             systemPrompt: JobRequirementsExtractorSystemPrompt,
             input: jobDescription,
 
             schemaName: "job_requirements",
             jsonSchema: JobRequirementsResponseSchema,
-            validationSchema: JobRequirementsResponseValidationSchema,
+            validationSchema,
 
             temperature: 0.1,
-            maxTokens: 1500,
+            maxTokens: 6000,
         });
 
         this.logger.info(jobInfo);
         this.logger.info(`\t- Requirements: ${result.requirements.length}`);
 
         for (const requirement of result.requirements) {
-            this.logger.info(`\t\t- ${requirement.area}`);
+            this.logger.info(`\t\t- ${requirement.name}`);
             this.logger.info(`\t\t\t- Description: ${requirement.description}`);
+            this.logger.info(`\t\t\t- Sentence: ${requirement.sentenceCapture}`);
         }
 
         this.logger.info("\n");
@@ -48,5 +63,9 @@ export class JobRequirementsExtractionService implements IJobRequirementsExtract
             allowedTags: [],
             allowedAttributes: {},
         });
+    }
+
+    private normalizeWhitespace(text: string): string {
+        return text.replace(/\s+/g, " ").trim();
     }
 }

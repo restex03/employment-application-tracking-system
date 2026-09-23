@@ -21,7 +21,7 @@ export class JobRequirementDirectMatchingService implements IJobRequirementDirec
         requirement: IClassifiedJobRequirement,
         profile: ICandidateProfile
     ): Promise<IJobRequirementDirectMatch> {
-        this.logger.info(`[JobRequirementDirectMatchingService.assess] Assessing: ${requirement.area}`);
+        this.logger.info(`[JobRequirementDirectMatchingService.assess] Assessing: ${requirement.name}`);
 
         const result = await this.llm.generateStructured<JobRequirementDirectMatchResponse>({
             systemPrompt: JobRequirementDirectMatchingSystemPrompt,
@@ -38,11 +38,11 @@ export class JobRequirementDirectMatchingService implements IJobRequirementDirec
         });
 
         if (result.isDirectMatch && !result.evidence) {
-            throw new Error(`Direct match requires evidence: ${requirement.area}`);
+            throw new Error(`Direct match requires evidence: ${requirement.name}`);
         }
 
         if (!result.isDirectMatch && result.evidence !== null) {
-            throw new Error(`Non-direct match must not contain evidence: ${requirement.area}`);
+            throw new Error(`Non-direct match must not contain evidence: ${requirement.name}`);
         }
 
         return {
