@@ -52,6 +52,7 @@ export class LlmTargetRegistry {
         model: "gemma4:e4b-it-qat",
         apiBaseUrl: new URL("http://localhost:11434/v1"),
         apiKey: "ollama",
+        reasoningEffort: "none",
     };
     public static readonly Gemma4_e4b: ILlmTargetOptions = {
         model: "gemma4:e4b",

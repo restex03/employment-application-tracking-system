@@ -19,19 +19,6 @@ export class JobRequirementsExtractionService implements IJobRequirementsExtract
 
         this.logger.info(`[JobRequirementsExtractionService.extract] Extracting job requirements`);
         const jobDescription = this.stripMarkup(job.description);
-        const normalizedDescription = this.normalizeWhitespace(jobDescription);
-
-        const validationSchema = JobRequirementsResponseValidationSchema.superRefine((response, ctx) => {
-            response.requirements.forEach((requirement, index) => {
-                if (!normalizedDescription.includes(this.normalizeWhitespace(requirement.sentenceCapture))) {
-                    ctx.addIssue({
-                        code: "custom",
-                        path: ["requirements", index, "sentenceCapture"],
-                        message: "sentenceCapture must be text copied verbatim from the job posting",
-                    });
-                }
-            });
-        });
 
         const result = await this.llm.generateStructured({
             systemPrompt: JobRequirementsExtractorSystemPrompt,
@@ -39,7 +26,7 @@ export class JobRequirementsExtractionService implements IJobRequirementsExtract
 
             schemaName: "job_requirements",
             jsonSchema: JobRequirementsResponseSchema,
-            validationSchema,
+            validationSchema: JobRequirementsResponseValidationSchema,
 
             temperature: 0.1,
             maxTokens: 6000,
@@ -63,9 +50,5 @@ export class JobRequirementsExtractionService implements IJobRequirementsExtract
             allowedTags: [],
             allowedAttributes: {},
         });
-    }
-
-    private normalizeWhitespace(text: string): string {
-        return text.replace(/\s+/g, " ").trim();
     }
 }

@@ -38,8 +38,11 @@ let directMatchingService: JobRequirementDirectMatchingService;
 let transferableMatchingService: JobRequirementTransferableMatchingService;
 
 if (runRegressionTests) {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { LlmTargetRegistry } = require("../../../Infrastructure/Inference/OpenAi/LlmTargetRegistry/LlmTargetRegistry");
+    // Deferred so LlmTargetRegistry (which reads env vars at class-definition time
+    // for hosted providers) is only imported when regression tests are actually enabled.
+    const { LlmTargetRegistry } = await import(
+        "../../../Infrastructure/Inference/OpenAi/LlmTargetRegistry/LlmTargetRegistry"
+    );
     const modelOptions = LlmTargetRegistry.Qwen3_4b_Instruct_8k;
 
     const client = new OpenAI({
