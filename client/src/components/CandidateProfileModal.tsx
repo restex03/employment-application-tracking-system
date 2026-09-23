@@ -56,21 +56,6 @@ function CandidateProfileModal({ isOpen, onClose, profile }: CandidateProfileMod
                         </div>
 
                         <div className="detail-section">
-                            <h4>Desired Work</h4>
-                            <p className="detail-text">{formatList(profile.desiredWork)}</p>
-                        </div>
-
-                        <div className="detail-section">
-                            <h4>Desired Growth Areas</h4>
-                            <p className="detail-text">{formatList(profile.desiredGrowthAreas)}</p>
-                        </div>
-
-                        <div className="detail-section">
-                            <h4>Avoid Work</h4>
-                            <p className="detail-text">{formatList(profile.avoidWork)}</p>
-                        </div>
-
-                        <div className="detail-section">
                             <h4>Skills ({profile.skills?.length ?? 0})</h4>
                             {profile.skills && profile.skills.length > 0 ? (
                                 <table className="skills-table">

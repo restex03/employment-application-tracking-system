@@ -35,21 +35,6 @@ export class JobCandidateProfileService implements IJobCandidateProfileService {
             throw new Error("At least one strength is required");
         }
 
-        if (!profileData.desiredWork || profileData.desiredWork.length === 0) {
-            this.logger.warn("Attempted to create a candidate profile without desired work");
-            throw new Error("At least one desired work item is required");
-        }
-
-        if (!profileData.desiredGrowthAreas || profileData.desiredGrowthAreas.length === 0) {
-            this.logger.warn("Attempted to create a candidate profile without desired growth areas");
-            throw new Error("At least one desired growth area is required");
-        }
-
-        if (!profileData.avoidWork || profileData.avoidWork.length === 0) {
-            this.logger.warn("Attempted to create a candidate profile without avoid work items");
-            throw new Error("At least one avoid work item is required");
-        }
-
         // Create the profile
         const createdProfile = await this.repository.createCandidateProfile(profileData);
         this.logger.info(`Successfully created candidate profile with ID: ${createdProfile.id}`);

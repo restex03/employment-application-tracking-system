@@ -132,49 +132,6 @@ export interface ICandidateProfile {
      */
     strengths: string[];
 
-    /**
-     * What you actually want to spend your time doing.
-     *
-     * Examples:
-     * - "system architecture"
-     * - "backend engineering"
-     * - "distributed systems"
-     * - "developer tooling"
-     * - "AI agent infrastructure"
-     */
-    desiredWork: string[];
-
-    /**
-     * Career directions you actively want to develop.
-     *
-     * Examples:
-     * - "Kubernetes"
-     * - "AWS"
-     * - "Python"
-     * - "agent orchestration"
-     * - "observability"
-     */
-    desiredGrowthAreas: string[];
-
-    /**
-     * Things that can make an otherwise technically matching job
-     * unattractive.
-     */
-    avoidWork: string[];
-
-    /**
-     * Concepts particularly important to your job search.
-     */
-    careerPriorities: {
-        technicalOwnership: number; // 0-100
-        architectureDepth: number; // 0-100
-        skillPortability: number; // 0-100
-        learningOpportunity: number; // 0-100
-        compensation: number; // 0-100
-        stability: number; // 0-100
-        workLifeBalance?: number; // 0-100
-    };
-
     preferences: {
         workArrangements: WorkArrangement[];
 

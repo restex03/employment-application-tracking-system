@@ -184,39 +184,6 @@
         "CI/CD and development tooling",
         "Learning unfamiliar technologies"
     ],
-    "desiredWork": [
-        "backend engineering",
-        "platform engineering",
-        "distributed systems",
-        "API architecture",
-        "cloud-native services",
-        "technical ownership",
-        "system architecture"
-    ],
-    "desiredGrowthAreas": [
-        "AWS",
-        "Kubernetes",
-        "cloud-native architecture",
-        "Terraform",
-        "observability",
-        "distributed tracing",
-        "AI application architecture"
-    ],
-    "avoidWork": [
-        "roles dominated by proprietary low-code platforms",
-        "support-heavy roles with little software development",
-        "pure operations roles",
-        "roles with little opportunity for technical ownership"
-    ],
-    "careerPriorities": {
-        "technicalOwnership": 90,
-        "architectureDepth": 85,
-        "skillPortability": 90,
-        "learningOpportunity": 90,
-        "compensation": 80,
-        "stability": 70,
-        "workLifeBalance": 75
-    },
     "preferences": {
         "workArrangements": ["remote", "hybrid"],
         "locations": [

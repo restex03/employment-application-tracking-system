@@ -65,16 +65,6 @@ export interface ICandidateEducation {
     completed: boolean;
 }
 
-export interface ICareerPriorities {
-    technicalOwnership: number;
-    architectureDepth: number;
-    skillPortability: number;
-    learningOpportunity: number;
-    compensation: number;
-    stability: number;
-    workLifeBalance?: number;
-}
-
 export interface ICandidatePreferences {
     workArrangements: WorkArrangement[];
     locations: ILocationPreference[];
@@ -97,10 +87,7 @@ export interface ICandidateProfile {
     skills: ISkill[];
     experience: ICandidateExperience[];
     strengths: string[];
-    desiredWork: string[];
-    desiredGrowthAreas: string[];
-    avoidWork: string[];
-    careerPriorities: ICareerPriorities;
+
     preferences: ICandidatePreferences;
     constraints: ICandidateConstraints;
 }

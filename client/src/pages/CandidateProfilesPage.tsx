@@ -57,7 +57,7 @@ function CandidateProfilesPage() {
                             <th>Years Experience</th>
                             <th>Work Authorization</th>
                             <th>Strengths</th>
-                            <th>Desired Work</th>
+
                             <th>Skills</th>
                             <th>Details</th>
                         </tr>
@@ -65,7 +65,7 @@ function CandidateProfilesPage() {
                     <tbody>
                         {candidateProfiles.length === 0 ? (
                             <tr>
-                                <td colSpan={8} className="no-data">
+                                <td colSpan={7} className="no-data">
                                     No candidate profiles yet.
                                 </td>
                             </tr>
@@ -84,7 +84,7 @@ function CandidateProfilesPage() {
                                         {profile.workAuthorization?.requiresSponsorship ? " (Sponsorship Req.)" : ""}
                                     </td>
                                     <td>{formatList(profile.strengths, 3)}</td>
-                                    <td>{formatList(profile.desiredWork, 3)}</td>
+
                                     <td>{profile.skills?.length ?? 0}</td>
                                     <td>
                                         <button

@@ -26,16 +26,7 @@ interface CandidateProfileRow {
     work_auth_authorized_in_us: number | null;
     work_auth_requires_sponsorship: number | null;
     strengths: string;
-    desired_work: string;
-    desired_growth_areas: string;
-    avoid_work: string;
-    career_priorities_technical_ownership: number;
-    career_priorities_architecture_depth: number;
-    career_priorities_skill_portability: number;
-    career_priorities_learning_opportunity: number;
-    career_priorities_compensation: number;
-    career_priorities_stability: number;
-    career_priorities_work_life_balance: number | null;
+
     preferences_work_arrangements: string;
     preferences_compensation_minimum_base_salary: number | null;
     preferences_compensation_target_base_salary: number | null;
@@ -115,11 +106,7 @@ export class SqliteJobCandidateProfileRepository implements IJobCandidateProfile
             INSERT INTO candidate_profiles (
                 id, current_title, total_years_experience,
                 education_json, work_auth_citizenship_country, work_auth_authorized_in_us, work_auth_requires_sponsorship,
-                strengths, desired_work, desired_growth_areas, avoid_work,
-                career_priorities_technical_ownership, career_priorities_architecture_depth,
-                career_priorities_skill_portability, career_priorities_learning_opportunity,
-                career_priorities_compensation, career_priorities_stability,
-                career_priorities_work_life_balance,
+                strengths,
                 preferences_work_arrangements, preferences_compensation_minimum_base_salary,
                 preferences_compensation_target_base_salary, preferences_compensation_consider_variable_compensation,
                 constraints_requires_remote_or_approved_hybrid_location, constraints_requires_sponsorship,
@@ -127,11 +114,7 @@ export class SqliteJobCandidateProfileRepository implements IJobCandidateProfile
             ) VALUES (
                 @id, @currentTitle, @totalYearsExperience,
                 @educationJson, @workAuthCitizenshipCountry, @workAuthAuthorizedInUS, @workAuthRequiresSponsorship,
-                @strengths, @desiredWork, @desiredGrowthAreas, @avoidWork,
-                @careerPrioritiesTechnicalOwnership, @careerPrioritiesArchitectureDepth,
-                @careerPrioritiesSkillPortability, @careerPrioritiesLearningOpportunity,
-                @careerPrioritiesCompensation, @careerPrioritiesStability,
-                @careerPrioritiesWorkLifeBalance,
+                @strengths,
                 @preferencesWorkArrangements, @preferencesCompensationMinimumBaseSalary,
                 @preferencesCompensationTargetBaseSalary, @preferencesCompensationConsiderVariableCompensation,
                 @constraintsRequiresRemoteOrApprovedHybridLocation, @constraintsRequiresSponsorship,
@@ -148,16 +131,7 @@ export class SqliteJobCandidateProfileRepository implements IJobCandidateProfile
                 work_auth_authorized_in_us = @workAuthAuthorizedInUS,
                 work_auth_requires_sponsorship = @workAuthRequiresSponsorship,
                 strengths = @strengths,
-                desired_work = @desiredWork,
-                desired_growth_areas = @desiredGrowthAreas,
-                avoid_work = @avoidWork,
-                career_priorities_technical_ownership = @careerPrioritiesTechnicalOwnership,
-                career_priorities_architecture_depth = @careerPrioritiesArchitectureDepth,
-                career_priorities_skill_portability = @careerPrioritiesSkillPortability,
-                career_priorities_learning_opportunity = @careerPrioritiesLearningOpportunity,
-                career_priorities_compensation = @careerPrioritiesCompensation,
-                career_priorities_stability = @careerPrioritiesStability,
-                career_priorities_work_life_balance = @careerPrioritiesWorkLifeBalance,
+
                 preferences_work_arrangements = @preferencesWorkArrangements,
                 preferences_compensation_minimum_base_salary = @preferencesCompensationMinimumBaseSalary,
                 preferences_compensation_target_base_salary = @preferencesCompensationTargetBaseSalary,
@@ -365,16 +339,7 @@ export class SqliteJobCandidateProfileRepository implements IJobCandidateProfile
             workAuthAuthorizedInUS: profile.workAuthorization.authorizedToWorkInUS ? 1 : 0,
             workAuthRequiresSponsorship: profile.workAuthorization.requiresSponsorship ? 1 : 0,
             strengths: JSON.stringify(profile.strengths),
-            desiredWork: JSON.stringify(profile.desiredWork),
-            desiredGrowthAreas: JSON.stringify(profile.desiredGrowthAreas),
-            avoidWork: JSON.stringify(profile.avoidWork),
-            careerPrioritiesTechnicalOwnership: profile.careerPriorities.technicalOwnership,
-            careerPrioritiesArchitectureDepth: profile.careerPriorities.architectureDepth,
-            careerPrioritiesSkillPortability: profile.careerPriorities.skillPortability,
-            careerPrioritiesLearningOpportunity: profile.careerPriorities.learningOpportunity,
-            careerPrioritiesCompensation: profile.careerPriorities.compensation,
-            careerPrioritiesStability: profile.careerPriorities.stability,
-            careerPrioritiesWorkLifeBalance: profile.careerPriorities.workLifeBalance ?? null,
+
             preferencesWorkArrangements: JSON.stringify(profile.preferences.workArrangements),
             preferencesCompensationMinimumBaseSalary: profile.preferences.compensation.minimumBaseSalary ?? null,
             preferencesCompensationTargetBaseSalary: profile.preferences.compensation.targetBaseSalary ?? null,
@@ -405,16 +370,7 @@ export class SqliteJobCandidateProfileRepository implements IJobCandidateProfile
             workAuthAuthorizedInUS: profile.workAuthorization.authorizedToWorkInUS ? 1 : 0,
             workAuthRequiresSponsorship: profile.workAuthorization.requiresSponsorship ? 1 : 0,
             strengths: JSON.stringify(profile.strengths),
-            desiredWork: JSON.stringify(profile.desiredWork),
-            desiredGrowthAreas: JSON.stringify(profile.desiredGrowthAreas),
-            avoidWork: JSON.stringify(profile.avoidWork),
-            careerPrioritiesTechnicalOwnership: profile.careerPriorities.technicalOwnership,
-            careerPrioritiesArchitectureDepth: profile.careerPriorities.architectureDepth,
-            careerPrioritiesSkillPortability: profile.careerPriorities.skillPortability,
-            careerPrioritiesLearningOpportunity: profile.careerPriorities.learningOpportunity,
-            careerPrioritiesCompensation: profile.careerPriorities.compensation,
-            careerPrioritiesStability: profile.careerPriorities.stability,
-            careerPrioritiesWorkLifeBalance: profile.careerPriorities.workLifeBalance ?? null,
+
             preferencesWorkArrangements: JSON.stringify(profile.preferences.workArrangements),
             preferencesCompensationMinimumBaseSalary: profile.preferences.compensation.minimumBaseSalary ?? null,
             preferencesCompensationTargetBaseSalary: profile.preferences.compensation.targetBaseSalary ?? null,
@@ -575,18 +531,7 @@ export class SqliteJobCandidateProfileRepository implements IJobCandidateProfile
             skills: [], // Will be populated separately
             experience: [], // Will be populated separately
             strengths: JSON.parse(row.strengths),
-            desiredWork: JSON.parse(row.desired_work),
-            desiredGrowthAreas: JSON.parse(row.desired_growth_areas),
-            avoidWork: JSON.parse(row.avoid_work),
-            careerPriorities: {
-                technicalOwnership: row.career_priorities_technical_ownership,
-                architectureDepth: row.career_priorities_architecture_depth,
-                skillPortability: row.career_priorities_skill_portability,
-                learningOpportunity: row.career_priorities_learning_opportunity,
-                compensation: row.career_priorities_compensation,
-                stability: row.career_priorities_stability,
-                workLifeBalance: row.career_priorities_work_life_balance ?? undefined,
-            },
+
             preferences: {
                 workArrangements: JSON.parse(row.preferences_work_arrangements),
                 locations: [], // Will be populated separately

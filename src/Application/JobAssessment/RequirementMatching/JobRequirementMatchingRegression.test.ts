@@ -124,10 +124,7 @@ function createProfile(
         skills,
         experience: [],
         strengths: [],
-        desiredWork: [],
-        growthAreas: [],
-        avoid: [],
-        careerPriorities: [],
+
         preferences: {},
         constraints: {},
         ...overrides,
