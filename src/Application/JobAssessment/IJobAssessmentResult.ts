@@ -5,7 +5,7 @@ import { IJobPost } from "../../Domain/JobPosts/IJobPost";
 import { IJobSource } from "../../Domain/JobSources/IJobSource";
 import { IJobRequirementMatch } from "./RequirementMatching/IJobRequirementMatch";
 import { IJobRequirement } from "./RequirementsExtraction/IJobRequirement";
-import { IClassifiedJobRequirement } from "./RquirementClassification/IClassifiedJobRequirement";
+import { IClassifiedJobRequirement } from "./RequirementClassification/IClassifiedJobRequirement";
 import { IJobScreenResult } from "./Screening/IJobScreenResult";
 
 /** Temporary until we incorporate async jobs for running assessments */

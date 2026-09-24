@@ -1,7 +1,7 @@
 import { ICandidateProfile } from "../../../../Domain/Candidates/ICandidateProfile";
 import { ILlmInferenceProvider } from "../../../../Infrastructure/Inference/ILlmInferenceProvider";
 import { ILogger } from "../../../../Infrastructure/Logging/ILogger";
-import { IClassifiedJobRequirement } from "../../RquirementClassification/IClassifiedJobRequirement";
+import { IClassifiedJobRequirement } from "../../RequirementClassification/IClassifiedJobRequirement";
 import { IJobRequirementDirectMatch } from "./IJobRequirementDirectMatch";
 import { IJobRequirementDirectMatchingService } from "./IJobRequirementDirectMatchingService";
 import { JobRequirementDirectMatchingSystemPrompt } from "./JobRequirementDirectMatchingSystemPrompt";

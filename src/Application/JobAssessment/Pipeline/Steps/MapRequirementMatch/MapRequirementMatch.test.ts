@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ClassifiedJobRequirement } from "../../../RquirementClassification/ClassifiedJobRequirement";
+import { ClassifiedJobRequirement } from "../../../RequirementClassification/ClassifiedJobRequirement";
 import { ICandidateProfile } from "../../../../../Domain/Candidates/ICandidateProfile";
 import { PipelineStepStatus } from "../../../../Pipelines/IPipelineStepResult";
-import { IClassifiedJobRequirement } from "../../../RquirementClassification/IClassifiedJobRequirement";
+import { IClassifiedJobRequirement } from "../../../RequirementClassification/IClassifiedJobRequirement";
 import { IJobRequirementMatch } from "../../../RequirementMatching/IJobRequirementMatch";
 import { JobRequirementMatchMapper } from "../../../RequirementMatching/Mappers/JobRequirementMatchMapper";
 import { MapRequirementMatch } from "./MapRequirementMatch";
@@ -12,7 +12,12 @@ describe("MapRequirementMatch", () => {
     let mapper: JobRequirementMatchMapper;
     let step: MapRequirementMatch;
 
-    const requirement = new ClassifiedJobRequirement(["Backend Development"], "single", "Experience developing backend services.", "technical_skill");
+    const requirement = new ClassifiedJobRequirement(
+        ["Backend Development"],
+        "single",
+        "Experience developing backend services.",
+        "technical_skill"
+    );
 
     const profile = {
         currentTitle: "Software Engineer",

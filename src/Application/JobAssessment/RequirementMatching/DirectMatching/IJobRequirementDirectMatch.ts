@@ -1,4 +1,4 @@
-import { IClassifiedJobRequirement } from "../../RquirementClassification/IClassifiedJobRequirement";
+import { IClassifiedJobRequirement } from "../../RequirementClassification/IClassifiedJobRequirement";
 
 export interface IJobRequirementDirectMatch {
     requirement: IClassifiedJobRequirement;

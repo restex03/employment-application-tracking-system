@@ -2,7 +2,7 @@ import { ICandidateProfile } from "../../../Domain/Candidates/ICandidateProfile"
 import { ILogger } from "../../../Infrastructure/Logging/ILogger";
 import { PipelineStepStatus } from "../../Pipelines/IPipelineStepResult";
 import { PipelineRunner } from "../../Pipelines/PipelineRunner";
-import { IClassifiedJobRequirement } from "../RquirementClassification/IClassifiedJobRequirement";
+import { IClassifiedJobRequirement } from "../RequirementClassification/IClassifiedJobRequirement";
 import { IJobRequirementDirectMatchingService } from "./DirectMatching/IJobRequirementDirectMatchingService";
 import { IJobRequirementMatch } from "./IJobRequirementMatch";
 import { IJobRequirementsMatchingService } from "./IJobRequirementMatchingService";

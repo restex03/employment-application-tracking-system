@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ClassifiedJobRequirement } from "../../../RquirementClassification/ClassifiedJobRequirement";
+import { ClassifiedJobRequirement } from "../../../RequirementClassification/ClassifiedJobRequirement";
 import { ICandidateProfile } from "../../../../../Domain/Candidates/ICandidateProfile";
 import { PipelineStepStatus } from "../../../../Pipelines/IPipelineStepResult";
-import { IClassifiedJobRequirement } from "../../../RquirementClassification/IClassifiedJobRequirement";
+import { IClassifiedJobRequirement } from "../../../RequirementClassification/IClassifiedJobRequirement";
 import { IJobRequirementTransferableMatchingService } from "../../../RequirementMatching/TransferableMatching/IJobRequirementTransferableMatchingService";
 import { AssessTransferableMatch } from "./AssessTransferableMatch";
 import { IJobRequirementMatchingContext } from "../../IJobRequirementMatchingContext";
@@ -11,7 +11,12 @@ describe("AssessTransferableMatch", () => {
     let transferableMatchingService: IJobRequirementTransferableMatchingService;
     let step: AssessTransferableMatch;
 
-    const requirement = new ClassifiedJobRequirement(["Java", "Spring Boot"], "and", "Experience developing backend services using Java and Spring Boot.", "technical_skill");
+    const requirement = new ClassifiedJobRequirement(
+        ["Java", "Spring Boot"],
+        "and",
+        "Experience developing backend services using Java and Spring Boot.",
+        "technical_skill"
+    );
 
     const profile = {
         currentTitle: "Software Engineer",

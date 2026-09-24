@@ -1,4 +1,4 @@
-import { IClassifiedJobRequirement } from "../RquirementClassification/IClassifiedJobRequirement";
+import { IClassifiedJobRequirement } from "../RequirementClassification/IClassifiedJobRequirement";
 
 export type JobRequirementMatchType = "direct" | "transferable" | "missing";
 

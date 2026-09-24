@@ -5,7 +5,7 @@ import { IJobPostDetail } from "../../../Domain/JobPosts/IJobPostDetail";
 import { IJobSource } from "../../../Domain/JobSources/IJobSource";
 import { IJobRequirementMatch } from "../RequirementMatching/IJobRequirementMatch";
 import { IJobRequirement } from "../RequirementsExtraction/IJobRequirement";
-import { IClassifiedJobRequirement } from "../RquirementClassification/IClassifiedJobRequirement";
+import { IClassifiedJobRequirement } from "../RequirementClassification/IClassifiedJobRequirement";
 import { IJobScreenResult } from "../Screening/IJobScreenResult";
 
 export interface IJobAssessmentContext {

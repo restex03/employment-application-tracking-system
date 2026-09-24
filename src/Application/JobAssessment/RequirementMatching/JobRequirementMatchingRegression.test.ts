@@ -1,10 +1,10 @@
 import OpenAI from "openai";
-import { ClassifiedJobRequirement } from "../RquirementClassification/ClassifiedJobRequirement";
+import { ClassifiedJobRequirement } from "../RequirementClassification/ClassifiedJobRequirement";
 import { describe, expect, it } from "vitest";
 import { ICandidateProfile } from "../../../Domain/Candidates/ICandidateProfile";
 import { ILlmInferenceProvider } from "../../../Infrastructure/Inference/ILlmInferenceProvider";
 import { ILogger } from "../../../Infrastructure/Logging/ILogger";
-import { IClassifiedJobRequirement } from "../RquirementClassification/IClassifiedJobRequirement";
+import { IClassifiedJobRequirement } from "../RequirementClassification/IClassifiedJobRequirement";
 import { JobRequirementDirectMatchingService } from "./DirectMatching/JobRequirementDirectMatchingService";
 import { JobRequirementTransferableMatchingService } from "./TransferableMatching/JobRequirementTransferableMatchingService";
 
@@ -41,9 +41,8 @@ let transferableMatchingService: JobRequirementTransferableMatchingService;
 if (runRegressionTests) {
     // Deferred so LlmTargetRegistry (which reads env vars at class-definition time
     // for hosted providers) is only imported when regression tests are actually enabled.
-    const { LlmTargetRegistry } = await import(
-        "../../../Infrastructure/Inference/OpenAi/LlmTargetRegistry/LlmTargetRegistry"
-    );
+    const { LlmTargetRegistry } =
+        await import("../../../Infrastructure/Inference/OpenAi/LlmTargetRegistry/LlmTargetRegistry");
     const modelOptions = LlmTargetRegistry.Qwen3_4b_Instruct_8k;
 
     const client = new OpenAI({

@@ -11,7 +11,7 @@ import { IJobAssessmentQueueService } from "../JobAssessment/PipelineQueue/IJobA
 import { IJobAssessmentQueueWorkerService } from "../JobAssessment/PipelineQueue/IJobAssessmentQueueWorkerService";
 import { IJobRequirementsMatchingService } from "../JobAssessment/RequirementMatching/IJobRequirementMatchingService";
 import { IJobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/IJobRequirementsExtractionService";
-import { IJobRequirementClassificationService } from "../JobAssessment/RquirementClassification/IJobRequirementClassificationService";
+import { IJobRequirementClassificationService } from "../JobAssessment/RequirementClassification/IJobRequirementClassificationService";
 import { IJobScreeningService } from "../JobAssessment/Screening/IJobScreeningService";
 import { IJobCandidateProfileService } from "../JobCandidateProfiles/IJobCandidateProfileService";
 import { IJobPostResultTableService } from "../JobPost/IJobPostResultTableService";

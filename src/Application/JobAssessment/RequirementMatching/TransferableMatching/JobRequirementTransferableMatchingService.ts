@@ -1,7 +1,7 @@
 import { ICandidateProfile } from "../../../../Domain/Candidates/ICandidateProfile";
 import { ILlmInferenceProvider } from "../../../../Infrastructure/Inference/ILlmInferenceProvider";
 import { ILogger } from "../../../../Infrastructure/Logging/ILogger";
-import { IClassifiedJobRequirement } from "../../RquirementClassification/IClassifiedJobRequirement";
+import { IClassifiedJobRequirement } from "../../RequirementClassification/IClassifiedJobRequirement";
 import { IJobRequirementTransferableMatch } from "./IJobRequirementTransferableMatch";
 import { IJobRequirementTransferableMatchingService } from "./IJobRequirementTransferableMatchingService";
 import { JobRequirementTransferableMatchingSystemPrompt } from "./JobRequirementTransferableMatchingSystemPrompt";
@@ -21,7 +21,9 @@ export class JobRequirementTransferableMatchingService implements IJobRequiremen
         requirement: IClassifiedJobRequirement,
         profile: ICandidateProfile
     ): Promise<IJobRequirementTransferableMatch> {
-        this.logger.info(`[JobRequirementTransferableMatchingService.assess] Assessing: ${requirement.formattedName()}`);
+        this.logger.info(
+            `[JobRequirementTransferableMatchingService.assess] Assessing: ${requirement.formattedName()}`
+        );
 
         const result = await this.llm.generateStructured<JobRequirementTransferableMatchResponse>({
             systemPrompt: JobRequirementTransferableMatchingSystemPrompt,

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ClassifiedJobRequirement } from "../../RquirementClassification/ClassifiedJobRequirement";
+import { ClassifiedJobRequirement } from "../../RequirementClassification/ClassifiedJobRequirement";
 import { ICandidateProfile } from "../../../../Domain/Candidates/ICandidateProfile";
 import { ILogger } from "../../../../Infrastructure/Logging/ILogger";
 import { ILlmInferenceProvider } from "../../../../Infrastructure/Inference/ILlmInferenceProvider";
-import { IClassifiedJobRequirement } from "../../RquirementClassification/IClassifiedJobRequirement";
+import { IClassifiedJobRequirement } from "../../RequirementClassification/IClassifiedJobRequirement";
 import { JobRequirementDirectMatchingService } from "./JobRequirementDirectMatchingService";
 import { JobRequirementDirectMatchingSystemPrompt } from "./JobRequirementDirectMatchingSystemPrompt";
 import { JobRequirementDirectMatchResponseSchema } from "./JobRequirementDirectMatchResponseSchema";
@@ -14,7 +14,12 @@ describe("JobRequirementDirectMatchingService", () => {
     let logger: ILogger;
     let service: JobRequirementDirectMatchingService;
 
-    const requirement = new ClassifiedJobRequirement(["AWS", "GCP", "Azure"], "or", "Experience with cloud platforms: AWS, GCP, or Azure.", "technical_skill");
+    const requirement = new ClassifiedJobRequirement(
+        ["AWS", "GCP", "Azure"],
+        "or",
+        "Experience with cloud platforms: AWS, GCP, or Azure.",
+        "technical_skill"
+    );
 
     const profile = {
         currentTitle: "Software Engineer",

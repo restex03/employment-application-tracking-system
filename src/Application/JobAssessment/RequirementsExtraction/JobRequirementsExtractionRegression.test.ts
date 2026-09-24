@@ -12,7 +12,13 @@ import { ILogger } from "../../../Infrastructure/Logging/ILogger";
 import { ConsoleLogger } from "../../../Infrastructure/Logging/Console/ConsoleLogger";
 import { IJobRequirement } from "./IJobRequirement";
 import { JobRequirementsExtractionService } from "./JobRequirementsExtractionService";
-import { aiAgentsPosting, softwareEngineerOnePosting } from "./JobRequirementsExtractionRegressionPostings";
+import {
+    aiAgentsPostingOne,
+    aiAgentsPostingTwo,
+    softwareEngineerOnePosting,
+    softwareEngineeringTwo,
+    softwareEngineeringThree,
+} from "./JobRequirementsExtractionRegressionPostings";
 import { LogLevel } from "../../../Infrastructure/Logging/LogLevel";
 
 interface IStructuredInferenceRequest {
@@ -193,6 +199,107 @@ const softwareEngineerOneExpected: IExpectedRequirement[] = [
     { description: "leadership", anyOf: [["leadership"]] },
 ];
 
+const softwareEngineerTwoExpected: IExpectedRequirement[] = [
+    { description: "bachelor's degree in computer science or related field", anyOf: [["Bachelor"]] },
+    {
+        description: "3+ years of professional full stack web development experience",
+        anyOf: [["3+ years"], ["full stack"]],
+    },
+    { description: "object-oriented programming (mostly PHP)", anyOf: [["PHP"], ["Object-oriented"]] },
+    { description: "relational databases (MySQL)", anyOf: [["MySQL"], ["relational"]] },
+    {
+        description: "modern JavaScript frameworks (Angular, React, or Vue)",
+        anyOf: [["Angular"], ["React"], ["Vue"]],
+    },
+    { description: "JavaScript, HTML, CSS, and/or MVC frameworks", anyOf: [["JavaScript"], ["MVC"]] },
+    { description: "unit and integration testing", anyOf: [["testing"]] },
+    {
+        description: "distributed system architecture and asynchronous processing (AWS SQS)",
+        anyOf: [["SQS"], ["distributed"], ["asynchronous"]],
+    },
+    {
+        description: "automated production logging, monitoring and alerting",
+        anyOf: [["monitoring"], ["alerting"], ["logging"]],
+    },
+    {
+        description: "AI-assisted development tools (GitHub Copilot, ChatGPT, Cursor)",
+        anyOf: [["Copilot"], ["ChatGPT"], ["Cursor"], ["AI"]],
+    },
+    {
+        description: "incorporating AI into the software development lifecycle",
+        anyOf: [["software development lifecycle"], ["AI"]],
+    },
+    { description: "agile development", anyOf: [["Agile"]] },
+];
+
+const softwareEngineerThreeExpected: IExpectedRequirement[] = [
+    { description: "bachelor's degree in computer science or related field", anyOf: [["Bachelor"]] },
+    {
+        description: "5+ years of professional full stack web development experience",
+        anyOf: [["5+ years"], ["full stack"]],
+    },
+    { description: "object-oriented programming (mostly PHP)", anyOf: [["PHP"], ["Object-oriented"]] },
+    { description: "relational databases (MySQL)", anyOf: [["MySQL"], ["relational"]] },
+    {
+        description: "modern JavaScript frameworks (Angular, React, or Vue)",
+        anyOf: [["Angular"], ["React"], ["Vue"]],
+    },
+    { description: "JavaScript, HTML, CSS, and/or MVC frameworks", anyOf: [["JavaScript"], ["MVC"]] },
+    { description: "unit and integration testing", anyOf: [["testing"]] },
+    {
+        description: "distributed system architecture and asynchronous processing (AWS SQS)",
+        anyOf: [["SQS"], ["distributed"], ["asynchronous"]],
+    },
+    {
+        description: "automated production logging, monitoring and alerting",
+        anyOf: [["monitoring"], ["alerting"], ["logging"]],
+    },
+    { description: "agile development", anyOf: [["Agile"]] },
+    // Preferred skills are asserted too: the extraction prompt treats every stated
+    // qualification as REQUIRED, with no preferred/optional distinction.
+    {
+        description: "scaling real-time high availability APIs",
+        anyOf: [["high availability"], ["real-time"], ["scaling"]],
+    },
+    {
+        description: "payment gateway/processor integrations (Stripe, Elavon, etc.)",
+        anyOf: [["Stripe"], ["payment gateway"]],
+    },
+    {
+        description: "finance and banking process concepts (merchant accounts, ACH, settlement)",
+        anyOf: [["ACH"], ["merchant account"], ["settlement"], ["banking"]],
+    },
+];
+
+const aiAgentsTwoExpected: IExpectedRequirement[] = [
+    {
+        description: "4+ years of software development experience (API-led, microservice solutions)",
+        anyOf: [["4+ years"], ["microservice"]],
+    },
+    { description: "cloud technologies (GCP and Azure) with production deployment", anyOf: [["GCP"], ["Azure"]] },
+    { description: "developing AI agentic solutions", anyOf: [["Agentic"], ["AI agent"]] },
+    { description: ".NET development (C#)", anyOf: [[".NET"], ["C#"]] },
+    { description: "Python scripting", anyOf: [["Python"]] },
+    { description: "YAML CI/CD workflows (GitHub Actions)", anyOf: [["CI/CD"], ["GitHub Actions"]] },
+    { description: "AI agent development and skills creation (YAML, Markdown)", anyOf: [["YAML"], ["Markdown"]] },
+    {
+        description: "containerized applications in production (Kubernetes, Docker, Helm)",
+        anyOf: [["Kubernetes"], ["Docker"], ["Helm"]],
+    },
+    { description: "mentoring other software engineers", anyOf: [["mentor"]] },
+    { description: "computer science fundamentals", anyOf: [["fundamentals"]] },
+    { description: "BS in computer science or equivalent experience", anyOf: [["BS"], ["Bachelor"]] },
+    // "Experience we hope to see" is asserted too: the extraction prompt treats
+    // every stated qualification as REQUIRED, with no preferred/optional distinction.
+    { description: "Typescript, Javascript, Go", anyOf: [["Typescript"], ["Javascript"], ["Go"]] },
+    { description: "MCP server development and management", anyOf: [["MCP"]] },
+    { description: "Atlassian tool stack", anyOf: [["Atlassian"]] },
+    {
+        description: "observability tooling (Splunk, AppDynamics)",
+        anyOf: [["Splunk"], ["AppDynamics"], ["observability"]],
+    },
+];
+
 const forbiddenTerms = [
     "401(k)",
     "health insurance",
@@ -360,7 +467,7 @@ regressionDescribe("Job requirements extraction LLM regression", () => {
             "extracts expected requirements from the AI agents and harnesses posting",
             () =>
                 runExtractionCase({
-                    posting: aiAgentsPosting,
+                    posting: aiAgentsPostingOne,
                     expected: aiAgentsExpected,
                     label: "AI agents and harnesses",
                     minRequirements: 10,
@@ -376,6 +483,42 @@ regressionDescribe("Job requirements extraction LLM regression", () => {
                     expected: softwareEngineerOneExpected,
                     label: "Software engineer I",
                     minRequirements: 6,
+                }),
+            TEST_TIMEOUT_MS
+        );
+
+        it(
+            "extracts expected requirements from the software engineer two (Billing & Payments) posting",
+            () =>
+                runExtractionCase({
+                    posting: softwareEngineeringTwo,
+                    expected: softwareEngineerTwoExpected,
+                    label: "Software engineer two (Billing & Payments)",
+                    minRequirements: 8,
+                }),
+            TEST_TIMEOUT_MS
+        );
+
+        it(
+            "extracts expected requirements from the senior software engineer (Patient Payments) posting",
+            () =>
+                runExtractionCase({
+                    posting: softwareEngineeringThree,
+                    expected: softwareEngineerThreeExpected,
+                    label: "Senior software engineer (Patient Payments)",
+                    minRequirements: 10,
+                }),
+            TEST_TIMEOUT_MS
+        );
+
+        it(
+            "extracts expected requirements from the AI engineer (Tools Platform) posting",
+            () =>
+                runExtractionCase({
+                    posting: aiAgentsPostingTwo,
+                    expected: aiAgentsTwoExpected,
+                    label: "AI engineer (Tools Platform)",
+                    minRequirements: 10,
                 }),
             TEST_TIMEOUT_MS
         );

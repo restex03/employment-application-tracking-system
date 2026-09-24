@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ClassifiedJobRequirement } from "../RquirementClassification/ClassifiedJobRequirement";
+import { ClassifiedJobRequirement } from "../RequirementClassification/ClassifiedJobRequirement";
 import { ICandidateProfile } from "../../../Domain/Candidates/ICandidateProfile";
 import { ILogger } from "../../../Infrastructure/Logging/ILogger";
-import { IClassifiedJobRequirement } from "../RquirementClassification/IClassifiedJobRequirement";
+import { IClassifiedJobRequirement } from "../RequirementClassification/IClassifiedJobRequirement";
 import { IJobRequirementDirectMatchingService } from "./DirectMatching/IJobRequirementDirectMatchingService";
 import { JobRequirementsMatchingService } from "./JobRequirementsMatchingService";
 import { JobRequirementMatchMapper } from "./Mappers/JobRequirementMatchMapper";
@@ -18,7 +18,12 @@ describe("JobRequirementsMatchingService", () => {
         currentTitle: "Software Engineer",
     } as ICandidateProfile;
 
-    const requirement = new ClassifiedJobRequirement(["Java", "Spring Boot"], "and", "Experience developing backend services using Java and Spring Boot.", "technical_skill");
+    const requirement = new ClassifiedJobRequirement(
+        ["Java", "Spring Boot"],
+        "and",
+        "Experience developing backend services using Java and Spring Boot.",
+        "technical_skill"
+    );
 
     beforeEach(() => {
         directMatchingService = {

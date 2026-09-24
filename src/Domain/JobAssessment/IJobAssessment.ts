@@ -1,6 +1,6 @@
 import { IJobMatchScore } from "./Scoring/IJobMatchScore";
 import { IJobRequirementMatch } from "../../Application/JobAssessment/RequirementMatching/IJobRequirementMatch";
-import { IClassifiedJobRequirement } from "../../Application/JobAssessment/RquirementClassification/IClassifiedJobRequirement";
+import { IClassifiedJobRequirement } from "../../Application/JobAssessment/RequirementClassification/IClassifiedJobRequirement";
 import { IJobScreenResult } from "../../Application/JobAssessment/Screening/IJobScreenResult";
 
 export type JobAssessmentReviewStatus = "unreviewed" | "accepted" | "flagged";

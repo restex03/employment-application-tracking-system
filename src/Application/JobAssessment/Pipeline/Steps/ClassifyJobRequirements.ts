@@ -1,6 +1,6 @@
 import { IPipelineStep } from "../../../Pipelines/IPipelineStep";
 import { IPipelineStepResult, PipelineStepStatus } from "../../../Pipelines/IPipelineStepResult";
-import { IJobRequirementClassificationService } from "../../RquirementClassification/IJobRequirementClassificationService";
+import { IJobRequirementClassificationService } from "../../RequirementClassification/IJobRequirementClassificationService";
 import { IJobAssessmentContext } from "../IJobAssessmentContext";
 
 export class ClassifyJobRequirements implements IPipelineStep<IJobAssessmentContext> {

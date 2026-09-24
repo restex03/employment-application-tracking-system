@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ClassifiedJobRequirement } from "../../../RquirementClassification/ClassifiedJobRequirement";
+import { ClassifiedJobRequirement } from "../../../RequirementClassification/ClassifiedJobRequirement";
 import { ICandidateProfile } from "../../../../../Domain/Candidates/ICandidateProfile";
 import { PipelineStepStatus } from "../../../../Pipelines/IPipelineStepResult";
-import { IClassifiedJobRequirement } from "../../../RquirementClassification/IClassifiedJobRequirement";
+import { IClassifiedJobRequirement } from "../../../RequirementClassification/IClassifiedJobRequirement";
 import { IJobRequirementDirectMatchingService } from "../../../RequirementMatching/DirectMatching/IJobRequirementDirectMatchingService";
 import { AssessDirectMatch } from "./AssessDirectMatch";
 import { IJobRequirementMatchingContext } from "../../IJobRequirementMatchingContext";
@@ -11,7 +11,12 @@ describe("AssessDirectMatch", () => {
     let directMatchingService: IJobRequirementDirectMatchingService;
     let step: AssessDirectMatch;
 
-    const requirement = new ClassifiedJobRequirement(["AWS", "GCP", "Azure"], "or", "Experience with AWS, GCP, or Azure.", "technical_skill");
+    const requirement = new ClassifiedJobRequirement(
+        ["AWS", "GCP", "Azure"],
+        "or",
+        "Experience with AWS, GCP, or Azure.",
+        "technical_skill"
+    );
 
     const profile = {
         currentTitle: "Software Engineer",

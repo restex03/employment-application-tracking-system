@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ClassifiedJobRequirement } from "./RquirementClassification/ClassifiedJobRequirement";
+import { ClassifiedJobRequirement } from "./RequirementClassification/ClassifiedJobRequirement";
 import { ICandidateProfile } from "../../Domain/Candidates/ICandidateProfile";
 import { IJobAssessment } from "../../Domain/JobAssessment/IJobAssessment";
 import { IJobPost } from "../../Domain/JobPosts/IJobPost";

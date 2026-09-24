@@ -1,5 +1,5 @@
 import { ICandidateProfile } from "../../../../Domain/Candidates/ICandidateProfile";
-import { IClassifiedJobRequirement } from "../../RquirementClassification/IClassifiedJobRequirement";
+import { IClassifiedJobRequirement } from "../../RequirementClassification/IClassifiedJobRequirement";
 import { IJobRequirementTransferableMatch } from "./IJobRequirementTransferableMatch";
 
 export interface IJobRequirementTransferableMatchingService {

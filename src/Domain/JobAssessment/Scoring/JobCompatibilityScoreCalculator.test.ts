@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ClassifiedJobRequirement } from "../../../Application/JobAssessment/RquirementClassification/ClassifiedJobRequirement";
+import { ClassifiedJobRequirement } from "../../../Application/JobAssessment/RequirementClassification/ClassifiedJobRequirement";
 
 import { JobMatchScoreCalculator } from "./JobMatchScoreCalculator";
 import { IJobRequirementMatch } from "../../../Application/JobAssessment/RequirementMatching/IJobRequirementMatch";

@@ -1,14 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { ClassifiedJobRequirement } from "../../RquirementClassification/ClassifiedJobRequirement";
+import { ClassifiedJobRequirement } from "../../RequirementClassification/ClassifiedJobRequirement";
 import { JobRequirementMatchMapper } from "./JobRequirementMatchMapper";
-import { IClassifiedJobRequirement } from "../../RquirementClassification/IClassifiedJobRequirement";
+import { IClassifiedJobRequirement } from "../../RequirementClassification/IClassifiedJobRequirement";
 import { IJobRequirementDirectMatch } from "../DirectMatching/IJobRequirementDirectMatch";
 import { IJobRequirementTransferableMatch } from "../TransferableMatching/IJobRequirementTransferableMatch";
 
 describe("JobRequirementMatchMapper", () => {
     const mapper = new JobRequirementMatchMapper();
 
-    const requirement = new ClassifiedJobRequirement(["Backend Development"], "single", "Experience developing backend services using Java and Spring Boot.", "technical_skill");
+    const requirement = new ClassifiedJobRequirement(
+        ["Backend Development"],
+        "single",
+        "Experience developing backend services using Java and Spring Boot.",
+        "technical_skill"
+    );
 
     describe("direct match", () => {
         it("maps a direct match", () => {
@@ -264,7 +269,12 @@ describe("JobRequirementMatchMapper", () => {
                 evidence: null,
             };
 
-            const differentRequirement = new ClassifiedJobRequirement(["Cloud Platform"], "single", "Experience with AWS.", "technical_skill");
+            const differentRequirement = new ClassifiedJobRequirement(
+                ["Cloud Platform"],
+                "single",
+                "Experience with AWS.",
+                "technical_skill"
+            );
 
             const transferableMatch: IJobRequirementTransferableMatch = {
                 requirement: differentRequirement,
