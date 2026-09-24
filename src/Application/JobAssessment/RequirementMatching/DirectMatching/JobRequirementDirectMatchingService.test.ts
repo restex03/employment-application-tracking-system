@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ClassifiedJobRequirement } from "../../RquirementClassification/ClassifiedJobRequirement";
 import { ICandidateProfile } from "../../../../Domain/Candidates/ICandidateProfile";
 import { ILogger } from "../../../../Infrastructure/Logging/ILogger";
 import { ILlmInferenceProvider } from "../../../../Infrastructure/Inference/ILlmInferenceProvider";
@@ -13,12 +14,7 @@ describe("JobRequirementDirectMatchingService", () => {
     let logger: ILogger;
     let service: JobRequirementDirectMatchingService;
 
-    const requirement: IClassifiedJobRequirement = {
-        description: "Experience with cloud platforms: AWS, GCP, or Azure.",
-        name: "Public Cloud Platform",
-        sentenceCapture: "Experience with cloud platforms: AWS, GCP, or Azure.",
-        category: "technical_skill",
-    };
+    const requirement = new ClassifiedJobRequirement(["AWS", "GCP", "Azure"], "or", "Experience with cloud platforms: AWS, GCP, or Azure.", "technical_skill");
 
     const profile = {
         currentTitle: "Software Engineer",
@@ -73,7 +69,7 @@ describe("JobRequirementDirectMatchingService", () => {
             });
 
             await expect(service.assess(requirement, profile)).rejects.toThrow(
-                "Direct match requires evidence: Public Cloud Platform"
+                "Direct match requires evidence: AWS or GCP or Azure"
             );
         });
 
@@ -84,7 +80,7 @@ describe("JobRequirementDirectMatchingService", () => {
             });
 
             await expect(service.assess(requirement, profile)).rejects.toThrow(
-                "Direct match requires evidence: Public Cloud Platform"
+                "Direct match requires evidence: AWS or GCP or Azure"
             );
         });
     });
@@ -123,7 +119,7 @@ describe("JobRequirementDirectMatchingService", () => {
             });
 
             await expect(service.assess(requirement, profile)).rejects.toThrow(
-                "Non-direct match must not contain evidence: Public Cloud Platform"
+                "Non-direct match must not contain evidence: AWS or GCP or Azure"
             );
         });
 
@@ -134,7 +130,7 @@ describe("JobRequirementDirectMatchingService", () => {
             });
 
             await expect(service.assess(requirement, profile)).rejects.toThrow(
-                "Non-direct match must not contain evidence: Public Cloud Platform"
+                "Non-direct match must not contain evidence: AWS or GCP or Azure"
             );
         });
     });
@@ -195,7 +191,7 @@ describe("JobRequirementDirectMatchingService", () => {
             await service.assess(requirement, profile);
 
             expect(logger.info).toHaveBeenCalledWith(
-                "[JobRequirementDirectMatchingService.assess] Assessing: Public Cloud Platform"
+                "[JobRequirementDirectMatchingService.assess] Assessing: AWS or GCP or Azure"
             );
         });
     });

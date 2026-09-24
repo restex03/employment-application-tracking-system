@@ -3,6 +3,7 @@ import { ILlmInferenceProvider } from "../../../Infrastructure/Inference/ILlmInf
 import { ILogger } from "../../../Infrastructure/Logging/ILogger";
 import { IJobRequirementsExtractionService } from "./IJobRequirementsExtractionService";
 import { IJobRequirement } from "./IJobRequirement";
+import { JobRequirement } from "./JobRequirement";
 import { JobRequirementsExtractorSystemPrompt } from "./JobRequirementsExtractorSystemPrompt";
 import { JobRequirementsResponseSchema } from "./JobRequirementsResponseSchema";
 import { JobRequirementsResponseValidationSchema } from "./JobRequirementsResponseValidationSchema";
@@ -28,22 +29,23 @@ export class JobRequirementsExtractionService implements IJobRequirementsExtract
             jsonSchema: JobRequirementsResponseSchema,
             validationSchema: JobRequirementsResponseValidationSchema,
 
-            temperature: 0.1,
+            temperature: 0,
             maxTokens: 6000,
         });
 
-        this.logger.info(jobInfo);
-        this.logger.info(`\t- Requirements: ${result.requirements.length}`);
+        const requirements = result.requirements.map(requirement => JobRequirement.from(requirement));
 
-        for (const requirement of result.requirements) {
-            this.logger.info(`\t\t- ${requirement.name}`);
-            this.logger.info(`\t\t\t- Description: ${requirement.description}`);
+        this.logger.info(jobInfo);
+        this.logger.info(`\t- Requirements: ${requirements.length}`);
+
+        for (const requirement of requirements) {
+            this.logger.info(`\t\t- ${requirement.formattedName()} (${requirement.type})`);
             this.logger.info(`\t\t\t- Sentence: ${requirement.sentenceCapture}`);
         }
 
         this.logger.info("\n");
 
-        return result.requirements;
+        return requirements;
     }
     private stripMarkup(description: string) {
         return sanitizeHtml(description, {

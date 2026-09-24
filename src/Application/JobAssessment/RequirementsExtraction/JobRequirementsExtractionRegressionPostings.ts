@@ -33,8 +33,6 @@ Target Openings
 
 2
 
-What Is the Opportunity?
-
 What Is the Opportunity? 
 
 As a member of the Enterprise AI and Emerging Technology organization at Travelers, you'll be joining a strategic and collaborative team focused on transforming our business and technology capabilities leveraging best in class AI-enabled technology. We're looking for a Software Engineer II in the Enterprise AI Platforms organization to join our team focused on delivering the agent harnesses and platform capabilities that enable and accelerate the development of generative AI applications across the enterprise. 
@@ -87,13 +85,9 @@ What Is in It for You?
 Employment Practices
 
 Travelers is an equal opportunity employer. We value the unique abilities and talents each individual brings to our organization and recognize that we benefit in numerous ways from our differences. 
-
 In accordance with local law, candidates seeking employment in Colorado are not required to disclose dates of attendance at or graduation from educational institutions.
-
 If you are a candidate and have specific questions regarding the physical requirements of this role, please send us an email so we may assist you.
-
 Travelers reserves the right to fill this position at a level above or below the level included in this posting.
-
 To learn more about our comprehensive benefit programs please visit our benefits page.`,
 };
 
@@ -101,5 +95,58 @@ export const softwareEngineerOnePosting: IJobPostDetail = {
     id: "regression-software-engineer-one",
     requisitionId: "R-51967",
     title: "Software Engineer I (Typescript, Node, AWS)",
-    description: `Software Engineer I (Typescript, Node, AWS) page is loaded Software Engineer I (Typescript, Node, AWS) Apply remote type Hybrid locations CT - Hartford GA - Atlanta MN - St. Paul MD - Hunt Valley time type Full time posted on Posted 4 Days Ago job requisition id R-51967 Salary Range $99,100.00 - $163,400.00 Possible cash based incentive awards Target Openings 1 What Is the Opportunity? Travelers is seeking a Software Engineer I to join our organization as we grow and transform our Technology landscape. Individual will complete intermediate end to end engineering tasks for specific system assignments including developing, analyzing, configuring, testing, debugging, troubleshooting, documenting, health monitoring/alerting, and implementing based on user or system design specifications, as well as participating in troubleshooting, conducting impact analysis and escalating appropriately. Applicants must be authorized to work for ANY employer in the U.S. The company does not sponsor/support H-1B petitions, TN, or Forms I-983/STEM OPT, for this role. What Will You Do? Perform analysis, design, development, and configuration functions as well as define technical requirements for assignments of intermediate complexity. Participate with team to perform analysis, assessment and resolution for defects and incidents of intermediate complexity and escalate appropriately. Work within guidelines set by team to independently tackle well-scoped problems. Seek opportunities to expand technical knowledge and capabilities. Perform other duties as assigned. What Will Our Ideal Candidate Have? Three years of programming/development experience. Experience with Typescript, AWS or Azure and Node required. Experience with C#, API development and AI (Claude code) highly desired. Delivery - Intermediate delivery skills including the ability to deliver work at a steady, predictable pace to achieve commitments, decompose work assignments into small batch releases and contribute to tradeoff and negotiation discussions. Domain Expertise - Demonstrated track record of domain expertise including the ability to understand technical concepts necessary to do the job effectively, demonstrate willingness, cooperation, and concern for business issues and possess in-depth knowledge of immediate systems worked on. Problem Solving - Proven problem solving skills including debugging skills, allowing you to determine source of issues in unfamiliar code or systems and the ability to recognize and solve repetitive problems rather than working around them, recognize mistakes using them as learning opportunities and break down large problems into smaller, more manageable ones. Communication - Strong communication skills with the ability to clearly and concisely interact with team members, document work in a clear, easy to follow manner, collaborate well with team members, take in well-scoped requirements and ask the right questions to ensure clarification, seek out and receive constructive criticism well and listen when others are speaking. Leadership - Intermediate leadership skills with a proven track record of self-motivation in identifying personal growth opportunities. What is a Must Have? Bachelor’s degree in computer science, related STEM field, or its equivalent in education and/or work experience. 2 additional years of software engineering experience. What Is in It for You? Health Insurance: Employees and their eligible family members – including spouses, domestic partners, and children – are eligible for coverage from the first day of employment. Retirement: Travelers matches your 401(k) contributions dollar-for-dollar up to your first 5% of eligible pay, subject to an annual maximum. If you have student loan debt, you can enroll in the Paying it Forward Savings Program. When you make a payment toward your student loan, Travelers will make an annual contribution into your 401(k) account. You are also eligible for a Pension Plan that is 100% funded by Travelers. Paid Time Off: Start your career at Travelers with a minimum of 20 days Paid Time Off annually, plus nine paid company Holidays.`,
+    description: `Software Engineer I (Typescript, Node, AWS)
+
+Software Engineer I (Typescript, Node, AWS) page is loaded 
+
+Software Engineer I (Typescript, Node, AWS) Apply 
+
+remote type Hybrid 
+
+locations CT - Hartford GA - Atlanta MN - St. Paul MD - Hunt Valley 
+
+time type Full time 
+
+posted on Posted 4 Days Ago 
+
+job requisition id R-51967 
+
+Salary Range $99,100.00 - $163,400.00 Possible cash based incentive awards 
+
+Target Openings 
+
+1
+
+What Is the Opportunity?
+Travelers is seeking a Software Engineer I to join our organization as we grow and transform our Technology landscape. Individual will complete intermediate end to end engineering tasks for specific system assignments including developing, analyzing, configuring, testing, debugging, troubleshooting, documenting, health monitoring/alerting, and implementing based on user or system design specifications, as well as participating in troubleshooting, conducting impact analysis and escalating appropriately.
+Applicants must be authorized to work for ANY employer in the U.S. The company does not sponsor/support H-1B petitions, TN, or Forms I-983/STEM OPT, for this role.
+
+What Will You Do?
+
+- Perform analysis, design, development, and configuration functions as well as define technical requirements for assignments of intermediate complexity.
+- Participate with team to perform analysis, assessment and resolution for defects and incidents of intermediate complexity and escalate appropriately.
+- Work within guidelines set by team to independently tackle well-scoped problems.
+- Seek opportunities to expand technical knowledge and capabilities.
+- Perform other duties as assigned.
+
+What Will Our Ideal Candidate Have?
+
+- Three years of programming/development experience.
+- Experience with Typescript, AWS or Azure and Node required.
+- Experience with C#, API development and AI (Claude code) highly desired.
+- Experience with C#, API development and AI (Claude code) highly desired.
+- Delivery - Intermediate delivery skills including the ability to deliver work at a steady, predictable pace to achieve commitments, decompose work assignments into small batch releases and contribute to tradeoff and negotiation discussions.
+- Domain Expertise - Demonstrated track record of domain expertise including the ability to understand technical concepts necessary to do the job effectively, demonstrate willingness, cooperation, and concern for business issues and possess in-depth knowledge of immediate systems worked on.
+- Problem Solving - Proven problem solving skills including debugging skills, allowing you to determine source of issues in unfamiliar code or systems and the ability to recognize and solve repetitive problems rather than working around them, recognize mistakes using them as learning opportunities and break down large problems into smaller, more manageable ones.
+- Communication - Strong communication skills with the ability to clearly and concisely interact with team members, document work in a clear, easy to follow manner, collaborate well with team members, take in well-scoped requirements and ask the right questions to ensure clarification, seek out and receive constructive criticism well and listen when others are speaking.
+- Leadership - Intermediate leadership skills with a proven track record of self-motivation in identifying personal growth opportunities.
+
+What is a Must Have?
+- Bachelor’s degree in computer science, related STEM field, or its equivalent in education and/or work experience.
+- 2 additional years of software engineering experience.
+
+What Is in It for You?
+- Health Insurance: Employees and their eligible family members – including spouses, domestic partners, and children – are eligible for coverage from the first day of employment.
+- Retirement: Travelers matches your 401(k) contributions dollar-for-dollar up to your first 5% of eligible pay, subject to an annual maximum. If you have student loan debt, you can enroll in the Paying it Forward Savings Program. When you make a payment toward your student loan, Travelers will make an annual contribution into your 401(k) account. You are also eligible for a Pension Plan that is 100% funded by Travelers.
+- Paid Time Off: Start your career at Travelers with a minimum of 20 days Paid Time Off annually, plus nine paid company Holidays.`,
 };

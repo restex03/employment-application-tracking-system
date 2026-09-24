@@ -191,8 +191,8 @@ export class JobAssessmentService implements IJobAssessmentService {
         this.logger.table(
             matches.map((match, index) => ({
                 "#": index + 1,
-                Requirement: match.requirement.name,
-                RequirementDescription: match.requirement.description,
+                Requirement: match.requirement.formattedName(),
+                Type: match.requirement.type,
                 SentenceCapture: match.requirement.sentenceCapture,
                 Category: match.requirement.category,
                 Match: match.matchType,

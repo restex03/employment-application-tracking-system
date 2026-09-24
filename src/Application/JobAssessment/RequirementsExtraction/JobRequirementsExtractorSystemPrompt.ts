@@ -22,6 +22,11 @@ Use only information contained in the supplied job posting.
 Do not invent requirements. Do not infer technologies, credentials, years
 of experience, or responsibilities not supported by the posting.
 
+Do not complete a stack from prior knowledge: if the posting names a
+technology, do not add related frameworks, runtimes, or companion tools
+the posting does not mention. If the posting says "Java", do not add
+"Spring Boot"; if it says "AWS", do not add "EC2" or "Lambda".
+
 Do not weaken a requirement. If the posting says:
 
 "5+ years of Java and Spring Boot experience"
@@ -38,9 +43,6 @@ Preserve important constraints from the posting, including specific
 technologies, years of experience, proficiency or depth, production
 experience, architecture or system scope, ownership expectations,
 education, certifications, and domain experience.
-
-Every requirement must be traceable to the posting: its sentenceCapture
-must be text copied verbatim from the posting.
 
 ==================================================
 WHAT TO EXTRACT
@@ -92,62 +94,60 @@ Do not extract:
 - location or work arrangement requirements
 
 ==================================================
-ALTERNATIVES
+GRANULARITY AND ALTERNATIVES
 ==================================================
 
-Capture each distinct requirement statement as its own requirement. Do not
-merge, consolidate, or reclassify requirements; normalization happens
-downstream.
+Extract one requirement per distinct capability. Do not merge, consolidate,
+or reclassify requirements; normalization happens downstream. If the posting
+states the same expectation in more than one place, return one requirement
+per statement, each with its own sentenceCapture.
 
-If the posting states the same expectation in more than one place, return
-one requirement per statement. Each duplicate must carry its own
-sentenceCapture quoting the sentence that states it.
+Keep the following together as a single requirement:
+- Alternatives joined by "or". If the posting says "AWS, GCP, or Azure",
+  that is one requirement; do NOT create three requirements, and never
+  convert OR relationships into AND relationships.
+- Technologies the posting presents as one coherent stack, such as a
+  language with its framework or its runtime ("Java and Spring Boot",
+  "Typescript and Node").
 
-Preserve alternatives expressed by the posting. If the posting says
-"AWS, GCP, or Azure", that is one requirement; quote that phrase in
-sentenceCapture. Do NOT create three requirements.
+Split every other list into separate requirements, even when one sentence
+names several capabilities together:
 
-Never convert OR relationships into AND relationships.
+"Experience with Typescript, AWS or Azure and Node required."
+=> name: ["Typescript", "Node"], type: "and"
+   name: ["AWS", "Azure"], type: "or"
+   (two requirements)
+
+"Experience with C#, API development and AI (Claude code) highly desired."
+=> name: ["C#"], type: "single"
+   name: ["API development"], type: "single"
+   name: ["AI (Claude code)"], type: "single"
+   (three requirements)
+
+Requirements split from the same sentence may share that sentence as
+their sentenceCapture.
 
 ==================================================
-NAME
+ENTITIES AND TYPE
 ==================================================
 
-name must be a short, specific label (approximately 2-6 words) identifying
-the actual capability, qualification, or expectation.
+name is an array of the specific capabilities, qualifications, or
+expectations this requirement covers. Each entry must be a short,
+specific label (approximately 2-6 words) using the posting's own words.
 
-Prefer the posting's own words. When the posting names the capability
-explicitly, use that wording.
+Good entries: "Java", "Spring Boot", "AWS", "Bachelor's degree",
+"Infrastructure as code", "Technical leadership"
 
-Good: "Java / Spring Boot", "AWS, GCP, or Azure",
-"Infrastructure as code", "Distributed systems", "Technical leadership",
-"Healthcare domain", "Computer science degree"
-
-Bad: "requirement", "experience", "skill", "other", or invented category
-labels such as "Public cloud platform" when the posting says
+Bad entries: "requirement", "experience", "skill", "other", or invented
+category labels such as "Public cloud platform" when the posting says
 "AWS, GCP, or Azure"
 
-==================================================
-DESCRIPTION
-==================================================
-
-description must concisely preserve what the posting actually expects,
-including important qualifiers when present: years of experience,
-production experience, scale, proficiency, accepted alternatives, and
-ownership expectations.
-
-Examples:
-
-name: "Java / Spring Boot"
-description: "5+ years of software development experience using Java and Spring Boot."
-
-name: "AWS, GCP, or Azure"
-description: "5+ years of experience developing cloud solutions using AWS, GCP, or Azure."
-
-name: "Technical leadership"
-description: "Provide technical direction and mentor engineers across complex initiatives."
-
-Do not weaken or exaggerate the posting.
+type states how the entries combine:
+- "single": exactly one entry in name.
+- "and": every entry is required together (one coherent stack, e.g.
+  ["Typescript", "Node"]).
+- "or": any one entry satisfies the requirement (alternatives, e.g.
+  ["AWS", "GCP", "Azure"]).
 
 ==================================================
 SENTENCE CAPTURE
@@ -167,6 +167,10 @@ this requirement, copied verbatim.
 - sentenceCapture must support the requirement: if you cannot quote text
   from the posting that states the requirement, do not return that
   requirement.
+- Treat sentenceCapture as the proof of support: every technology,
+  credential, and quantity a requirement names must also appear in its
+  sentenceCapture. If it does not, either the requirement or the
+  capture is wrong; fix it or drop the requirement.
 
 ==================================================
 OUTPUT
@@ -174,14 +178,14 @@ OUTPUT
 
 Return only JSON of the form:
 
-{"requirements": [{"name": string, "description": string,
+{"requirements": [{"name": string[], "type": "single" | "and" | "or",
 "sentenceCapture": string}]}
 
-- Return only the fields "name", "description", and "sentenceCapture" for
+- Return only the fields "name", "type", and "sentenceCapture" for
   each requirement.
-- Keep name under 300 characters, description under 500 characters, and
-  sentenceCapture under 1000 characters. If a verbatim quote exceeds 1000
-  characters, quote only the portion that states the requirement.
+- Keep each name entry under 300 characters and sentenceCapture under
+  1000 characters. If a verbatim quote exceeds 1000 characters, quote
+  only the portion that states the requirement.
 - Do not include any other fields, categories, scores, or commentary.
 
 If the posting states any candidate expectation, return at least one
@@ -199,6 +203,10 @@ Before returning, re-read the posting and confirm:
 - every requirement is supported by the posting
 - every sentenceCapture is copied exactly from the posting; each quoted
   sentence appears in the posting unedited
+- no requirement names a technology, credential, years of experience, or
+  alternative that is absent from its own sentenceCapture
 - nothing has been added, dropped, weakened, or exaggerated
 - OR alternatives remain alternatives
+- distinct capabilities are separate requirements; only alternatives and
+  single stacks (e.g., "Java and Spring Boot") are grouped
 `;

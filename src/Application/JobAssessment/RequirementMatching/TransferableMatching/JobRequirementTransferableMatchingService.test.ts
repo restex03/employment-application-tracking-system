@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ClassifiedJobRequirement } from "../../RquirementClassification/ClassifiedJobRequirement";
 import { ICandidateProfile } from "../../../../Domain/Candidates/ICandidateProfile";
 import { ILogger } from "../../../../Infrastructure/Logging/ILogger";
 import { ILlmInferenceProvider } from "../../../../Infrastructure/Inference/ILlmInferenceProvider";
@@ -13,12 +14,7 @@ describe("JobRequirementTransferableMatchingService", () => {
     let logger: ILogger;
     let service: JobRequirementTransferableMatchingService;
 
-    const requirement: IClassifiedJobRequirement = {
-        description: "Experience developing backend services using Java and Spring Boot.",
-        name: "Java / Spring Boot",
-        sentenceCapture: "Experience developing backend services using Java and Spring Boot.",
-        category: "technical_skill",
-    };
+    const requirement = new ClassifiedJobRequirement(["Java", "Spring Boot"], "and", "Experience developing backend services using Java and Spring Boot.", "technical_skill");
 
     const profile = {
         currentTitle: "Software Engineer",
@@ -73,7 +69,7 @@ describe("JobRequirementTransferableMatchingService", () => {
             });
 
             await expect(service.assess(requirement, profile)).rejects.toThrow(
-                "Transferable match requires evidence: Java / Spring Boot"
+                "Transferable match requires evidence: Java and Spring Boot"
             );
         });
 
@@ -84,7 +80,7 @@ describe("JobRequirementTransferableMatchingService", () => {
             });
 
             await expect(service.assess(requirement, profile)).rejects.toThrow(
-                "Transferable match requires evidence: Java / Spring Boot"
+                "Transferable match requires evidence: Java and Spring Boot"
             );
         });
     });
@@ -123,7 +119,7 @@ describe("JobRequirementTransferableMatchingService", () => {
             });
 
             await expect(service.assess(requirement, profile)).rejects.toThrow(
-                "Non-transferable match must not contain evidence: Java / Spring Boot"
+                "Non-transferable match must not contain evidence: Java and Spring Boot"
             );
         });
 
@@ -134,7 +130,7 @@ describe("JobRequirementTransferableMatchingService", () => {
             });
 
             await expect(service.assess(requirement, profile)).rejects.toThrow(
-                "Non-transferable match must not contain evidence: Java / Spring Boot"
+                "Non-transferable match must not contain evidence: Java and Spring Boot"
             );
         });
     });
@@ -195,7 +191,7 @@ describe("JobRequirementTransferableMatchingService", () => {
             await service.assess(requirement, profile);
 
             expect(logger.info).toHaveBeenCalledWith(
-                "[JobRequirementTransferableMatchingService.assess] Assessing: Java / Spring Boot"
+                "[JobRequirementTransferableMatchingService.assess] Assessing: Java and Spring Boot"
             );
         });
     });

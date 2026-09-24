@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ClassifiedJobRequirement } from "../../../RquirementClassification/ClassifiedJobRequirement";
 import { ICandidateProfile } from "../../../../../Domain/Candidates/ICandidateProfile";
 import { PipelineStepStatus } from "../../../../Pipelines/IPipelineStepResult";
 import { IClassifiedJobRequirement } from "../../../RquirementClassification/IClassifiedJobRequirement";
@@ -10,12 +11,7 @@ describe("AssessDirectMatch", () => {
     let directMatchingService: IJobRequirementDirectMatchingService;
     let step: AssessDirectMatch;
 
-    const requirement: IClassifiedJobRequirement = {
-        description: "Experience with AWS, GCP, or Azure.",
-        name: "Public Cloud Platform",
-        sentenceCapture: "Experience with AWS, GCP, or Azure.",
-        category: "technical_skill",
-    };
+    const requirement = new ClassifiedJobRequirement(["AWS", "GCP", "Azure"], "or", "Experience with AWS, GCP, or Azure.", "technical_skill");
 
     const profile = {
         currentTitle: "Software Engineer",
@@ -103,9 +99,12 @@ describe("AssessDirectMatch", () => {
     });
 
     it("fails when the service returns a different requirement instance", async () => {
-        const differentRequirement: IClassifiedJobRequirement = {
-            ...requirement,
-        };
+        const differentRequirement = new ClassifiedJobRequirement(
+            requirement.name,
+            requirement.type,
+            requirement.sentenceCapture,
+            requirement.category
+        );
 
         vi.mocked(directMatchingService.assess).mockResolvedValue({
             requirement: differentRequirement,

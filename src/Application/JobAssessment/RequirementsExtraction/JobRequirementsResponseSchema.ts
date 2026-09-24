@@ -7,14 +7,17 @@ export const JobRequirementsResponseSchema = {
                 type: "object",
                 properties: {
                     name: {
-                        type: "string",
-                        minLength: 1,
-                        maxLength: 300,
+                        type: "array",
+                        items: {
+                            type: "string",
+                            minLength: 1,
+                            maxLength: 300,
+                        },
+                        minItems: 1,
                     },
-                    description: {
+                    type: {
                         type: "string",
-                        minLength: 1,
-                        maxLength: 500,
+                        enum: ["single", "and", "or"],
                     },
                     sentenceCapture: {
                         type: "string",
@@ -22,7 +25,7 @@ export const JobRequirementsResponseSchema = {
                         maxLength: 1000,
                     },
                 },
-                required: ["name", "description", "sentenceCapture"],
+                required: ["name", "type", "sentenceCapture"],
                 additionalProperties: false,
             },
         },

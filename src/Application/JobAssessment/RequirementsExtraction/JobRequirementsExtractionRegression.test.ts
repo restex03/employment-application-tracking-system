@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { appendFile, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
@@ -8,10 +9,11 @@ import sanitizeHtml from "sanitize-html";
 import { IJobPostDetail } from "../../../Domain/JobPosts/IJobPostDetail";
 import { ILlmInferenceProvider } from "../../../Infrastructure/Inference/ILlmInferenceProvider";
 import { ILogger } from "../../../Infrastructure/Logging/ILogger";
-
+import { ConsoleLogger } from "../../../Infrastructure/Logging/Console/ConsoleLogger";
 import { IJobRequirement } from "./IJobRequirement";
 import { JobRequirementsExtractionService } from "./JobRequirementsExtractionService";
 import { aiAgentsPosting, softwareEngineerOnePosting } from "./JobRequirementsExtractionRegressionPostings";
+import { LogLevel } from "../../../Infrastructure/Logging/LogLevel";
 
 interface IStructuredInferenceRequest {
     systemPrompt: string;
@@ -33,22 +35,26 @@ const regressionDescribe = runRegressionTests ? describe : describe.skip;
  * INSTRUCTIONS:
  * Set the environment variable RUN_LLM_REGRESSION to "1" to enable regression tests.
  * Ensure the target model's API is running and accessible (Ollama targets expect
- * http://localhost:11434/v1; the Mistral hosted target requires MISTRAL_API_KEY).
+ * http://localhost:11434/v1; hosted targets read their API keys from the environment).
  *
  * The model under test is selected via the LLM_TARGET environment variable using a
- * LlmTargetRegistry key (e.g. LLM_TARGET=Qwen3_8b_8k or LLM_TARGET=Mistral_Small_4_hosted).
+ * LlmTargetRegistry key (e.g. LLM_TARGET=Qwen3_8b_8k or LLM_TARGET=Hosted__).
  * Defaults to Qwen3_4b_Instruct_8k.
+ *
+ * The per-run inference ceiling is tunable via REGRESSION_TIME_BUDGET_MS (default 45000).
  */
 
-const TEST_TIMEOUT_MS = 300_000;
-
 /** Maximum allowed inference time for extracting requirements from a single job post. */
-const MAX_INFERENCE_TIME_MS = 45_000;
+const MAX_INFERENCE_TIME_MS = (() => {
+    const parsed = Number.parseInt(process.env.REGRESSION_TIME_BUDGET_MS ?? "", 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 45_000;
+})();
 
-let llm: ILlmInferenceProvider;
+const TEST_TIMEOUT_MS = MAX_INFERENCE_TIME_MS + 30_000;
+
 let modelLabel = "not configured";
 
-if (runRegressionTests) {
+async function initialize(): Promise<ILlmInferenceProvider> {
     // Deferred so LlmTargetRegistry (which reads env vars at class-definition time
     // for hosted providers) is only imported when regression tests are actually enabled.
     const { LlmTargetRegistry } =
@@ -81,9 +87,12 @@ if (runRegressionTests) {
         apiKey: modelOptions.apiKey,
 
         maxRetries: 0,
+        // Bound hangs at 2x the budget so over-budget models still complete and get
+        // persisted (then fail the budget gate with data) instead of being killed early.
+        timeout: MAX_INFERENCE_TIME_MS * 2,
     });
 
-    llm = {
+    return {
         async generateStructured<T>(request: IStructuredInferenceRequest): Promise<T> {
             const response = await client.chat.completions.create({
                 model: modelOptions.model,
@@ -97,7 +106,7 @@ if (runRegressionTests) {
                         content: typeof request.input === "string" ? request.input : JSON.stringify(request.input),
                     },
                 ],
-                temperature: request.temperature ?? 0.1,
+                temperature: request.temperature ?? 0,
                 max_tokens: request.maxTokens ?? 150,
                 ...(modelOptions.reasoningEffort !== undefined && {
                     reasoning_effort: modelOptions.reasoningEffort,
@@ -127,16 +136,11 @@ if (runRegressionTests) {
             }
         },
     } as unknown as ILlmInferenceProvider;
-} else {
-    llm = {} as unknown as ILlmInferenceProvider;
 }
 
-const logger = {
-    debug: () => undefined,
-    info: () => undefined,
-    warn: () => undefined,
-    error: () => undefined,
-} as unknown as ILogger;
+const llm = runRegressionTests ? await initialize() : ({} as ILlmInferenceProvider);
+
+const logger = new ConsoleLogger(LogLevel.Debug) as ILogger;
 
 const extractionService = new JobRequirementsExtractionService(llm, logger);
 
@@ -211,8 +215,9 @@ function sanitizePostingText(description: string): string {
     });
 }
 
+// TODO: Review
 function requirementText(requirement: IJobRequirement): string {
-    return `${requirement.name} ${requirement.description} ${requirement.sentenceCapture}`;
+    return `${requirement.name.join(" ")} ${requirement.sentenceCapture}`;
 }
 
 function containsKeyword(text: string, keyword: string): boolean {
@@ -236,22 +241,27 @@ function findMatchingRequirements(requirements: IJobRequirement[], expected: IEx
 }
 
 function summarize(requirements: IJobRequirement[]): string {
-    return requirements.map(requirement => requirement.name).join(" | ") || "<none>";
+    return requirements.map(requirement => requirement.formattedName()).join(" | ") || "<none>";
 }
 
 function assertSchemaConformance(requirements: IJobRequirement[]): void {
     expect(requirements.length).toBeGreaterThan(0);
 
     for (const requirement of requirements) {
-        expect(requirement.name, "name must be non-empty").toBeTruthy();
-        expect(requirement.description, "description must be non-empty").toBeTruthy();
+        expect(requirement.name.length, "name must have at least one entry").toBeGreaterThan(0);
         expect(requirement.sentenceCapture, "sentenceCapture must be non-empty").toBeTruthy();
 
-        expect(requirement.name.length, `name exceeds 300 characters: "${requirement.name}"`).toBeLessThanOrEqual(300);
-        expect(
-            requirement.description.length,
-            `description exceeds 500 characters: "${requirement.description}"`
-        ).toBeLessThanOrEqual(500);
+        for (const name of requirement.name) {
+            expect(name.length, `name entry exceeds 300 characters: "${name}"`).toBeLessThanOrEqual(300);
+        }
+
+        if (requirement.type === "single") {
+            expect(
+                requirement.name.length,
+                `single requirement must have exactly one entry: "${requirement.name}"`
+            ).toBe(1);
+        }
+
         expect(
             requirement.sentenceCapture.length,
             `sentenceCapture exceeds 1000 characters: "${requirement.sentenceCapture}"`
@@ -291,54 +301,82 @@ function assertForbiddenTermsAbsent(requirements: IJobRequirement[]): void {
     }
 }
 
+interface IExtractionCase {
+    posting: IJobPostDetail;
+    expected: IExpectedRequirement[];
+    label: string;
+    minRequirements: number;
+}
+
+/**
+ * Extracts one posting once, persists the result, then asserts the quality gates.
+ * Results are persisted before any assertion so a failing model's output still
+ * lands in the results file. Inference failures are persisted as failure entries.
+ */
+async function runExtractionCase(extractionCase: IExtractionCase): Promise<void> {
+    const inferenceStart = performance.now();
+
+    let requirements: IJobRequirement[];
+    try {
+        requirements = await extractionService.extract(extractionCase.posting);
+    } catch (error) {
+        await persistFailure({
+            modelName: modelLabel,
+            caseLabel: extractionCase.label,
+            elapsedMs: performance.now() - inferenceStart,
+            error: error instanceof Error ? error.message : String(error),
+        });
+        throw error;
+    }
+
+    const elapsedMs = performance.now() - inferenceStart;
+
+    await persistResults({
+        modelName: modelLabel,
+        caseLabel: extractionCase.label,
+        requirements,
+        elapsedMs,
+    });
+
+    expect(
+        elapsedMs,
+        `Requirement extraction exceeded the ${MAX_INFERENCE_TIME_MS / 1000} second inference budget`
+    ).toBeLessThanOrEqual(MAX_INFERENCE_TIME_MS);
+
+    expect(requirements.length).toBeGreaterThanOrEqual(extractionCase.minRequirements);
+    expect(requirements.length).toBeLessThanOrEqual(100);
+
+    assertSchemaConformance(requirements);
+    assertSentenceCapturesAreVerbatim(requirements, extractionCase.posting);
+    assertExpectedRequirements(requirements, extractionCase.expected);
+    assertForbiddenTermsAbsent(requirements);
+}
+
 regressionDescribe("Job requirements extraction LLM regression", () => {
     describe(`model: ${modelLabel}`, () => {
         console.log(`Running regression tests for model: ${modelLabel}`);
 
         it(
             "extracts expected requirements from the AI agents and harnesses posting",
-            async () => {
-                const inferenceStart = performance.now();
-                const requirements = await extractionService.extract(aiAgentsPosting);
-                const inferenceTimeMs = performance.now() - inferenceStart;
-                await exportRequirements(modelLabel, requirements);
-
-                expect(
-                    inferenceTimeMs,
-                    `Requirement extraction exceeded the ${MAX_INFERENCE_TIME_MS / 1000} second inference budget`
-                ).toBeLessThanOrEqual(MAX_INFERENCE_TIME_MS);
-
-                expect(requirements.length).toBeGreaterThanOrEqual(10);
-                expect(requirements.length).toBeLessThanOrEqual(100);
-
-                assertSchemaConformance(requirements);
-                assertSentenceCapturesAreVerbatim(requirements, aiAgentsPosting);
-                assertExpectedRequirements(requirements, aiAgentsExpected);
-                assertForbiddenTermsAbsent(requirements);
-            },
+            () =>
+                runExtractionCase({
+                    posting: aiAgentsPosting,
+                    expected: aiAgentsExpected,
+                    label: "AI agents and harnesses",
+                    minRequirements: 10,
+                }),
             TEST_TIMEOUT_MS
         );
 
         it(
             "extracts expected requirements from the software engineer I posting",
-            async () => {
-                const inferenceStart = performance.now();
-                const requirements = await extractionService.extract(softwareEngineerOnePosting);
-                const inferenceTimeMs = performance.now() - inferenceStart;
-                await exportRequirements(modelLabel, requirements);
-                expect(
-                    inferenceTimeMs,
-                    `Requirement extraction exceeded the ${MAX_INFERENCE_TIME_MS / 1000} second inference budget`
-                ).toBeLessThanOrEqual(MAX_INFERENCE_TIME_MS);
-
-                expect(requirements.length).toBeGreaterThanOrEqual(6);
-                expect(requirements.length).toBeLessThanOrEqual(100);
-
-                assertSchemaConformance(requirements);
-                assertSentenceCapturesAreVerbatim(requirements, softwareEngineerOnePosting);
-                assertExpectedRequirements(requirements, softwareEngineerOneExpected);
-                assertForbiddenTermsAbsent(requirements);
-            },
+            () =>
+                runExtractionCase({
+                    posting: softwareEngineerOnePosting,
+                    expected: softwareEngineerOneExpected,
+                    label: "Software engineer I",
+                    minRequirements: 6,
+                }),
             TEST_TIMEOUT_MS
         );
     });
@@ -348,15 +386,10 @@ function tableCell(text: string): string {
     return text.replace(/\r?\n/g, " ").replace(/\|/g, "\\|");
 }
 
-async function exportRequirements(modelName: string, requirements: IJobRequirement[]): Promise<void> {
-    const outputPath = resolve(import.meta.dirname, "../../../../job-requirements-test-results.md");
-    const timestamp = new Date().toLocaleString();
-    const rows = requirements.map(
-        (requirement, index) =>
-            `| ${index + 1} | ${tableCell(requirement.name)} | ${tableCell(requirement.description)} | ${tableCell(
-                requirement.sentenceCapture
-            )} |`
-    );
+/** Appends a results section, separated from prior entries by a horizontal rule. */
+async function appendResultsSection(content: string): Promise<void> {
+    const outputPath = resolve(import.meta.dirname, "../../../../log-docs/job-requirements-test-results.md");
+
     let existingContent = "";
     try {
         existingContent = await readFile(outputPath, { encoding: "utf-8" });
@@ -365,14 +398,49 @@ async function exportRequirements(modelName: string, requirements: IJobRequireme
     }
 
     const separator = existingContent.length > 0 ? "\n---\n\n" : "";
-    const content =
-        separator +
-        `## Model: ${modelName}\n\n` +
-        `### Recorded at: ${timestamp}\n\n` +
-        `| Count | Name | Description | Sentence Capture |\n` +
-        `| --- | --- | --- | --- |\n` +
-        rows.join("\n") +
-        "\n";
+    await appendFile(outputPath, separator + content, { encoding: "utf-8" });
+}
 
-    await appendFile(outputPath, content, { encoding: "utf-8" });
+async function persistResults(results: {
+    modelName: string;
+    caseLabel: string;
+    requirements: IJobRequirement[];
+    elapsedMs: number;
+}): Promise<void> {
+    const timestamp = new Date().toLocaleString();
+
+    const requirementRows = results.requirements.map(
+        (requirement, index) =>
+            `| ${index + 1} | ${tableCell(requirement.formattedName())} | ${requirement.type} | ${tableCell(
+                requirement.sentenceCapture
+            )} |`
+    );
+
+    await appendResultsSection(
+        `## Model: ${results.modelName}\n` +
+            `### Case: ${results.caseLabel}\n` +
+            `### Recorded at: ${timestamp}\n\n` +
+            `### Elapsed: ${(results.elapsedMs / 1000).toFixed(2)}s\n\n` +
+            `| Count | Requirement | Type | Sentence Capture |\n` +
+            `| --- | --- | --- | --- |\n` +
+            requirementRows.join("\n") +
+            `\n`
+    );
+}
+
+/** Records an inference failure (timeout, validation error, etc.) in the results file. */
+async function persistFailure(results: {
+    modelName: string;
+    caseLabel: string;
+    elapsedMs: number;
+    error: string;
+}): Promise<void> {
+    const timestamp = new Date().toLocaleString();
+
+    await appendResultsSection(
+        `## Model: ${results.modelName} — ${results.caseLabel}\n\n` +
+            `### Recorded at: ${timestamp}\n\n` +
+            `### Elapsed: ${(results.elapsedMs / 1000).toFixed(2)}s\n\n` +
+            `### Failed: <span style="color:red">${tableCell(results.error)}</span>\n`
+    );
 }

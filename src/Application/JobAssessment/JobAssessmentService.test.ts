@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ClassifiedJobRequirement } from "./RquirementClassification/ClassifiedJobRequirement";
 import { ICandidateProfile } from "../../Domain/Candidates/ICandidateProfile";
 import { IJobAssessment } from "../../Domain/JobAssessment/IJobAssessment";
 import { IJobPost } from "../../Domain/JobPosts/IJobPost";
@@ -40,12 +41,7 @@ describe("JobAssessmentService", () => {
     } as IJobPost;
 
     const requirementMatch: IJobRequirementMatch = {
-        requirement: {
-            name: "Java",
-            description: "Java experience",
-            sentenceCapture: "Java experience",
-            category: "technical_skill",
-        },
+        requirement: new ClassifiedJobRequirement(["Java"], "single", "Java experience", "technical_skill"),
         matchType: "direct",
         evidence: "Candidate has Java experience.",
     };

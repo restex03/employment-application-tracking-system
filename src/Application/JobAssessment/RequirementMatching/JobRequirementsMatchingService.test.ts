@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ClassifiedJobRequirement } from "../RquirementClassification/ClassifiedJobRequirement";
 import { ICandidateProfile } from "../../../Domain/Candidates/ICandidateProfile";
 import { ILogger } from "../../../Infrastructure/Logging/ILogger";
 import { IClassifiedJobRequirement } from "../RquirementClassification/IClassifiedJobRequirement";
@@ -17,12 +18,7 @@ describe("JobRequirementsMatchingService", () => {
         currentTitle: "Software Engineer",
     } as ICandidateProfile;
 
-    const requirement: IClassifiedJobRequirement = {
-        description: "Experience developing backend services using Java and Spring Boot.",
-        name: "Java / Spring Boot",
-        sentenceCapture: "Experience developing backend services using Java and Spring Boot.",
-        category: "technical_skill",
-    };
+    const requirement = new ClassifiedJobRequirement(["Java", "Spring Boot"], "and", "Experience developing backend services using Java and Spring Boot.", "technical_skill");
 
     beforeEach(() => {
         directMatchingService = {
@@ -122,28 +118,13 @@ describe("JobRequirementsMatchingService", () => {
 
     it("preserves requirement order when matching multiple requirements", async () => {
         const requirements: IClassifiedJobRequirement[] = [
-            {
-                description: "Experience with AWS.",
-                name: "AWS",
-                sentenceCapture: "Experience with AWS.",
-                category: "technical_skill",
-            },
-            {
-                description: "Experience with Java.",
-                name: "Java",
-                sentenceCapture: "Experience with Java.",
-                category: "technical_skill",
-            },
-            {
-                description: "Experience with Ansible.",
-                name: "Ansible",
-                sentenceCapture: "Experience with Ansible.",
-                category: "technical_skill",
-            },
+            new ClassifiedJobRequirement(["AWS"], "single", "Experience with AWS.", "technical_skill"),
+            new ClassifiedJobRequirement(["Java"], "single", "Experience with Java.", "technical_skill"),
+            new ClassifiedJobRequirement(["Ansible"], "single", "Experience with Ansible.", "technical_skill"),
         ];
 
         vi.mocked(directMatchingService.assess).mockImplementation(async requirement => {
-            if (requirement.name === "AWS") {
+            if (requirement.name.includes("AWS")) {
                 return {
                     requirement,
                     isDirectMatch: true,
@@ -159,7 +140,7 @@ describe("JobRequirementsMatchingService", () => {
         });
 
         vi.mocked(transferableMatchingService.assess).mockImplementation(async requirement => {
-            if (requirement.name === "Java") {
+            if (requirement.name.includes("Java")) {
                 return {
                     requirement,
                     isTransferableMatch: true,
@@ -198,9 +179,12 @@ describe("JobRequirementsMatchingService", () => {
     });
 
     it("fails when the direct matching service returns a different requirement instance", async () => {
-        const differentRequirement: IClassifiedJobRequirement = {
-            ...requirement,
-        };
+        const differentRequirement = new ClassifiedJobRequirement(
+            requirement.name,
+            requirement.type,
+            requirement.sentenceCapture,
+            requirement.category
+        );
 
         vi.mocked(directMatchingService.assess).mockResolvedValue({
             requirement: differentRequirement,
@@ -214,9 +198,12 @@ describe("JobRequirementsMatchingService", () => {
     });
 
     it("fails when the transferable matching service returns a different requirement instance", async () => {
-        const differentRequirement: IClassifiedJobRequirement = {
-            ...requirement,
-        };
+        const differentRequirement = new ClassifiedJobRequirement(
+            requirement.name,
+            requirement.type,
+            requirement.sentenceCapture,
+            requirement.category
+        );
 
         vi.mocked(directMatchingService.assess).mockResolvedValue({
             requirement,

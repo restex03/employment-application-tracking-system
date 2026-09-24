@@ -2,6 +2,7 @@ import { ILlmInferenceProvider } from "../../../Infrastructure/Inference/ILlmInf
 import { ILogger } from "../../../Infrastructure/Logging/ILogger";
 import { IJobRequirement } from "../RequirementsExtraction/IJobRequirement";
 import { IClassifiedJobRequirement } from "./IClassifiedJobRequirement";
+import { ClassifiedJobRequirement } from "./ClassifiedJobRequirement";
 import { IJobRequirementClassificationService } from "./IJobRequirementClassificationService";
 import { JobRequirementClassificationResponseSchema } from "./JobRequirementClassificationResponseSchema";
 import { JobRequirementClassificationResponseValidationSchema } from "./JobRequirementClassificationResponseValidationSchema";
@@ -28,7 +29,8 @@ export class JobRequirementClassificationService implements IJobRequirementClass
                 requirements: requirements.map((requirement, index) => ({
                     index,
                     name: requirement.name,
-                    description: requirement.description,
+                    type: requirement.type,
+                    sentenceCapture: requirement.sentenceCapture,
                 })),
             },
 
@@ -52,10 +54,7 @@ export class JobRequirementClassificationService implements IJobRequirementClass
                 throw new Error(`Missing classification for requirement index ${index}.`);
             }
 
-            return {
-                ...requirement,
-                category,
-            };
+            return ClassifiedJobRequirement.from({ ...requirement, category });
         });
     }
 }

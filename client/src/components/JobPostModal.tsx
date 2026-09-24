@@ -3,7 +3,7 @@ import DOMPurify from "dompurify";
 import { IJobPostData } from "../types/JobPost";
 import { IJobAssessment, JobAssessmentReviewStatus } from "../types/JobAssessment";
 import { JobQueueStatus } from "../types/JobAssessmentJob";
-import { formatDate, formatLocation, formatList } from "../services/formatters";
+import { formatDate, formatLocation, formatList, formatRequirementName } from "../services/formatters";
 
 import "./JobPostModal.css";
 import { getMatchTypeColor, getAssessmentStatusColor, getScreenDispositionColor } from "../services/statusColors";
@@ -478,14 +478,14 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                                                                             </span>
                                                                             <div className="match-content">
                                                                                 <span className="match-list-name">
-                                                                                    {match.requirement.name}
+                                                                                    {formatRequirementName(match.requirement)}
                                                                                 </span>
                                                                                 <div className="match-detail-panel">
                                                                                     <p className="match-detail-row">
                                                                                         <span className="match-detail-label">
-                                                                                            Description:
+                                                                                            Sentence Capture:
                                                                                         </span>{" "}
-                                                                                        {match.requirement.description}
+                                                                                        {match.requirement.sentenceCapture}
                                                                                     </p>
                                                                                     {match.evidence && (
                                                                                         <p className="match-detail-row">

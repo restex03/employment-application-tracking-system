@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ClassifiedJobRequirement } from "../../../RquirementClassification/ClassifiedJobRequirement";
 import { ICandidateProfile } from "../../../../../Domain/Candidates/ICandidateProfile";
 import { PipelineStepStatus } from "../../../../Pipelines/IPipelineStepResult";
 import { IClassifiedJobRequirement } from "../../../RquirementClassification/IClassifiedJobRequirement";
@@ -10,12 +11,7 @@ describe("AssessTransferableMatch", () => {
     let transferableMatchingService: IJobRequirementTransferableMatchingService;
     let step: AssessTransferableMatch;
 
-    const requirement: IClassifiedJobRequirement = {
-        description: "Experience developing backend services using Java and Spring Boot.",
-        name: "Java / Spring Boot",
-        sentenceCapture: "Experience developing backend services using Java and Spring Boot.",
-        category: "technical_skill",
-    };
+    const requirement = new ClassifiedJobRequirement(["Java", "Spring Boot"], "and", "Experience developing backend services using Java and Spring Boot.", "technical_skill");
 
     const profile = {
         currentTitle: "Software Engineer",
@@ -128,9 +124,12 @@ describe("AssessTransferableMatch", () => {
     });
 
     it("fails when the transferable assessment references a different requirement instance", async () => {
-        const differentRequirement: IClassifiedJobRequirement = {
-            ...requirement,
-        };
+        const differentRequirement = new ClassifiedJobRequirement(
+            requirement.name,
+            requirement.type,
+            requirement.sentenceCapture,
+            requirement.category
+        );
 
         vi.mocked(transferableMatchingService.assess).mockResolvedValue({
             requirement: differentRequirement,

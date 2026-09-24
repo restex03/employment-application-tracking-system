@@ -11,8 +11,8 @@ export type JobRequirementCategory =
     | "other";
 
 export interface IJobRequirement {
-    name: string;
-    description: string;
+    name: string[];
+    type: "single" | "and" | "or";
     sentenceCapture: string;
 }
 

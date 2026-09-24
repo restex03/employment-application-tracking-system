@@ -78,3 +78,14 @@ export function formatList(
     const shown = values.slice(0, maxItems).join(", ");
     return values.length > maxItems ? `${shown}, +${values.length - maxItems} more` : shown;
 }
+
+export function formatRequirementName(requirement: {
+    name: string[];
+    type: "single" | "and" | "or";
+}): string {
+    if (requirement.name.length === 1) {
+        return requirement.name[0];
+    }
+
+    return requirement.name.join(requirement.type === "or" ? " or " : " and ");
+}

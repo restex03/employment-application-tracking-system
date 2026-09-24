@@ -21,7 +21,7 @@ export class JobRequirementTransferableMatchingService implements IJobRequiremen
         requirement: IClassifiedJobRequirement,
         profile: ICandidateProfile
     ): Promise<IJobRequirementTransferableMatch> {
-        this.logger.info(`[JobRequirementTransferableMatchingService.assess] Assessing: ${requirement.name}`);
+        this.logger.info(`[JobRequirementTransferableMatchingService.assess] Assessing: ${requirement.formattedName()}`);
 
         const result = await this.llm.generateStructured<JobRequirementTransferableMatchResponse>({
             systemPrompt: JobRequirementTransferableMatchingSystemPrompt,
@@ -37,11 +37,11 @@ export class JobRequirementTransferableMatchingService implements IJobRequiremen
         });
 
         if (result.isTransferableMatch && !result.evidence) {
-            throw new Error(`Transferable match requires evidence: ${requirement.name}`);
+            throw new Error(`Transferable match requires evidence: ${requirement.formattedName()}`);
         }
 
         if (!result.isTransferableMatch && result.evidence !== null) {
-            throw new Error(`Non-transferable match must not contain evidence: ${requirement.name}`);
+            throw new Error(`Non-transferable match must not contain evidence: ${requirement.formattedName()}`);
         }
 
         return {

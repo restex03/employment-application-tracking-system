@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { ClassifiedJobRequirement } from "../RquirementClassification/ClassifiedJobRequirement";
 import { describe, expect, it } from "vitest";
 import { ICandidateProfile } from "../../../Domain/Candidates/ICandidateProfile";
 import { ILlmInferenceProvider } from "../../../Infrastructure/Inference/ILlmInferenceProvider";
@@ -102,13 +103,8 @@ directMatchingService = new JobRequirementDirectMatchingService(llm, logger);
 
 transferableMatchingService = new JobRequirementTransferableMatchingService(llm, logger);
 
-function createRequirement(name: string, description: string): IClassifiedJobRequirement {
-    return {
-        name,
-        description,
-        sentenceCapture: description,
-        category: "technical_skill",
-    };
+function createRequirement(name: string, sentenceCapture: string): IClassifiedJobRequirement {
+    return new ClassifiedJobRequirement([name], "single", sentenceCapture, "technical_skill");
 }
 
 function createProfile(
