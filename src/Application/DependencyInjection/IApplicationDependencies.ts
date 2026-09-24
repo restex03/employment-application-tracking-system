@@ -18,6 +18,7 @@ import { IJobPostResultTableService } from "../JobPost/IJobPostResultTableServic
 import { IJobPostService } from "../JobPost/IJobPostService";
 import { IJobPostDiscoveryServiceFactory } from "../JobPostDiscovery/IJobPostDiscoveryServiceFactory";
 import { IJobPostSyncService } from "../JobPostSync/IJobPostSyncService";
+import { IJobPostSyncDailySchedulerService } from "../JobPostSync/Queue/IJobPostSyncDailySchedulerService";
 import { IJobPostSyncQueueService } from "../JobPostSync/Queue/IJobPostSyncQueueService";
 import { IJobPostSyncQueueWorkerService } from "../JobPostSync/Queue/IJobPostSyncQueueWorkerService";
 import { IJobSourceService } from "../JobSources/IJobSourceService";
@@ -32,6 +33,7 @@ export interface IApplicationDependencies {
     jobPostSyncService: IJobPostSyncService;
     jobPostSyncQueue: IJobPostSyncQueue;
     jobPostSyncQueueService: IJobPostSyncQueueService;
+    jobPostSyncDailySchedulerService: IJobPostSyncDailySchedulerService;
     jobPostService: IJobPostService;
     jobAssessmentQueue: IJobAssessmentQueue;
     jobAssessmentQueueService: IJobAssessmentQueueService;

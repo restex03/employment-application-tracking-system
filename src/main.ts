@@ -13,8 +13,10 @@ const server = new HttpServer(dependencies);
 const port = process.env.API_PORT ? parseInt(process.env.API_PORT) : 3000;
 const jobQueueWorkerSvc = dependencies.jobAssessmentQueueWorkerService;
 const jobPostSyncQueueWorkerSvc = dependencies.jobPostSyncQueueWorkerService;
+const jobPostSyncDailySchedulerSvc = dependencies.jobPostSyncDailySchedulerService;
 
 const shutdown = async () => {
+    jobPostSyncDailySchedulerSvc.stop();
     await jobQueueWorkerSvc.stop();
     await jobPostSyncQueueWorkerSvc.stop();
     await server.stop();
@@ -29,6 +31,7 @@ process.on("SIGTERM", shutdown);
 await server.start(port);
 jobQueueWorkerSvc.start({ freqMs: 1000 });
 jobPostSyncQueueWorkerSvc.start({ freqMs: 1000 });
+jobPostSyncDailySchedulerSvc.start();
 
 console.log(`API server started at http://localhost:${port}`);
 console.log(`Health check: http://localhost:${port}/health`);

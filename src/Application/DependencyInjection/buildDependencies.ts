@@ -68,6 +68,8 @@ import { IJobPostSyncQueue } from "../../Infrastructure/Persistence/Queues/JobPo
 import { SqliteJobPostSyncQueueRepository } from "../../Infrastructure/Persistence/Queues/JobPostSyncQueue/Sqlite/SqliteJobPostSyncQueueRepository";
 import { IJobPostSyncQueueWorkerService } from "../JobPostSync/Queue/IJobPostSyncQueueWorkerService";
 import { JobPostSyncQueueWorkerService } from "../JobPostSync/Queue/JobPostSyncQueueWorkerService";
+import { IJobPostSyncDailySchedulerService } from "../JobPostSync/Queue/IJobPostSyncDailySchedulerService";
+import { JobPostSyncDailySchedulerService } from "../JobPostSync/Queue/JobPostSyncDailySchedulerService";
 import { IJobApplicationRepository } from "../../Infrastructure/Persistence/JobApplications/IJobApplicationRepository";
 import { JobApplicationRepository } from "../../Infrastructure/Persistence/JobApplications/JobApplicationRepository";
 import { IFileSystemRepository } from "../../Infrastructure/Persistence/FileSystem/IFileSystemRepository";
@@ -190,10 +192,17 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         logger
     );
 
-    const jobPostSyncQueueService: IJobPostSyncQueueService = new JobPostSyncQueueService(jobPostSyncQueue);
+    const jobPostSyncQueueService: IJobPostSyncQueueService = new JobPostSyncQueueService(
+        jobPostSyncQueue,
+        jobSourceService
+    );
     const jobPostSyncQueueWorkerService: IJobPostSyncQueueWorkerService = new JobPostSyncQueueWorkerService(
         jobPostSyncQueue,
         jobPostSyncService,
+        logger
+    );
+    const jobPostSyncDailySchedulerService: IJobPostSyncDailySchedulerService = new JobPostSyncDailySchedulerService(
+        jobPostSyncQueueService,
         logger
     );
 
@@ -222,6 +231,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         jobPostResultService,
         jobPostSyncService,
         jobPostSyncQueueService,
+        jobPostSyncDailySchedulerService,
         jobPostService,
         jobPostSyncQueueWorkerService,
         jobPostSyncQueue,

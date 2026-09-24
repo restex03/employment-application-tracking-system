@@ -1,3 +1,6 @@
+import { appendFile, readFile } from "node:fs/promises";
+import { resolve } from "node:path";
+
 import OpenAI from "openai";
 import { describe, expect, it } from "vitest";
 import sanitizeHtml from "sanitize-html";
@@ -8,10 +11,7 @@ import { ILogger } from "../../../Infrastructure/Logging/ILogger";
 
 import { IJobRequirement } from "./IJobRequirement";
 import { JobRequirementsExtractionService } from "./JobRequirementsExtractionService";
-import {
-    aiAgentsPosting,
-    softwareEngineerOnePosting,
-} from "./JobRequirementsExtractionRegressionPostings";
+import { aiAgentsPosting, softwareEngineerOnePosting } from "./JobRequirementsExtractionRegressionPostings";
 
 interface IStructuredInferenceRequest {
     systemPrompt: string;
@@ -42,22 +42,31 @@ const regressionDescribe = runRegressionTests ? describe : describe.skip;
 
 const TEST_TIMEOUT_MS = 300_000;
 
+/** Maximum allowed inference time for extracting requirements from a single job post. */
+const MAX_INFERENCE_TIME_MS = 45_000;
+
 let llm: ILlmInferenceProvider;
 let modelLabel = "not configured";
 
 if (runRegressionTests) {
     // Deferred so LlmTargetRegistry (which reads env vars at class-definition time
     // for hosted providers) is only imported when regression tests are actually enabled.
-    const { LlmTargetRegistry } = await import(
-        "../../../Infrastructure/Inference/OpenAi/LlmTargetRegistry/LlmTargetRegistry"
-    );
+    const { LlmTargetRegistry } =
+        await import("../../../Infrastructure/Inference/OpenAi/LlmTargetRegistry/LlmTargetRegistry");
 
     const targetName = process.env.LLM_TARGET ?? "Qwen3_4b_Instruct_8k";
 
-    const modelOptions = (LlmTargetRegistry as unknown as Record<
-        string,
-        { model: string; apiBaseUrl: URL; apiKey: string; reasoningEffort?: "none" | "minimal" | "low" | "medium" | "high" }
-    >)[targetName];
+    const modelOptions = (
+        LlmTargetRegistry as unknown as Record<
+            string,
+            {
+                model: string;
+                apiBaseUrl: URL;
+                apiKey: string;
+                reasoningEffort?: "none" | "minimal" | "low" | "medium" | "high";
+            }
+        >
+    )[targetName];
 
     if (!modelOptions) {
         throw new Error(
@@ -85,8 +94,7 @@ if (runRegressionTests) {
                     },
                     {
                         role: "user",
-                        content:
-                            typeof request.input === "string" ? request.input : JSON.stringify(request.input),
+                        content: typeof request.input === "string" ? request.input : JSON.stringify(request.input),
                     },
                 ],
                 temperature: request.temperature ?? 0.1,
@@ -219,10 +227,7 @@ function containsKeyword(text: string, keyword: string): boolean {
     return haystack.includes(keyword.toLowerCase());
 }
 
-function findMatchingRequirements(
-    requirements: IJobRequirement[],
-    expected: IExpectedRequirement
-): IJobRequirement[] {
+function findMatchingRequirements(requirements: IJobRequirement[], expected: IExpectedRequirement): IJobRequirement[] {
     return requirements.filter(requirement =>
         expected.anyOf.some(keywordSet =>
             keywordSet.every(keyword => containsKeyword(requirementText(requirement), keyword))
@@ -242,9 +247,7 @@ function assertSchemaConformance(requirements: IJobRequirement[]): void {
         expect(requirement.description, "description must be non-empty").toBeTruthy();
         expect(requirement.sentenceCapture, "sentenceCapture must be non-empty").toBeTruthy();
 
-        expect(requirement.name.length, `name exceeds 300 characters: "${requirement.name}"`).toBeLessThanOrEqual(
-            300
-        );
+        expect(requirement.name.length, `name exceeds 300 characters: "${requirement.name}"`).toBeLessThanOrEqual(300);
         expect(
             requirement.description.length,
             `description exceeds 500 characters: "${requirement.description}"`
@@ -267,10 +270,7 @@ function assertSentenceCapturesAreVerbatim(requirements: IJobRequirement[], post
     }
 }
 
-function assertExpectedRequirements(
-    requirements: IJobRequirement[],
-    expected: IExpectedRequirement[]
-): void {
+function assertExpectedRequirements(requirements: IJobRequirement[], expected: IExpectedRequirement[]): void {
     const missing = expected.filter(item => findMatchingRequirements(requirements, item).length === 0);
 
     expect(
@@ -285,19 +285,28 @@ function assertForbiddenTermsAbsent(requirements: IJobRequirement[]): void {
         const text = requirementText(requirement).toLowerCase();
         const found = forbiddenTerms.filter(term => text.includes(term.toLowerCase()));
 
-        expect(
-            found,
-            `Requirement "${requirement.name}" mentions excluded content: ${found.join(", ")}`
-        ).toHaveLength(0);
+        expect(found, `Requirement "${requirement.name}" mentions excluded content: ${found.join(", ")}`).toHaveLength(
+            0
+        );
     }
 }
 
 regressionDescribe("Job requirements extraction LLM regression", () => {
     describe(`model: ${modelLabel}`, () => {
+        console.log(`Running regression tests for model: ${modelLabel}`);
+
         it(
             "extracts expected requirements from the AI agents and harnesses posting",
             async () => {
+                const inferenceStart = performance.now();
                 const requirements = await extractionService.extract(aiAgentsPosting);
+                const inferenceTimeMs = performance.now() - inferenceStart;
+                await exportRequirements(modelLabel, requirements);
+
+                expect(
+                    inferenceTimeMs,
+                    `Requirement extraction exceeded the ${MAX_INFERENCE_TIME_MS / 1000} second inference budget`
+                ).toBeLessThanOrEqual(MAX_INFERENCE_TIME_MS);
 
                 expect(requirements.length).toBeGreaterThanOrEqual(10);
                 expect(requirements.length).toBeLessThanOrEqual(100);
@@ -313,7 +322,14 @@ regressionDescribe("Job requirements extraction LLM regression", () => {
         it(
             "extracts expected requirements from the software engineer I posting",
             async () => {
+                const inferenceStart = performance.now();
                 const requirements = await extractionService.extract(softwareEngineerOnePosting);
+                const inferenceTimeMs = performance.now() - inferenceStart;
+                await exportRequirements(modelLabel, requirements);
+                expect(
+                    inferenceTimeMs,
+                    `Requirement extraction exceeded the ${MAX_INFERENCE_TIME_MS / 1000} second inference budget`
+                ).toBeLessThanOrEqual(MAX_INFERENCE_TIME_MS);
 
                 expect(requirements.length).toBeGreaterThanOrEqual(6);
                 expect(requirements.length).toBeLessThanOrEqual(100);
@@ -327,3 +343,36 @@ regressionDescribe("Job requirements extraction LLM regression", () => {
         );
     });
 });
+
+function tableCell(text: string): string {
+    return text.replace(/\r?\n/g, " ").replace(/\|/g, "\\|");
+}
+
+async function exportRequirements(modelName: string, requirements: IJobRequirement[]): Promise<void> {
+    const outputPath = resolve(import.meta.dirname, "../../../../job-requirements-test-results.md");
+    const timestamp = new Date().toLocaleString();
+    const rows = requirements.map(
+        (requirement, index) =>
+            `| ${index + 1} | ${tableCell(requirement.name)} | ${tableCell(requirement.description)} | ${tableCell(
+                requirement.sentenceCapture
+            )} |`
+    );
+    let existingContent = "";
+    try {
+        existingContent = await readFile(outputPath, { encoding: "utf-8" });
+    } catch {
+        // File does not exist yet; no separator is needed before the first entry.
+    }
+
+    const separator = existingContent.length > 0 ? "\n---\n\n" : "";
+    const content =
+        separator +
+        `## Model: ${modelName}\n\n` +
+        `### Recorded at: ${timestamp}\n\n` +
+        `| Count | Name | Description | Sentence Capture |\n` +
+        `| --- | --- | --- | --- |\n` +
+        rows.join("\n") +
+        "\n";
+
+    await appendFile(outputPath, content, { encoding: "utf-8" });
+}
