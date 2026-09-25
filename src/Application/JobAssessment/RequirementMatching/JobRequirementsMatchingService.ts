@@ -2,7 +2,7 @@ import { ICandidateProfile } from "../../../Domain/Candidates/ICandidateProfile"
 import { ILogger } from "../../../Infrastructure/Logging/ILogger";
 import { PipelineStepStatus } from "../../Pipelines/IPipelineStepResult";
 import { PipelineRunner } from "../../Pipelines/PipelineRunner";
-import { IClassifiedJobRequirement } from "../RequirementClassification/IClassifiedJobRequirement";
+import { IJobRequirement } from "../RequirementsExtraction/IJobRequirement";
 import { IJobRequirementDirectMatchingService } from "./DirectMatching/IJobRequirementDirectMatchingService";
 import { IJobRequirementMatch } from "./IJobRequirementMatch";
 import { IJobRequirementsMatchingService } from "./IJobRequirementMatchingService";
@@ -30,7 +30,7 @@ export class JobRequirementsMatchingService implements IJobRequirementsMatchingS
     }
 
     public async match(
-        requirements: IClassifiedJobRequirement[],
+        requirements: IJobRequirement[],
         profile: ICandidateProfile
     ): Promise<IJobRequirementMatch[]> {
         this.logger.info(`[JobRequirementsMatchingService.match] Matching ${requirements.length} requirements`);
@@ -48,7 +48,7 @@ export class JobRequirementsMatchingService implements IJobRequirementsMatchingS
     }
 
     public async matchSingle(
-        requirement: IClassifiedJobRequirement,
+        requirement: IJobRequirement,
         profile: ICandidateProfile
     ): Promise<IJobRequirementMatch> {
         this.logger.info(`[JobRequirementsMatchingService.matchSingle] Matching: ${requirement.formattedName()}`);

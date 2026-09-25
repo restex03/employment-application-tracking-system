@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ClassifiedJobRequirement } from "../RequirementClassification/ClassifiedJobRequirement";
+import { JobRequirement } from "../RequirementsExtraction/JobRequirement";
 import { ICandidateProfile } from "../../../Domain/Candidates/ICandidateProfile";
 import { ILogger } from "../../../Infrastructure/Logging/ILogger";
-import { IClassifiedJobRequirement } from "../RequirementClassification/IClassifiedJobRequirement";
+import { IJobRequirement } from "../RequirementsExtraction/IJobRequirement";
 import { IJobRequirementDirectMatchingService } from "./DirectMatching/IJobRequirementDirectMatchingService";
 import { JobRequirementsMatchingService } from "./JobRequirementsMatchingService";
 import { JobRequirementMatchMapper } from "./Mappers/JobRequirementMatchMapper";
@@ -18,11 +18,10 @@ describe("JobRequirementsMatchingService", () => {
         currentTitle: "Software Engineer",
     } as ICandidateProfile;
 
-    const requirement = new ClassifiedJobRequirement(
+    const requirement = new JobRequirement(
         ["Java", "Spring Boot"],
         "and",
-        "Experience developing backend services using Java and Spring Boot.",
-        "technical_skill"
+        "Experience developing backend services using Java and Spring Boot."
     );
 
     beforeEach(() => {
@@ -122,10 +121,10 @@ describe("JobRequirementsMatchingService", () => {
     });
 
     it("preserves requirement order when matching multiple requirements", async () => {
-        const requirements: IClassifiedJobRequirement[] = [
-            new ClassifiedJobRequirement(["AWS"], "single", "Experience with AWS.", "technical_skill"),
-            new ClassifiedJobRequirement(["Java"], "single", "Experience with Java.", "technical_skill"),
-            new ClassifiedJobRequirement(["Ansible"], "single", "Experience with Ansible.", "technical_skill"),
+        const requirements: IJobRequirement[] = [
+            new JobRequirement(["AWS"], "single", "Experience with AWS."),
+            new JobRequirement(["Java"], "single", "Experience with Java."),
+            new JobRequirement(["Ansible"], "single", "Experience with Ansible."),
         ];
 
         vi.mocked(directMatchingService.assess).mockImplementation(async requirement => {
@@ -184,11 +183,10 @@ describe("JobRequirementsMatchingService", () => {
     });
 
     it("fails when the direct matching service returns a different requirement instance", async () => {
-        const differentRequirement = new ClassifiedJobRequirement(
+        const differentRequirement = new JobRequirement(
             requirement.name,
             requirement.type,
-            requirement.sentenceCapture,
-            requirement.category
+            requirement.sentenceCapture
         );
 
         vi.mocked(directMatchingService.assess).mockResolvedValue({
@@ -203,11 +201,10 @@ describe("JobRequirementsMatchingService", () => {
     });
 
     it("fails when the transferable matching service returns a different requirement instance", async () => {
-        const differentRequirement = new ClassifiedJobRequirement(
+        const differentRequirement = new JobRequirement(
             requirement.name,
             requirement.type,
-            requirement.sentenceCapture,
-            requirement.category
+            requirement.sentenceCapture
         );
 
         vi.mocked(directMatchingService.assess).mockResolvedValue({

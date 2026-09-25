@@ -5,7 +5,6 @@ import { IJobPostDetail } from "../../../Domain/JobPosts/IJobPostDetail";
 import { IJobSource } from "../../../Domain/JobSources/IJobSource";
 import { IJobRequirementMatch } from "../RequirementMatching/IJobRequirementMatch";
 import { IJobRequirement } from "../RequirementsExtraction/IJobRequirement";
-import { IClassifiedJobRequirement } from "../RequirementClassification/IClassifiedJobRequirement";
 import { IJobScreenResult } from "../Screening/IJobScreenResult";
 
 export interface IJobAssessmentContext {
@@ -15,7 +14,6 @@ export interface IJobAssessmentContext {
     screenResult: IJobScreenResult | undefined;
     jobDetail: IJobPostDetail | undefined;
     requirements: IJobRequirement[] | undefined;
-    classifiedRequirements: IClassifiedJobRequirement[] | undefined;
     requirementMatches: IJobRequirementMatch[] | undefined;
     jobMatchScore: IJobMatchScore | undefined;
 }
@@ -33,6 +31,5 @@ export class JobAssessmentContext implements IJobAssessmentContext {
     public screenResult: IJobScreenResult | undefined;
     public jobDetail: IJobPostDetail | undefined;
     public requirements: IJobRequirement[] | undefined;
-    public classifiedRequirements: IClassifiedJobRequirement[] | undefined;
     public requirementMatches: IJobRequirementMatch[] | undefined;
 }

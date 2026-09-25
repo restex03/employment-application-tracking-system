@@ -1,7 +1,7 @@
 import { ICandidateProfile } from "../../../../Domain/Candidates/ICandidateProfile";
 import { ILlmInferenceProvider } from "../../../../Infrastructure/Inference/ILlmInferenceProvider";
 import { ILogger } from "../../../../Infrastructure/Logging/ILogger";
-import { IClassifiedJobRequirement } from "../../RequirementClassification/IClassifiedJobRequirement";
+import { IJobRequirement } from "../../RequirementsExtraction/IJobRequirement";
 import { IJobRequirementTransferableMatch } from "./IJobRequirementTransferableMatch";
 import { IJobRequirementTransferableMatchingService } from "./IJobRequirementTransferableMatchingService";
 import { JobRequirementTransferableMatchingSystemPrompt } from "./JobRequirementTransferableMatchingSystemPrompt";
@@ -18,7 +18,7 @@ export class JobRequirementTransferableMatchingService implements IJobRequiremen
     ) {}
 
     public async assess(
-        requirement: IClassifiedJobRequirement,
+        requirement: IJobRequirement,
         profile: ICandidateProfile
     ): Promise<IJobRequirementTransferableMatch> {
         this.logger.info(

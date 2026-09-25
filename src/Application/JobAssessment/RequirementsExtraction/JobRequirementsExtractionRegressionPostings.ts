@@ -278,7 +278,6 @@ What Will Our Ideal Candidate Have?
 - Three years of programming/development experience.
 - Experience with Typescript, AWS or Azure and Node required.
 - Experience with C#, API development and AI (Claude code) highly desired.
-- Experience with C#, API development and AI (Claude code) highly desired.
 - Delivery - Intermediate delivery skills including the ability to deliver work at a steady, predictable pace to achieve commitments, decompose work assignments into small batch releases and contribute to tradeoff and negotiation discussions.
 - Domain Expertise - Demonstrated track record of domain expertise including the ability to understand technical concepts necessary to do the job effectively, demonstrate willingness, cooperation, and concern for business issues and possess in-depth knowledge of immediate systems worked on.
 - Problem Solving - Proven problem solving skills including debugging skills, allowing you to determine source of issues in unfamiliar code or systems and the ability to recognize and solve repetitive problems rather than working around them, recognize mistakes using them as learning opportunities and break down large problems into smaller, more manageable ones.

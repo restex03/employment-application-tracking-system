@@ -109,47 +109,9 @@ export class SqliteJobRepository implements IJobPostRepository {
             )
             ON CONFLICT(source_id, detail_path)
             DO UPDATE SET
-                requisition_id = CASE
-                    WHEN EXISTS (
-                        SELECT 1
-                        FROM job_post_details
-                        WHERE job_post_id = job_posts.id
-                    )
-                    THEN job_posts.requisition_id
-                    ELSE COALESCE(excluded.requisition_id, job_posts.requisition_id)
-                END,
-
-                title = CASE
-                    WHEN EXISTS (
-                        SELECT 1
-                        FROM job_post_details
-                        WHERE job_post_id = job_posts.id
-                    )
-                    THEN job_posts.title
-                    ELSE excluded.title
-                END,
-
                 locations = excluded.locations,
-
-                days_old = CASE
-                    WHEN EXISTS (
-                        SELECT 1
-                        FROM job_post_details
-                        WHERE job_post_id = job_posts.id
-                    )
-                    THEN job_posts.days_old
-                    ELSE COALESCE(excluded.days_old, job_posts.days_old)
-                END,
-
-                remote_type = CASE
-                    WHEN EXISTS (
-                        SELECT 1
-                        FROM job_post_details
-                        WHERE job_post_id = job_posts.id
-                    )
-                    THEN job_posts.remote_type
-                    ELSE COALESCE(excluded.remote_type, job_posts.remote_type)
-                END
+                days_old = excluded.days_old,
+                remote_type = excluded.remote_type
             RETURNING id
         `);
 

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ClassifiedJobRequirement } from "../../RequirementClassification/ClassifiedJobRequirement";
+import { JobRequirement } from "../../RequirementsExtraction/JobRequirement";
 import { ICandidateProfile } from "../../../../Domain/Candidates/ICandidateProfile";
 import { ILogger } from "../../../../Infrastructure/Logging/ILogger";
 import { ILlmInferenceProvider } from "../../../../Infrastructure/Inference/ILlmInferenceProvider";
-import { IClassifiedJobRequirement } from "../../RequirementClassification/IClassifiedJobRequirement";
+import { IJobRequirement } from "../../RequirementsExtraction/IJobRequirement";
 import { JobRequirementTransferableMatchingService } from "./JobRequirementTransferableMatchingService";
 import { JobRequirementTransferableMatchingSystemPrompt } from "./JobRequirementTransferableMatchingSystemPrompt";
 import { JobRequirementTransferableMatchResponseSchema } from "./JobRequirementTransferableMatchResponseSchema";
@@ -14,11 +14,10 @@ describe("JobRequirementTransferableMatchingService", () => {
     let logger: ILogger;
     let service: JobRequirementTransferableMatchingService;
 
-    const requirement = new ClassifiedJobRequirement(
+    const requirement = new JobRequirement(
         ["Java", "Spring Boot"],
         "and",
-        "Experience developing backend services using Java and Spring Boot.",
-        "technical_skill"
+        "Experience developing backend services using Java and Spring Boot."
     );
 
     const profile = {
@@ -178,7 +177,7 @@ describe("JobRequirementTransferableMatchingService", () => {
             const request = generateStructured.mock.calls[0][0];
 
             const requestInput = request.input as {
-                requirement: IClassifiedJobRequirement;
+                requirement: IJobRequirement;
                 profile: ICandidateProfile;
             };
             expect(requestInput.requirement).toBe(requirement);

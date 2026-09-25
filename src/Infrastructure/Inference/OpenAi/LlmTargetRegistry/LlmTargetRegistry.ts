@@ -6,6 +6,25 @@ export interface ILlmTargetOptions {
 }
 
 export class LlmTargetRegistry {
+    public static readonly OpenRouter_Hosted: ILlmTargetOptions = {
+        model: "z-ai/glm-5.3-flash",
+        apiBaseUrl: new URL("https://openrouter.ai/api/v1"),
+        apiKey: this.resolveEnvOrThrow(process.env.OPEN_ROUTER_KEY),
+        reasoningEffort: "low",
+    };
+    public static readonly Glm_5_3_Flash_Hosted: ILlmTargetOptions = {
+        model: "z-ai/glm-5.3-flash",
+        apiBaseUrl: new URL("https://openrouter.ai/api/v1"),
+        apiKey: this.resolveEnvOrThrow(process.env.OPEN_ROUTER_KEY),
+        reasoningEffort: "low",
+    };
+    public static readonly Llama_4_Scout_Hosted: ILlmTargetOptions = {
+        model: "meta-llama/llama-4-scout",
+        apiBaseUrl: new URL("https://openrouter.ai/api/v1"),
+        apiKey: this.resolveEnvOrThrow(process.env.OPEN_ROUTER_KEY),
+        reasoningEffort: "low", // Seems to require some reasoning effort
+    };
+
     public static readonly Qwen3_8_Flash_Hosted: ILlmTargetOptions = {
         model: "qwen/qwen3.8-flash",
         apiBaseUrl: new URL("https://openrouter.ai/api/v1"),
@@ -32,6 +51,12 @@ export class LlmTargetRegistry {
      */
     public static readonly Mistral_Small_4_hosted: ILlmTargetOptions = {
         model: "mistral-small-2603",
+        apiBaseUrl: new URL("https://api.mistral.ai/v1"),
+        apiKey: process.env.MISTRAL_API_KEY!,
+        reasoningEffort: "none",
+    };
+    public static readonly Mistral_Medium_3_5_hosted: ILlmTargetOptions = {
+        model: "mistral-medium-3-5",
         apiBaseUrl: new URL("https://api.mistral.ai/v1"),
         apiKey: process.env.MISTRAL_API_KEY!,
         reasoningEffort: "none",

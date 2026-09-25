@@ -8,10 +8,10 @@ export class MatchJobRequirements implements IPipelineStep<IJobAssessmentContext
     constructor(private readonly matchingSvc: IJobRequirementsMatchingService) {}
 
     public async execute(context: IJobAssessmentContext): Promise<IPipelineStepResult> {
-        if (!context.classifiedRequirements) {
+        if (!context.requirements) {
             return {
                 status: PipelineStepStatus.Failed,
-                reason: "Classified job requirements are required before matching.",
+                reason: "Job requirements are required before matching.",
             };
         }
 
@@ -24,7 +24,7 @@ export class MatchJobRequirements implements IPipelineStep<IJobAssessmentContext
 
         try {
             context.requirementMatches = await this.matchingSvc.match(
-                context.classifiedRequirements,
+                context.requirements,
                 context.candidateProfile
             );
 

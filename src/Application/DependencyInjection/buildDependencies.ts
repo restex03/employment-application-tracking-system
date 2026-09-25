@@ -11,8 +11,6 @@ import { ILlmInferenceProvider } from "../../Infrastructure/Inference/ILlmInfere
 import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
 import { IJobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/IJobRequirementsExtractionService";
 import { JobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/JobRequirementsExtractionService";
-import { IJobRequirementClassificationService } from "../JobAssessment/RequirementClassification/IJobRequirementClassificationService";
-import { JobRequirementClassificationService } from "../JobAssessment/RequirementClassification/JobRequirementClassificationService";
 import { IJobRequirementsMatchingService } from "../JobAssessment/RequirementMatching/IJobRequirementMatchingService";
 import { JobRequirementsMatchingService } from "../JobAssessment/RequirementMatching/JobRequirementsMatchingService";
 import { JobRequirementMatchMapper } from "../JobAssessment/RequirementMatching/Mappers/JobRequirementMatchMapper";
@@ -32,7 +30,6 @@ import { IJobAssessmentService } from "../JobAssessment/IJobAssessmentService";
 import { JobAssessmentService } from "../JobAssessment/JobAssessmentService";
 import { ScreenJob } from "../JobAssessment/Pipeline/Steps/ScreenJob";
 import { IJobAssessmentContext } from "../JobAssessment/Pipeline/IJobAssessmentContext";
-import { ClassifyJobRequirements } from "../JobAssessment/Pipeline/Steps/ClassifyJobRequirements";
 import { ExtractJobRequirements } from "../JobAssessment/Pipeline/Steps/ExtractJobRequirements";
 import { FetchJobDetails } from "../JobAssessment/Pipeline/Steps/FetchJobDetail";
 import { MatchJobRequirements } from "../JobAssessment/Pipeline/Steps/MatchJobRequirements";
@@ -139,9 +136,6 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         logger
     );
 
-    const requirementsClassificationService: IJobRequirementClassificationService =
-        new JobRequirementClassificationService(inferenceProvider, logger);
-
     const directMatchingService: IJobRequirementDirectMatchingService = new JobRequirementDirectMatchingService(
         inferenceProvider,
         logger
@@ -171,7 +165,6 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         new ScreenJob(screeningService),
         new FetchJobDetails(jobPostDiscoveryServiceFactory),
         new ExtractJobRequirements(requirementsExtractionService),
-        new ClassifyJobRequirements(requirementsClassificationService),
         new MatchJobRequirements(requirementsMatchingService),
         new CalculateJobMatchScore(scoreCalculator),
     ]);
@@ -239,7 +232,6 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         jobAssessmentQueueService,
         screeningService,
         requirementsExtractionService,
-        requirementsClassificationService,
         requirementsMatchingService,
         jobPostDiscoveryServiceFactory,
         jobAssessmentService,

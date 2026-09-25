@@ -1,7 +1,7 @@
 import { ICandidateProfile } from "../../../../Domain/Candidates/ICandidateProfile";
-import { IClassifiedJobRequirement } from "../../RequirementClassification/IClassifiedJobRequirement";
+import { IJobRequirement } from "../../RequirementsExtraction/IJobRequirement";
 import { IJobRequirementDirectMatch } from "./IJobRequirementDirectMatch";
 
 export interface IJobRequirementDirectMatchingService {
-    assess(requirement: IClassifiedJobRequirement, profile: ICandidateProfile): Promise<IJobRequirementDirectMatch>;
+    assess(requirement: IJobRequirement, profile: ICandidateProfile): Promise<IJobRequirementDirectMatch>;
 }

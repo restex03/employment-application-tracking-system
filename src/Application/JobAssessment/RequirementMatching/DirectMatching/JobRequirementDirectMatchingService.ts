@@ -1,7 +1,7 @@
 import { ICandidateProfile } from "../../../../Domain/Candidates/ICandidateProfile";
 import { ILlmInferenceProvider } from "../../../../Infrastructure/Inference/ILlmInferenceProvider";
 import { ILogger } from "../../../../Infrastructure/Logging/ILogger";
-import { IClassifiedJobRequirement } from "../../RequirementClassification/IClassifiedJobRequirement";
+import { IJobRequirement } from "../../RequirementsExtraction/IJobRequirement";
 import { IJobRequirementDirectMatch } from "./IJobRequirementDirectMatch";
 import { IJobRequirementDirectMatchingService } from "./IJobRequirementDirectMatchingService";
 import { JobRequirementDirectMatchingSystemPrompt } from "./JobRequirementDirectMatchingSystemPrompt";
@@ -18,7 +18,7 @@ export class JobRequirementDirectMatchingService implements IJobRequirementDirec
     ) {}
 
     public async assess(
-        requirement: IClassifiedJobRequirement,
+        requirement: IJobRequirement,
         profile: ICandidateProfile
     ): Promise<IJobRequirementDirectMatch> {
         this.logger.info(`[JobRequirementDirectMatchingService.assess] Assessing: ${requirement.formattedName()}`);

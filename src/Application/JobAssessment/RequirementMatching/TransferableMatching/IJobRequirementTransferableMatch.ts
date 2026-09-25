@@ -1,7 +1,7 @@
-import { IClassifiedJobRequirement } from "../../RequirementClassification/IClassifiedJobRequirement";
+import { IJobRequirement } from "../../RequirementsExtraction/IJobRequirement";
 
 export interface IJobRequirementTransferableMatch {
-    requirement: IClassifiedJobRequirement;
+    requirement: IJobRequirement;
     isTransferableMatch: boolean;
     evidence: string | null;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ClassifiedJobRequirement } from "../../../Application/JobAssessment/RequirementClassification/ClassifiedJobRequirement";
+import { JobRequirement } from "../../../Application/JobAssessment/RequirementsExtraction/JobRequirement";
 
 import { JobMatchScoreCalculator } from "./JobMatchScoreCalculator";
 import { IJobRequirementMatch } from "../../../Application/JobAssessment/RequirementMatching/IJobRequirementMatch";
@@ -9,7 +9,7 @@ describe("JobMatchScoreCalculator", () => {
 
     function createMatch(matchType: "direct" | "transferable" | "missing"): IJobRequirementMatch {
         return {
-            requirement: new ClassifiedJobRequirement(["Test"], "single", "Test requirement", "technical_skill"),
+            requirement: new JobRequirement(["Test"], "single", "Test requirement"),
             matchType,
             evidence: matchType === "missing" ? null : "Test evidence",
         };

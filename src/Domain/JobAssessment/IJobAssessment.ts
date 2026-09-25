@@ -1,6 +1,6 @@
 import { IJobMatchScore } from "./Scoring/IJobMatchScore";
 import { IJobRequirementMatch } from "../../Application/JobAssessment/RequirementMatching/IJobRequirementMatch";
-import { IClassifiedJobRequirement } from "../../Application/JobAssessment/RequirementClassification/IClassifiedJobRequirement";
+import { IJobRequirement } from "../../Application/JobAssessment/RequirementsExtraction/IJobRequirement";
 import { IJobScreenResult } from "../../Application/JobAssessment/Screening/IJobScreenResult";
 
 export type JobAssessmentReviewStatus = "unreviewed" | "accepted" | "flagged";
@@ -17,13 +17,13 @@ export interface IJobAssessment {
     readonly reviewStatus: JobAssessmentReviewStatus;
 
     readonly screenResult?: IJobScreenResult;
-    readonly requirements: readonly IClassifiedJobRequirement[];
+    readonly requirements: readonly IJobRequirement[];
     readonly requirementMatches: readonly IJobRequirementMatch[];
     readonly jobMatchScore?: IJobMatchScore;
 
     setScreenResult(screenResult: IJobScreenResult): void;
 
-    setRequirements(requirements: IClassifiedJobRequirement[]): void;
+    setRequirements(requirements: IJobRequirement[]): void;
 
     setRequirementMatches(matches: IJobRequirementMatch[]): void;
 
@@ -47,7 +47,7 @@ export interface JobAssessmentProps {
     reviewStatus?: JobAssessmentReviewStatus;
 
     screenResult?: IJobScreenResult;
-    requirements?: IClassifiedJobRequirement[];
+    requirements?: IJobRequirement[];
     requirementMatches?: IJobRequirementMatch[];
     jobMatchScore?: IJobMatchScore;
 
@@ -64,7 +64,7 @@ export class JobAssessment implements IJobAssessment {
     private _reviewStatus: JobAssessmentReviewStatus;
 
     private _screenResult?: IJobScreenResult;
-    private _requirements: IClassifiedJobRequirement[];
+    private _requirements: IJobRequirement[];
     private _requirementMatches: IJobRequirementMatch[];
     private _jobMatchScore?: IJobMatchScore;
 
@@ -95,7 +95,7 @@ export class JobAssessment implements IJobAssessment {
         return this._screenResult;
     }
 
-    public get requirements(): readonly IClassifiedJobRequirement[] {
+    public get requirements(): readonly IJobRequirement[] {
         return this._requirements;
     }
 
@@ -111,7 +111,7 @@ export class JobAssessment implements IJobAssessment {
         this._screenResult = screenResult;
     }
 
-    public setRequirements(requirements: IClassifiedJobRequirement[]): void {
+    public setRequirements(requirements: IJobRequirement[]): void {
         this._requirements = [...requirements];
     }
 

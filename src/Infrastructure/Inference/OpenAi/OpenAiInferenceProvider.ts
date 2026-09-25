@@ -159,6 +159,7 @@ export class OpenAiInferenceProvider implements ILlmInferenceProvider {
         let json: unknown;
 
         try {
+            console.log(content);
             json = JSON.parse(content);
         } catch (error) {
             this.logger.trace(`Failed to parse JSON content: ${content}`);

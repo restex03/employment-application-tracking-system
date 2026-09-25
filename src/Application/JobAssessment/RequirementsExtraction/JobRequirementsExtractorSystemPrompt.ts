@@ -103,15 +103,23 @@ states the same expectation in more than one place, return one requirement
 per statement, each with its own sentenceCapture.
 
 Keep the following together as a single requirement:
-- Alternatives joined by "or". If the posting says "AWS, GCP, or Azure",
-  that is one requirement; do NOT create three requirements, and never
-  convert OR relationships into AND relationships.
-- Technologies the posting presents as one coherent stack, such as a
-  language with its framework or its runtime ("Java and Spring Boot",
-  "Typescript and Node").
+- Alternatives joined by "or". The following are examples 
+  of alternative requirements joined by "or" that should be treated 
+  as a single requirement; do NOT create three requirements, and never
+  convert OR relationships into AND relationships:
+    - "AWS, GCP, or Azure"
+    - "Modern JavaScript frameworks such as Angular, React, or Vue"
+    - "Experience with Docker or Kubernetes"
+- Technologies the posting presents as one coherent stack consisting of a 
+  language with its framework or its runtime. Examples:
+    - "Java and Spring Boot"
+    - "C# and .NET"
+    - "Python and Django"
+    - "Node and Express"
+    - "Ruby and Rails"
 
 Split every other list into separate requirements, even when one sentence
-names several capabilities together:
+names several capabilities together.
 
 "Experience with Typescript, AWS or Azure and Node required."
 => name: ["Typescript", "Node"], type: "and"
@@ -143,7 +151,7 @@ category labels such as "Public cloud platform" when the posting says
 "AWS, GCP, or Azure"
 
 type states how the entries combine:
-- "single": exactly one entry in name.
+- "single": exactly one entry in name array.
 - "and": every entry is required together (one coherent stack, e.g.
   ["Typescript", "Node"]).
 - "or": any one entry satisfies the requirement (alternatives, e.g.

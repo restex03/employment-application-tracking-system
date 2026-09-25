@@ -1,29 +1,16 @@
 export type JobAssessmentStatus = "complete" | "incomplete" | "unknown";
 export type JobAssessmentReviewStatus = "unreviewed" | "accepted" | "flagged";
 
-export type JobRequirementCategory =
-    | "technical_skill"
-    | "technical_skill_depth"
-    | "domain_experience"
-    | "role_scope"
-    | "education"
-    | "certification"
-    | "other";
-
 export interface IJobRequirement {
     name: string[];
     type: "single" | "and" | "or";
     sentenceCapture: string;
 }
 
-export interface IClassifiedJobRequirement extends IJobRequirement {
-    category: JobRequirementCategory;
-}
-
 export type JobRequirementMatchType = "direct" | "transferable" | "missing";
 
 export interface IJobRequirementMatch {
-    requirement: IClassifiedJobRequirement;
+    requirement: IJobRequirement;
     matchType: JobRequirementMatchType;
     evidence: string | null;
 }
@@ -51,7 +38,7 @@ export interface IJobAssessment {
     status: JobAssessmentStatus;
     reviewStatus: JobAssessmentReviewStatus;
     screenResult?: IJobScreenResult;
-    requirements: IClassifiedJobRequirement[];
+    requirements: IJobRequirement[];
     requirementMatches: IJobRequirementMatch[];
     jobMatchScore?: IJobMatchScore;
 }

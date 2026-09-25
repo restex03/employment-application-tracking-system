@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ClassifiedJobRequirement } from "../../../RequirementClassification/ClassifiedJobRequirement";
+import { JobRequirement } from "../../../RequirementsExtraction/JobRequirement";
 import { ICandidateProfile } from "../../../../../Domain/Candidates/ICandidateProfile";
 import { PipelineStepStatus } from "../../../../Pipelines/IPipelineStepResult";
-import { IClassifiedJobRequirement } from "../../../RequirementClassification/IClassifiedJobRequirement";
+import { IJobRequirement } from "../../../RequirementsExtraction/IJobRequirement";
 import { IJobRequirementTransferableMatchingService } from "../../../RequirementMatching/TransferableMatching/IJobRequirementTransferableMatchingService";
 import { AssessTransferableMatch } from "./AssessTransferableMatch";
 import { IJobRequirementMatchingContext } from "../../IJobRequirementMatchingContext";
@@ -11,11 +11,10 @@ describe("AssessTransferableMatch", () => {
     let transferableMatchingService: IJobRequirementTransferableMatchingService;
     let step: AssessTransferableMatch;
 
-    const requirement = new ClassifiedJobRequirement(
+    const requirement = new JobRequirement(
         ["Java", "Spring Boot"],
         "and",
-        "Experience developing backend services using Java and Spring Boot.",
-        "technical_skill"
+        "Experience developing backend services using Java and Spring Boot."
     );
 
     const profile = {
@@ -129,11 +128,10 @@ describe("AssessTransferableMatch", () => {
     });
 
     it("fails when the transferable assessment references a different requirement instance", async () => {
-        const differentRequirement = new ClassifiedJobRequirement(
+        const differentRequirement = new JobRequirement(
             requirement.name,
             requirement.type,
-            requirement.sentenceCapture,
-            requirement.category
+            requirement.sentenceCapture
         );
 
         vi.mocked(transferableMatchingService.assess).mockResolvedValue({

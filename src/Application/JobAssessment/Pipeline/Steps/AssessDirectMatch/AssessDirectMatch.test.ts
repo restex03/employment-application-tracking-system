@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ClassifiedJobRequirement } from "../../../RequirementClassification/ClassifiedJobRequirement";
+import { JobRequirement } from "../../../RequirementsExtraction/JobRequirement";
 import { ICandidateProfile } from "../../../../../Domain/Candidates/ICandidateProfile";
 import { PipelineStepStatus } from "../../../../Pipelines/IPipelineStepResult";
-import { IClassifiedJobRequirement } from "../../../RequirementClassification/IClassifiedJobRequirement";
+import { IJobRequirement } from "../../../RequirementsExtraction/IJobRequirement";
 import { IJobRequirementDirectMatchingService } from "../../../RequirementMatching/DirectMatching/IJobRequirementDirectMatchingService";
 import { AssessDirectMatch } from "./AssessDirectMatch";
 import { IJobRequirementMatchingContext } from "../../IJobRequirementMatchingContext";
@@ -11,11 +11,10 @@ describe("AssessDirectMatch", () => {
     let directMatchingService: IJobRequirementDirectMatchingService;
     let step: AssessDirectMatch;
 
-    const requirement = new ClassifiedJobRequirement(
+    const requirement = new JobRequirement(
         ["AWS", "GCP", "Azure"],
         "or",
-        "Experience with AWS, GCP, or Azure.",
-        "technical_skill"
+        "Experience with AWS, GCP, or Azure."
     );
 
     const profile = {
@@ -104,11 +103,10 @@ describe("AssessDirectMatch", () => {
     });
 
     it("fails when the service returns a different requirement instance", async () => {
-        const differentRequirement = new ClassifiedJobRequirement(
+        const differentRequirement = new JobRequirement(
             requirement.name,
             requirement.type,
-            requirement.sentenceCapture,
-            requirement.category
+            requirement.sentenceCapture
         );
 
         vi.mocked(directMatchingService.assess).mockResolvedValue({

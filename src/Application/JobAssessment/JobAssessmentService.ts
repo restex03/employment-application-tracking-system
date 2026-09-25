@@ -68,7 +68,7 @@ export class JobAssessmentService implements IJobAssessmentService {
             reviewStatus: "unreviewed",
 
             screenResult: result.screenResult,
-            requirements: result.classifiedRequirements ?? [],
+            requirements: result.requirements ?? [],
             requirementMatches: result.requirementMatches ?? [],
             jobMatchScore: result.jobMatchScore,
 
@@ -122,7 +122,6 @@ export class JobAssessmentService implements IJobAssessmentService {
             job: context.job,
             screenResult: context.screenResult,
             requirements: context.requirements,
-            classifiedRequirements: context.classifiedRequirements,
             requirementMatches: context.requirementMatches,
             jobMatchScore: context.jobMatchScore,
         };
@@ -194,7 +193,6 @@ export class JobAssessmentService implements IJobAssessmentService {
                 Requirement: match.requirement.formattedName(),
                 Type: match.requirement.type,
                 SentenceCapture: match.requirement.sentenceCapture,
-                Category: match.requirement.category,
                 Match: match.matchType,
                 Evidence: this.truncate(match.evidence, 100),
             }))

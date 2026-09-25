@@ -1,18 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { ClassifiedJobRequirement } from "../../RequirementClassification/ClassifiedJobRequirement";
+import { JobRequirement } from "../../RequirementsExtraction/JobRequirement";
 import { JobRequirementMatchMapper } from "./JobRequirementMatchMapper";
-import { IClassifiedJobRequirement } from "../../RequirementClassification/IClassifiedJobRequirement";
+import { IJobRequirement } from "../../RequirementsExtraction/IJobRequirement";
 import { IJobRequirementDirectMatch } from "../DirectMatching/IJobRequirementDirectMatch";
 import { IJobRequirementTransferableMatch } from "../TransferableMatching/IJobRequirementTransferableMatch";
 
 describe("JobRequirementMatchMapper", () => {
     const mapper = new JobRequirementMatchMapper();
 
-    const requirement = new ClassifiedJobRequirement(
+    const requirement = new JobRequirement(
         ["Backend Development"],
         "single",
-        "Experience developing backend services using Java and Spring Boot.",
-        "technical_skill"
+        "Experience developing backend services using Java and Spring Boot."
     );
 
     describe("direct match", () => {
@@ -105,11 +104,10 @@ describe("JobRequirementMatchMapper", () => {
                 evidence: null,
             };
 
-            const differentRequirement = new ClassifiedJobRequirement(
+            const differentRequirement = new JobRequirement(
                 requirement.name,
                 requirement.type,
-                requirement.sentenceCapture,
-                requirement.category
+                requirement.sentenceCapture
             );
 
             const transferableMatch: IJobRequirementTransferableMatch = {
@@ -269,11 +267,10 @@ describe("JobRequirementMatchMapper", () => {
                 evidence: null,
             };
 
-            const differentRequirement = new ClassifiedJobRequirement(
+            const differentRequirement = new JobRequirement(
                 ["Cloud Platform"],
                 "single",
-                "Experience with AWS.",
-                "technical_skill"
+                "Experience with AWS."
             );
 
             const transferableMatch: IJobRequirementTransferableMatch = {

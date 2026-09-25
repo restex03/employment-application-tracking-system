@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ClassifiedJobRequirement } from "../../RequirementClassification/ClassifiedJobRequirement";
+import { JobRequirement } from "../../RequirementsExtraction/JobRequirement";
 import { ICandidateProfile } from "../../../../Domain/Candidates/ICandidateProfile";
 import { ILogger } from "../../../../Infrastructure/Logging/ILogger";
 import { ILlmInferenceProvider } from "../../../../Infrastructure/Inference/ILlmInferenceProvider";
-import { IClassifiedJobRequirement } from "../../RequirementClassification/IClassifiedJobRequirement";
+import { IJobRequirement } from "../../RequirementsExtraction/IJobRequirement";
 import { JobRequirementDirectMatchingService } from "./JobRequirementDirectMatchingService";
 import { JobRequirementDirectMatchingSystemPrompt } from "./JobRequirementDirectMatchingSystemPrompt";
 import { JobRequirementDirectMatchResponseSchema } from "./JobRequirementDirectMatchResponseSchema";
@@ -14,11 +14,10 @@ describe("JobRequirementDirectMatchingService", () => {
     let logger: ILogger;
     let service: JobRequirementDirectMatchingService;
 
-    const requirement = new ClassifiedJobRequirement(
+    const requirement = new JobRequirement(
         ["AWS", "GCP", "Azure"],
         "or",
-        "Experience with cloud platforms: AWS, GCP, or Azure.",
-        "technical_skill"
+        "Experience with cloud platforms: AWS, GCP, or Azure."
     );
 
     const profile = {
@@ -178,7 +177,7 @@ describe("JobRequirementDirectMatchingService", () => {
             const request = generateStructured.mock.calls[0][0];
 
             const requestInput = request.input as {
-                requirement: IClassifiedJobRequirement;
+                requirement: IJobRequirement;
                 profile: ICandidateProfile;
             };
             expect(requestInput.requirement).toBe(requirement);

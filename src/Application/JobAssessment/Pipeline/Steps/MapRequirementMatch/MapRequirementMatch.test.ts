@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ClassifiedJobRequirement } from "../../../RequirementClassification/ClassifiedJobRequirement";
+import { JobRequirement } from "../../../RequirementsExtraction/JobRequirement";
 import { ICandidateProfile } from "../../../../../Domain/Candidates/ICandidateProfile";
 import { PipelineStepStatus } from "../../../../Pipelines/IPipelineStepResult";
-import { IClassifiedJobRequirement } from "../../../RequirementClassification/IClassifiedJobRequirement";
+import { IJobRequirement } from "../../../RequirementsExtraction/IJobRequirement";
 import { IJobRequirementMatch } from "../../../RequirementMatching/IJobRequirementMatch";
 import { JobRequirementMatchMapper } from "../../../RequirementMatching/Mappers/JobRequirementMatchMapper";
 import { MapRequirementMatch } from "./MapRequirementMatch";
@@ -12,11 +12,10 @@ describe("MapRequirementMatch", () => {
     let mapper: JobRequirementMatchMapper;
     let step: MapRequirementMatch;
 
-    const requirement = new ClassifiedJobRequirement(
+    const requirement = new JobRequirement(
         ["Backend Development"],
         "single",
-        "Experience developing backend services.",
-        "technical_skill"
+        "Experience developing backend services."
     );
 
     const profile = {
@@ -48,11 +47,10 @@ describe("MapRequirementMatch", () => {
     });
 
     it("fails when the direct match references a different context requirement", async () => {
-        const differentRequirement = new ClassifiedJobRequirement(
+        const differentRequirement = new JobRequirement(
             requirement.name,
             requirement.type,
-            requirement.sentenceCapture,
-            requirement.category
+            requirement.sentenceCapture
         );
 
         const context: IJobRequirementMatchingContext = {

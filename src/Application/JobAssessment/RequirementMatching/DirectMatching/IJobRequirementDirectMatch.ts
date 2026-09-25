@@ -1,7 +1,7 @@
-import { IClassifiedJobRequirement } from "../../RequirementClassification/IClassifiedJobRequirement";
+import { IJobRequirement } from "../../RequirementsExtraction/IJobRequirement";
 
 export interface IJobRequirementDirectMatch {
-    requirement: IClassifiedJobRequirement;
+    requirement: IJobRequirement;
     isDirectMatch: boolean;
     evidence: string | null;
 }

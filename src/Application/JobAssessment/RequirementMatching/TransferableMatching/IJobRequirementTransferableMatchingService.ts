@@ -1,10 +1,10 @@
 import { ICandidateProfile } from "../../../../Domain/Candidates/ICandidateProfile";
-import { IClassifiedJobRequirement } from "../../RequirementClassification/IClassifiedJobRequirement";
+import { IJobRequirement } from "../../RequirementsExtraction/IJobRequirement";
 import { IJobRequirementTransferableMatch } from "./IJobRequirementTransferableMatch";
 
 export interface IJobRequirementTransferableMatchingService {
     assess(
-        requirement: IClassifiedJobRequirement,
+        requirement: IJobRequirement,
         profile: ICandidateProfile
     ): Promise<IJobRequirementTransferableMatch>;
 }

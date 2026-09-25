@@ -392,8 +392,8 @@ function assertExpectedRequirements(requirements: IJobRequirement[], expected: I
 
     expect(
         missing,
-        `Missing expected requirements: ${missing.map(item => item.description).join("; ")}. ` +
-            `Extracted: ${summarize(requirements)}`
+        `Missing expected requirements: [${missing.map(item => item.description).join("; ")}]\n. ` +
+            `\nExtracted: ${summarize(requirements)}`
     ).toHaveLength(0);
 }
 
