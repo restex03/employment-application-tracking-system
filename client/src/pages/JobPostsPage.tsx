@@ -110,12 +110,8 @@ function JobPostsPage() {
     const [selectedJobPostIds, setSelectedJobPostIds] = useState<Set<string>>(new Set());
     const selectAllRef = useRef<HTMLInputElement>(null);
     const [openOptionsRowId, setOpenOptionsRowId] = useState<string | null>(null);
-    const [statusModalJobPost, setStatusModalJobPost] = useState<IJobPostData | null>(null);
     const [dismissModalJobPost, setDismissModalJobPost] = useState<IJobPostData | null>(null);
     const [dismissedOverrides, setDismissedOverrides] = useState<Record<string, boolean>>({});
-    const [applicationStatusOverrides, setApplicationStatusOverrides] = useState<Record<string, JobApplicationStatus>>(
-        {}
-    );
 
     // Only show the polled status when it corresponds to the currently open job post.
     const modalJobStatus = selectedJobPost ? getAssessmentStatus(selectedJobPost.id) : null;
@@ -168,8 +164,8 @@ function JobPostsPage() {
                         bValue = b.createdAt;
                         break;
                     case "applicationStatus":
-                        aValue = applicationStatusOverrides[a.id] ?? a.applicationStatus ?? "";
-                        bValue = applicationStatusOverrides[b.id] ?? b.applicationStatus ?? "";
+                        aValue = a.applicationStatus ?? "";
+                        bValue = b.applicationStatus ?? "";
                         break;
                     default:
                         return 0;
@@ -185,7 +181,6 @@ function JobPostsPage() {
         sortColumn,
         sortDirection,
         getCompanyName,
-        applicationStatusOverrides,
         dismissedOverrides,
         filters.includeDismissed,
     ]);
@@ -688,8 +683,7 @@ function JobPostsPage() {
                                     <td>{jobPost.title}</td>
                                     <td>
                                         {(() => {
-                                            const status =
-                                                applicationStatusOverrides[jobPost.id] ?? jobPost.applicationStatus;
+                                            const status = jobPost.applicationStatus;
                                             return (
                                                 <span
                                                     className="application-status-badge"
@@ -736,7 +730,6 @@ function JobPostsPage() {
                                                 setOpenOptionsRowId(prev => (prev === jobPost.id ? null : jobPost.id))
                                             }
                                             onClose={() => setOpenOptionsRowId(null)}
-                                            onUpdateApplicationStatus={() => setStatusModalJobPost(jobPost)}
                                             onDismiss={() => setDismissModalJobPost(jobPost)}
                                         />
                                     </td>
@@ -786,6 +779,7 @@ function JobPostsPage() {
                     jobPost={selectedJobPost}
                     jobStatus={modalJobStatus}
                     onRunAssessment={() => enqueueAssessment(selectedJobPost.id)}
+                    onDismiss={() => setDismissModalJobPost(selectedJobPost)}
                 />
             )}
 
@@ -809,6 +803,7 @@ function JobPostsPage() {
                 jobTitle={dismissModalJobPost?.title ?? ""}
                 onDismissed={id => {
                     setDismissedOverrides(prev => ({ ...prev, [id]: true }));
+                    closeModal();
                 }}
             />
 

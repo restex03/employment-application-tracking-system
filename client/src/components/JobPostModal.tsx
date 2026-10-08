@@ -15,11 +15,12 @@ interface JobPostModalProps {
     jobPost: IJobPostData;
     jobStatus: JobQueueStatus | null;
     onRunAssessment: () => void;
+    onDismiss: () => void;
 }
 
 const CANDIDATE_PROFILE_ID = "russell-estes";
 
-function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: JobPostModalProps) {
+function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment, onDismiss }: JobPostModalProps) {
     const [assessment, setAssessment] = useState<IJobAssessment | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -182,17 +183,7 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                         (jobPostData.detail ? (
                             <div className="job-post-detail">
                                 <div className="detail-card">
-                                    <div className="detail-section">
-                                        <h4>Description</h4>
-                                        <div
-                                            className="detail-description"
-                                            dangerouslySetInnerHTML={{
-                                                __html: jobPostData.detail.description
-                                                    ? DOMPurify.sanitize(jobPostData.detail.description)
-                                                    : "No description available",
-                                            }}
-                                        />
-                                    </div>
+                                    
 
                                     <div className="detail-grid">
                                         <div className="detail-item">
@@ -231,6 +222,17 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                                                 )}
                                             </span>
                                         </div>
+                                    </div>
+                                    <div className="detail-section">
+                                        <h4>Description</h4>
+                                        <div
+                                            className="detail-description"
+                                            dangerouslySetInnerHTML={{
+                                                __html: jobPostData.detail.description
+                                                    ? DOMPurify.sanitize(jobPostData.detail.description)
+                                                    : "No description available",
+                                            }}
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -522,6 +524,9 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
                 </div>
 
                 <div className="modal-footer">
+                    <button type="button" className="button-secondary dismiss-job-button" onClick={onDismiss}>
+                        Dismiss Job
+                    </button>
                     <button className="button-secondary" onClick={onClose}>
                         Close
                     </button>

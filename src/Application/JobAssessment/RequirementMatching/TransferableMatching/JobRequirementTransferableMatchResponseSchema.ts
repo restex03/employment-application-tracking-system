@@ -10,7 +10,7 @@ export const JobRequirementTransferableMatchResponseSchema = {
                 evidence: {
                     type: "string",
                     minLength: 1,
-                    maxLength: 300,
+                    maxLength: 500,
                 },
             },
             required: ["isTransferableMatch", "evidence"],

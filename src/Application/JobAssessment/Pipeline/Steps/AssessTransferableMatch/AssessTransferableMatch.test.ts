@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { JobRequirement } from "../../../RequirementsExtraction/JobRequirement";
 import { ICandidateProfile } from "../../../../../Domain/Candidates/ICandidateProfile";
 import { PipelineStepStatus } from "../../../../Pipelines/IPipelineStepResult";
-import { IJobRequirement } from "../../../RequirementsExtraction/IJobRequirement";
 import { IJobRequirementTransferableMatchingService } from "../../../RequirementMatching/TransferableMatching/IJobRequirementTransferableMatchingService";
 import { AssessTransferableMatch } from "./AssessTransferableMatch";
 import { IJobRequirementMatchingContext } from "../../IJobRequirementMatchingContext";

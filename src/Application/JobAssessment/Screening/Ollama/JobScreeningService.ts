@@ -25,7 +25,6 @@ export class JobScreeningService implements IJobScreeningService {
             jsonSchema: JobScreenResponseSchema,
             validationSchema: JobScreenResponseValidationSchema,
 
-            // temperature: 0.2,
             temperature: 0,
 
             maxTokens: 80,

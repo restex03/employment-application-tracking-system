@@ -5,11 +5,10 @@ interface RowOptionsMenuProps {
     isOpen: boolean;
     onToggle: () => void;
     onClose: () => void;
-    onUpdateApplicationStatus: () => void;
     onDismiss: () => void;
 }
 
-function RowOptionsMenu({ isOpen, onToggle, onClose, onUpdateApplicationStatus, onDismiss }: RowOptionsMenuProps) {
+function RowOptionsMenu({ isOpen, onToggle, onClose, onDismiss }: RowOptionsMenuProps) {
     const menuRef = useRef<HTMLDivElement>(null);
 
     // Close on outside click so only one row's menu is ever open at a time.

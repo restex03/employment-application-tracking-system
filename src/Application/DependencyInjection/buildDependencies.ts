@@ -115,7 +115,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
     /*
      * Inference
      */
-    let llmTargetOptions: ILlmTargetOptions = LlmTargetRegistry.Mistral_Small_4_hosted;
+    let llmTargetOptions: ILlmTargetOptions = LlmTargetRegistry.Mistral_Medium_3_5_hosted;
     const retryStrategyProvider = new GenerateStructuredRetryStrategyProvider();
 
     const inferenceProvider = new OpenAiInferenceProvider(logger, llmTargetOptions, retryStrategyProvider);

@@ -20,6 +20,6 @@ export class JobRequirement implements IJobRequirement {
             return this.name[0];
         }
 
-        return this.name.join(this.type === "or" ? " or " : " and ");
+        return this.name.map(x => `[${x}]`).join(this.type === "or" ? " or " : " and ");
     }
 }

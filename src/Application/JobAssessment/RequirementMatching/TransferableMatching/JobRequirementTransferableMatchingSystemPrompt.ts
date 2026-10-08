@@ -184,14 +184,11 @@ credentials.
 EVIDENCE
 ==================================================
 
-If isTransferableMatch is true:
+If isTransferableMatch is true, then evidence MUST identify 
+the explicit candidate-profile experience that is
+meaningfully transferable. Cap at 500 characters when isTransferableMatch is true.
 
-evidence MUST identify the explicit candidate-profile experience that is
-meaningfully transferable.
-
-If isTransferableMatch is false:
-
-evidence MUST be null.
+If isTransferableMatch is false, then evidence MUST be null.
 
 Keep evidence concise and factual.
 

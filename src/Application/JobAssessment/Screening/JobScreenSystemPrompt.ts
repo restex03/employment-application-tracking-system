@@ -105,5 +105,5 @@ IMPORTANT:
 Location is NOT subject to the "prefer review" rule when the metadata clearly
 identifies a non-US location.
 
-Keep the reason to one short sentence.
+Keep the reason to one short sentence, never to exceed 100 characters.
 `;
