@@ -76,6 +76,8 @@ import { JobApplicationService } from "../JobApplications/JobApplicationService"
 import { GenerateStructuredRetryStrategyProvider } from "../../Infrastructure/Inference/OpenAi/InferenceRetries/GenerateStructuredRetryStrategyProvider";
 import { JobPostService } from "../JobPost/JobPostService";
 import { IJobPostService } from "../JobPost/IJobPostService";
+import { IJobPostScreener } from "../JobPostSync/JobPostScreener/IJobPostScreener";
+import { JobPostScreener } from "../JobPostSync/JobPostScreener/JobPostScreener";
 
 export function buildDependencies(logLevel: LogLevel): IApplicationDependencies {
     const logger: ILogger = new ConsoleLogger(logLevel);
@@ -151,11 +153,13 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
     );
 
     const jobPostDiscoveryServiceFactory: IJobPostDiscoveryServiceFactory = new JobPostDiscoveryServiceFactory(logger);
+    const jobPostScreener: IJobPostScreener = new JobPostScreener();
 
     const jobPostSyncService: IJobPostSyncService = new JobPostSyncService(
         jobPostDiscoveryServiceFactory,
         jobSourceRepository,
         jobPostRepository,
+        jobPostScreener,
         logger
     );
 

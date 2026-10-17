@@ -73,7 +73,7 @@ describe("JobRequirementTransferableMatchingService", () => {
             });
 
             await expect(service.assess(requirement, profile)).rejects.toThrow(
-                "Transferable match requires evidence: Java and Spring Boot"
+                "Transferable match requires evidence: [Java] and [Spring Boot]"
             );
         });
 
@@ -84,7 +84,7 @@ describe("JobRequirementTransferableMatchingService", () => {
             });
 
             await expect(service.assess(requirement, profile)).rejects.toThrow(
-                "Transferable match requires evidence: Java and Spring Boot"
+                "Transferable match requires evidence: [Java] and [Spring Boot]"
             );
         });
     });
@@ -123,7 +123,7 @@ describe("JobRequirementTransferableMatchingService", () => {
             });
 
             await expect(service.assess(requirement, profile)).rejects.toThrow(
-                "Non-transferable match must not contain evidence: Java and Spring Boot"
+                "Non-transferable match must not contain evidence: [Java] and [Spring Boot]"
             );
         });
 
@@ -134,7 +134,7 @@ describe("JobRequirementTransferableMatchingService", () => {
             });
 
             await expect(service.assess(requirement, profile)).rejects.toThrow(
-                "Non-transferable match must not contain evidence: Java and Spring Boot"
+                "Non-transferable match must not contain evidence: [Java] and [Spring Boot]"
             );
         });
     });
@@ -195,7 +195,7 @@ describe("JobRequirementTransferableMatchingService", () => {
             await service.assess(requirement, profile);
 
             expect(logger.info).toHaveBeenCalledWith(
-                "[JobRequirementTransferableMatchingService.assess] Assessing: Java and Spring Boot"
+                "[JobRequirementTransferableMatchingService.assess] Assessing: [Java] and [Spring Boot]"
             );
         });
     });

@@ -73,7 +73,7 @@ describe("JobRequirementDirectMatchingService", () => {
             });
 
             await expect(service.assess(requirement, profile)).rejects.toThrow(
-                "Direct match requires evidence: AWS or GCP or Azure"
+                "Direct match requires evidence: [AWS] or [GCP] or [Azure]"
             );
         });
 
@@ -84,7 +84,7 @@ describe("JobRequirementDirectMatchingService", () => {
             });
 
             await expect(service.assess(requirement, profile)).rejects.toThrow(
-                "Direct match requires evidence: AWS or GCP or Azure"
+                "Direct match requires evidence: [AWS] or [GCP] or [Azure]"
             );
         });
     });
@@ -123,7 +123,7 @@ describe("JobRequirementDirectMatchingService", () => {
             });
 
             await expect(service.assess(requirement, profile)).rejects.toThrow(
-                "Non-direct match must not contain evidence: AWS or GCP or Azure"
+                "Non-direct match must not contain evidence: [AWS] or [GCP] or [Azure]"
             );
         });
 
@@ -134,7 +134,7 @@ describe("JobRequirementDirectMatchingService", () => {
             });
 
             await expect(service.assess(requirement, profile)).rejects.toThrow(
-                "Non-direct match must not contain evidence: AWS or GCP or Azure"
+                "Non-direct match must not contain evidence: [AWS] or [GCP] or [Azure]"
             );
         });
     });
@@ -195,7 +195,7 @@ describe("JobRequirementDirectMatchingService", () => {
             await service.assess(requirement, profile);
 
             expect(logger.info).toHaveBeenCalledWith(
-                "[JobRequirementDirectMatchingService.assess] Assessing: AWS or GCP or Azure"
+                "[JobRequirementDirectMatchingService.assess] Assessing: [AWS] or [GCP] or [Azure]"
             );
         });
     });

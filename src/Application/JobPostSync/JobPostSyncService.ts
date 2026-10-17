@@ -7,12 +7,14 @@ import { IJobPostDiscovery } from "../../Domain/JobPosts/IJobPostDiscovery";
 import { randomUUID } from "crypto";
 import { IJobPost, JobPost } from "../../Domain/JobPosts/IJobPost";
 import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
+import { IJobPostScreener } from "./JobPostScreener/IJobPostScreener";
 
 export class JobPostSyncService implements IJobPostSyncService {
     constructor(
         private readonly discoveryServiceFactory: IJobPostDiscoveryServiceFactory,
         private readonly jobSourceRepository: IJobSourceRepository,
         private readonly jobPostRepository: IJobPostRepository,
+        private readonly screener: IJobPostScreener,
         private readonly logger: ILogger
     ) {}
 
@@ -28,7 +30,8 @@ export class JobPostSyncService implements IJobPostSyncService {
                 // TODO: Incorporate batching
                 const discoveryService = this.discoveryServiceFactory.create(source);
                 const discoveries = await discoveryService.fetchList(searchText);
-                const jobPosts = discoveries.map(discovery => this.createJobPost(discovery));
+                const filtered = discoveries.filter(x => this.screener.screenJobPost(x));
+                const jobPosts = filtered.map(discovery => this.createJobPost(discovery));
                 await this.jobPostRepository.addMany(jobPosts);
                 numSourcesSynced++;
                 numJobsDiscovered += jobPosts.length;
@@ -42,7 +45,7 @@ export class JobPostSyncService implements IJobPostSyncService {
         );
         this.logger.debug(`[JobPostSyncService.sync] Completed syncing all sources.`);
     }
-
+    
     public async syncJobDetails(jobPostId: string): Promise<void> {
         this.logger.debug(`[JobPostSyncService.sync] Syncing job details for job post: ${jobPostId}`);
         const jobPost = await this.jobPostRepository.getByIdOrThrow(jobPostId);
