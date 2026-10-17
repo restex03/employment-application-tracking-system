@@ -40,7 +40,9 @@ Thumbs.db
 Desktop.ini
 
 # IDE / editor
-.vscode/
+.vscode/*
+!.vscode/
+!.vscode/launch.json
 .idea/
 *.swp
 *.swo
