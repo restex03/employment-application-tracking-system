@@ -1,4 +1,5 @@
 import Database from "better-sqlite3";
+import { Kysely, sql, SqliteDialect } from "kysely";
 import {
     IJobLocationResponse,
     IJobPostDetailResponse,
@@ -34,7 +35,7 @@ interface JobPostRow {
 }
 
 export class SqliteJobQueries implements IJobPostQueries {
-    private readonly getAllStatement: Database.Statement;
+    private readonly getAllStatement: string;
     private readonly getAllCountStatement: Database.Statement;
     private readonly getByIdStatement: Database.Statement;
 
@@ -83,7 +84,7 @@ export class SqliteJobQueries implements IJobPostQueries {
 
             WHERE jp.id = @id
         `);
-        this.getAllStatement = this.connection.prepare(`
+        this.getAllStatement = `
             SELECT
                 jp.id,
                 jp.source_id,
@@ -124,29 +125,25 @@ export class SqliteJobQueries implements IJobPostQueries {
             LEFT JOIN job_post_details jpd
                 ON jpd.job_post_id = jp.id
 
-                WHERE (UPPER(@companyName) = '' OR UPPER(js.company_name) LIKE '%' || UPPER(@companyName) || '%')
-                    AND (UPPER(@requisitionId) = '' OR UPPER(jp.requisition_id) LIKE '%' || UPPER(@requisitionId) || '%')
-                    AND (UPPER(@title) = '' OR UPPER(jp.title) LIKE '%' || UPPER(@title) || '%')
-                    AND (UPPER(@location) = '' OR UPPER(jp.locations) LIKE '%' || UPPER(@location) || '%')
-                    AND (
-                        @daysOld IS NULL
-                        OR (@daysOld = -1 AND jp.days_old IS NULL)
-                        OR (jp.days_old IS NOT NULL AND jp.days_old <= @daysOld)
-                    )
-                    AND (
-                        @jobMatchScore IS NULL
-                        OR CAST(json_extract(ja.job_match_score_json, '$.score') AS REAL) >= @jobMatchScore
-                    )
-                    AND (
-                        @applicationStatus IS NULL
-                        OR (@applicationStatus = 'NONE' AND japp.status IS NULL)
-                        OR (japp.status IS NOT NULL AND japp.status = @applicationStatus)
-                    )
-                    AND (@includeDismissed = 1 OR jp.dismissed = 0)
-
-            ORDER BY jp.created_at DESC
+            WHERE (UPPER(@companyName) = '' OR UPPER(js.company_name) LIKE '%' || UPPER(@companyName) || '%')
+                AND (UPPER(@requisitionId) = '' OR UPPER(jp.requisition_id) LIKE '%' || UPPER(@requisitionId) || '%')
+                AND (UPPER(@title) = '' OR UPPER(jp.title) LIKE '%' || UPPER(@title) || '%')
+                AND (UPPER(@location) = '' OR UPPER(jp.locations) LIKE '%' || UPPER(@location) || '%')
+                AND (@daysOld = -1 AND jp.days_old IS NULL) 
+                    OR (jp.days_old IS NOT NULL AND jp.days_old <= @daysOld)
+                AND (
+                    @jobMatchScore IS NULL
+                    OR CAST(json_extract(ja.job_match_score_json, '$.score') AS REAL) >= @jobMatchScore
+                )
+                AND (
+                    @applicationStatus IS NULL
+                    OR (@applicationStatus = 'NONE' AND japp.status IS NULL)
+                    OR (japp.status IS NOT NULL AND japp.status = @applicationStatus)
+                )
+                AND (@includeDismissed = 1 OR jp.dismissed = 0)
+            ORDER BY jp.days_old ASC
             LIMIT @pageCount OFFSET @offset
-        `);
+        `;
 
         this.getAllCountStatement = this.connection.prepare(`
             SELECT COUNT(*) as totalCount
@@ -194,23 +191,146 @@ export class SqliteJobQueries implements IJobPostQueries {
         pageNumber: number,
         queryFilters: JobPostQueryFilters
     ): Promise<{ data: IJobPostResponse[]; totalCount: number }> {
-        const offset = (pageNumber - 1) * pageCount;
-        const queryParams = {
-            pageCount,
-            offset,
-            companyName: queryFilters.companyName?.trim() ?? "",
-            requisitionId: queryFilters.requisitionId?.trim() ?? "",
-            title: queryFilters.title?.trim() ?? "",
-            location: queryFilters.location?.trim() ?? "",
-            daysOld: queryFilters.daysOld ?? null,
-            jobMatchScore: queryFilters.jobMatchScore ?? null,
-            applicationStatus: queryFilters.applicationStatus?.trim() || null,
-            includeDismissed: queryFilters.includeDismissed ? 1 : 0,
-        };
-        const rows = this.getAllStatement.all(queryParams) as JobPostRow[];
+        interface JobPostDatabase {
+            job_posts: {
+                id: string;
+                source_id: string;
+                requisition_id: string | null;
+                title: string;
+                detail_path: string;
+                locations: string | null;
+                days_old: number | null;
+                dismissed: number;
+                created_at: string;
+            };
+            job_sources: {
+                id: string;
+                company_name: string;
+                browser_base_url: string;
+            };
+            job_applications: {
+                job_post_id: string;
+                status: string | null;
+            };
+            job_assessments: {
+                job_post_id: string;
+                job_match_score_json: string | null;
+                created_at: string;
+            };
+            job_post_details: {
+                id: string;
+                job_post_id: string;
+                description: string | null;
+                employment_type: string | null;
+                locations: string | null;
+                valid_through: string | null;
+                remote_type: string | null;
+                applicant_locations: string | null;
+            };
+        }
 
-        const countRow = this.getAllCountStatement.get(queryParams) as { totalCount: number };
+        const offset = (pageNumber - 1) * pageCount;
+        const db = new Kysely<JobPostDatabase>({
+            dialect: new SqliteDialect({ database: this.connection }),
+        });
+        const companyName = queryFilters.companyName?.trim() ?? "";
+        const requisitionId = queryFilters.requisitionId?.trim() ?? "";
+        const title = queryFilters.title?.trim() ?? "";
+        const location = queryFilters.location?.trim() ?? "";
+        const applicationStatus = queryFilters.applicationStatus?.trim() || null;
+
+        let query = db
+            .with("ranked_assessments", qb =>
+                qb
+                    .selectFrom("job_assessments")
+                    .select([
+                        "job_post_id",
+                        "job_match_score_json",
+                        sql<number>`ROW_NUMBER() OVER (PARTITION BY job_post_id ORDER BY created_at DESC)`.as(
+                            "row_num"
+                        ),
+                    ])
+            )
+            .selectFrom("job_posts as jp")
+            .innerJoin("job_sources as js", "js.id", "jp.source_id")
+            .leftJoin("job_applications as japp", "japp.job_post_id", "jp.id")
+            .leftJoin("ranked_assessments as ja", join =>
+                join.onRef("ja.job_post_id", "=", "jp.id").on("ja.row_num", "=", 1)
+            )
+            .leftJoin("job_post_details as jpd", "jpd.job_post_id", "jp.id");
+
+        if (companyName) {
+            query = query.where(
+                sql<boolean>`UPPER(js.company_name) LIKE ${`%${companyName.toUpperCase()}%`}`
+            );
+        }
+        if (requisitionId) {
+            query = query.where(
+                sql<boolean>`UPPER(jp.requisition_id) LIKE ${`%${requisitionId.toUpperCase()}%`}`
+            );
+        }
+        if (title) {
+            query = query.where(
+                sql<boolean>`UPPER(jp.title) LIKE ${`%${title.toUpperCase()}%`}`
+            );
+        }
+        if (location) {
+            query = query.where(
+                sql<boolean>`UPPER(jp.locations) LIKE ${`%${location.toUpperCase()}%`}`
+            );
+        }
+        if (queryFilters.daysOld !== undefined) {
+            query =
+                queryFilters.daysOld === -1
+                    ? query.where("jp.days_old", "is", null)
+                    : query.where("jp.days_old", "<=", queryFilters.daysOld);
+        }
+        if (queryFilters.jobMatchScore !== undefined) {
+            query = query.where(
+                sql<boolean>`CAST(json_extract(ja.job_match_score_json, '$.score') AS REAL) >= ${queryFilters.jobMatchScore}`
+            );
+        }
+        if (applicationStatus === "NONE") {
+            query = query.where("japp.status", "is", null);
+        } else if (applicationStatus !== null) {
+            query = query.where("japp.status", "=", applicationStatus);
+        }
+        if (!queryFilters.includeDismissed) {
+            query = query.where("jp.dismissed", "=", 0);
+        }
+
+        const countRow = await query
+            .select(sql<number>`COUNT(*)`.as("totalCount"))
+            .executeTakeFirstOrThrow();
         const totalCount = countRow.totalCount;
+
+        const rows = await query
+            .select([
+                "jp.id",
+                "jp.source_id",
+                "jp.requisition_id",
+                "jp.title",
+                "jp.detail_path",
+                "jp.locations",
+                "jp.days_old",
+                "japp.status as application_status",
+                "jp.dismissed",
+                "jp.created_at",
+                sql<string | null>`NULL`.as("status"),
+                "js.browser_base_url",
+                "ja.job_match_score_json",
+                "jpd.id as detail_id",
+                "jpd.description as detail_description",
+                "jpd.employment_type as detail_employment_type",
+                "jpd.locations as detail_locations",
+                "jpd.valid_through as detail_valid_through",
+                "jpd.remote_type as detail_remote_type",
+                "jpd.applicant_locations as detail_applicant_locations",
+            ])
+            .orderBy("jp.days_old", "asc")
+            .limit(pageCount)
+            .offset(offset)
+            .execute();
 
         this.logger.debug(
             `[SqliteJobRepository.getAll] Retrieved ${rows.length} job posts (page ${pageNumber}, total: ${totalCount})`

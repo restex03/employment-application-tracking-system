@@ -43,6 +43,7 @@
         "better-sqlite3": "^13.0.3",
         "dotenv": "^17.4.2",
         "fastify": "^5.12.1",
+        "kysely": "^0.29.7",
         "openai": "^7.5.0",
         "sanitize-html": "^2.17.7",
         "zod": "^4.4.3"
