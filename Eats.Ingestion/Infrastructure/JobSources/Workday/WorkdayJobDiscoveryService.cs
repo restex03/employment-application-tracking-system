@@ -12,12 +12,12 @@ public sealed class WorkdayJobDiscoveryService(
 {
     private const int PageSize = 20;
 
-    public async Task<IReadOnlyList<JobPostDiscoveryRecord>> FetchList(
+    public async Task<IReadOnlyList<JobPostDiscovery>> FetchList(
         string? searchText = null,
         CancellationToken cancellationToken = default)
     {
         var baseUri = GetBaseUri(jobSource.BaseUrl);
-        var discovered = new Dictionary<string, JobPostDiscoveryRecord>(StringComparer.Ordinal);
+        var discovered = new Dictionary<string, JobPostDiscovery>(StringComparer.Ordinal);
         var offset = 0;
         int? total = null;
 

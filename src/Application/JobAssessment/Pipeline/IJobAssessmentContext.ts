@@ -8,26 +8,22 @@ import { IJobRequirement } from "../RequirementsExtraction/IJobRequirement";
 import { IJobScreenResult } from "../Screening/IJobScreenResult";
 
 export interface IJobAssessmentContext {
-    jobSource: IJobSource;
     candidateProfile: ICandidateProfile;
     job: IJobPost;
     screenResult: IJobScreenResult | undefined;
-    jobDetail: IJobPostDetail | undefined;
     requirements: IJobRequirement[] | undefined;
     requirementMatches: IJobRequirementMatch[] | undefined;
     jobMatchScore: IJobMatchScore | undefined;
 }
 
 export class JobAssessmentContext implements IJobAssessmentContext {
-    constructor(candidateProfile: ICandidateProfile, jobLookup: IJobPost, jobSource: IJobSource) {
+    constructor(candidateProfile: ICandidateProfile, jobLookup: IJobPost) {
         this.candidateProfile = candidateProfile;
         this.job = jobLookup;
-        this.jobSource = jobSource;
     }
     jobMatchScore: IJobMatchScore | undefined;
     public readonly candidateProfile: ICandidateProfile;
     public readonly job: IJobPost;
-    public readonly jobSource: IJobSource;
     public screenResult: IJobScreenResult | undefined;
     public jobDetail: IJobPostDetail | undefined;
     public requirements: IJobRequirement[] | undefined;

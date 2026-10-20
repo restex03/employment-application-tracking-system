@@ -2,8 +2,8 @@ import { FastifyInstance } from "fastify";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IRouteRegistrar } from "../Host/IRouteRegistrar";
 import { IJobAssessmentQueueService } from "../../Application/JobAssessment/PipelineQueue/IJobAssessmentQueueService";
-import { IJobPostSyncQueueService } from "../../Application/JobPostSync/Queue/IJobPostSyncQueueService";
 import { NotFoundError } from "../../Application/Common/Errors/NotFoundError";
+import { IIngestionServiceGateway } from "../../Infrastructure/Ingestion/IIngestionServiceGateway";
 
 interface AssessmentJobParams {
     queueJobId: string;
@@ -12,7 +12,7 @@ interface AssessmentJobParams {
 export class QueueJobsRoutes implements IRouteRegistrar {
     constructor(
         private readonly jobAssessmentQueueService: IJobAssessmentQueueService,
-        private readonly jobPostSyncQueueService: IJobPostSyncQueueService,
+        private readonly ingestionGateway: IIngestionServiceGateway,
         private readonly logger: ILogger
     ) {}
 
@@ -72,7 +72,7 @@ export class QueueJobsRoutes implements IRouteRegistrar {
             async (request, reply) => {
             try {
                 this.logger.info(`[${request.method}]  ${request.url}`);
-                const jobs = await this.jobPostSyncQueueService.getActiveJobs();
+                const jobs = await this.ingestionGateway.getActiveSyncTasks();
 
                 return reply.code(200).send(jobs);
             } catch (error) {

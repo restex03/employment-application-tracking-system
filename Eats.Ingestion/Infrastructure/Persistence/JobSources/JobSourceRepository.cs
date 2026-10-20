@@ -38,4 +38,13 @@ public sealed class JobSourceRepository(JobPostDbContext dbContext) : IJobSource
             .Where(source => ids.Contains(source.Id))
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<List<JobSource>> GetByCompanyNameAsync(string companyName, CancellationToken cancellationToken)
+    {
+        var result = await dbContext.JobSources
+            .AsNoTracking()
+            .Where(source => source.CompanyName.Contains(companyName, StringComparison.OrdinalIgnoreCase))
+            .ToListAsync(cancellationToken);
+        return result;
+    }
 }

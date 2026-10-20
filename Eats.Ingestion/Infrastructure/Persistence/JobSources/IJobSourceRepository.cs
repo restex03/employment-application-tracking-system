@@ -10,4 +10,5 @@ public interface IJobSourceRepository
 
     Task<List<JobSource>> GetAllAsync(CancellationToken cancellationToken = default);
     Task AddManyAsync(IEnumerable<JobSource> jobSources, CancellationToken cancellationToken = default);
+    Task<List<JobSource>> GetByCompanyNameAsync(string companyName, CancellationToken cancellationToken);
 }

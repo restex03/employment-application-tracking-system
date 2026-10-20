@@ -10,7 +10,6 @@ import { IJobScreenResult } from "./Screening/IJobScreenResult";
 /** Temporary until we incorporate async jobs for running assessments */
 export interface IJobAssessmentResult {
     readonly status: JobAssessmentStatus;
-    readonly jobSource: IJobSource;
     readonly candidateProfile: ICandidateProfile;
     readonly job: IJobPost;
     readonly screenResult: IJobScreenResult | undefined;

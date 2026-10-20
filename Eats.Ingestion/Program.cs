@@ -9,7 +9,6 @@ using Eats.Ingestion.Infrastructure.Persistence.JobPosts;
 using Eats.Ingestion.Infrastructure.Persistence.JobPostSyncQueue;
 using Eats.Ingestion.Infrastructure.Persistence.JobSources;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics.CodeAnalysis;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("JobPosts")
@@ -19,14 +18,14 @@ builder.Services.AddScoped<IJobPostRepository, JobPostRepository>()
     .AddScoped<IJobPostSyncQueue, JobPostSyncQueueRepository>()
     .AddScoped<IJobSourceRepository, JobSourceRepository>()
     .AddScoped<IJobPostSyncService, JobPostSyncService>()
-    .AddScoped<IJobSourceService, JobSourceService>()
+    .AddScoped<IJobSourceService, IJobSourceService.Imp>()
     .AddScoped<IJobPostScreener, JobPostScreener>(sp => new JobPostScreener([
         new DetailPathScreener(),
         new LocationScreener(),
         new RolesScreener(),    
     ])
 );
-builder.Services.AddSingleton<IJobPostDiscoveryServiceFactory, JobPostDiscoveryServiceFactory>();
+builder.Services.AddSingleton<IJobPostDiscoveryServiceFactory, IJobPostDiscoveryServiceFactory.Imp>();
 builder.Services.AddHttpClient(nameof(WorkdayJobsGateway), client =>
 {
     client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
@@ -45,12 +44,45 @@ await using (var scope = app.Services.CreateAsyncScope())
 
 await SeedDefaultWorkdaySourcesIfEmpty(app);
 
-app.MapGet("/", () => "Hello World!");
 
-app.MapGet("/ingestion/jobSources", async ([FromServices] IJobSourceService svc) =>
+app.MapGet("/jobSources/{id}", async ([FromServices] IJobSourceService svc, [FromRoute] Guid id) =>
 {
-    return await svc.GetAll();
+    try
+    {
+        var result = await svc.GetByIdOrThrow(id);
+        return Results.Ok(result);    
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
 });
+
+
+app.MapGet("/jobSources", async (
+    [FromServices] IJobSourceService svc,
+    [FromQuery] string? companyName) =>
+{
+    try
+    {
+        if (!string.IsNullOrWhiteSpace(companyName))
+        {
+            var source = await svc.GetByCompanyName(companyName);
+            return Results.Ok(source);
+        }
+
+        var sources = await svc.GetAll();
+        return Results.Ok(sources);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+    
+});
+
+
+
 app.MapPost(
     "/ingestion/jobPosts/sync",
     async (
@@ -66,7 +98,7 @@ app.MapPost(
         req.SearchText,
         ct);
 
-    return jobId;
+    return new { Id = jobId };
 
 });
 

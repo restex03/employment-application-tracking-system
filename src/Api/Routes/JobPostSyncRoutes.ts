@@ -2,9 +2,8 @@ import { FastifyInstance } from "fastify";
 
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IRouteRegistrar } from "../Host/IRouteRegistrar";
-import { IJobPostSyncService } from "../../Application/JobPostSync/IJobPostSyncService";
-import { IJobPostSyncQueueService } from "../../Application/JobPostSync/Queue/IJobPostSyncQueueService";
-import { IJobPostSyncJobRequest } from "../../Application/JobPostSync/Queue/IJobPostSyncJob";
+import { IJobPostSyncTaskRequest } from "../../Application/JobPostSync/Queue/IJobPostSyncJob";
+import { IIngestionServiceGateway } from "../../Infrastructure/Ingestion/IIngestionServiceGateway";
 
 interface JobPostParams {
     jobPostId: string;
@@ -17,9 +16,8 @@ interface SyncJobPostsBody {
 
 export class JobPostSyncRoutes implements IRouteRegistrar {
     constructor(
-        private readonly jobPostSyncService: IJobPostSyncService,
-        private readonly jobPostSyncQueueService: IJobPostSyncQueueService,
-        private readonly logger: ILogger
+        private readonly ingestionGateway: IIngestionServiceGateway,
+        private readonly logger: ILogger,
     ) {}
 
     public register(server: FastifyInstance): void {
@@ -31,11 +29,11 @@ export class JobPostSyncRoutes implements IRouteRegistrar {
             async (request, reply) => {
             try {
                 this.logger.info(`[${request.method}]  ${request.url}`);
-                const newJobSync: IJobPostSyncJobRequest = {
+                const newJobSync: IJobPostSyncTaskRequest = {
                     sourceIds: request.body?.sourceIds,
                     searchText: request.body?.searchText,
                 };
-                await this.jobPostSyncQueueService.enqueue(newJobSync);
+                await this.ingestionGateway.initiateJobPostSyncTask(newJobSync);
 
                 this.logger.info(`[${request.method}]  ${request.url} Sync added to queue successfully`);
                 return reply.code(202).send();
@@ -65,7 +63,7 @@ export class JobPostSyncRoutes implements IRouteRegistrar {
             try {
                 const { jobPostId } = request.params;
                 this.logger.info(`[${request.method}]  ${request.url}`);
-                await this.jobPostSyncService.syncJobDetails(jobPostId);
+                await this.ingestionGateway.initiateJobPostDetailSyncTask([jobPostId]);
 
                 this.logger.info(`[${request.method}]  ${request.url} Sync completed successfully`);
                 return reply.code(200).send();

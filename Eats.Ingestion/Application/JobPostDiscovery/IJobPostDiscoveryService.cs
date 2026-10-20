@@ -2,7 +2,7 @@ namespace Eats.Ingestion.Application.JobPostDiscovery;
 
 public interface IJobPostDiscoveryService
 {
-    Task<IReadOnlyList<JobPostDiscoveryRecord>> FetchList(
+    Task<IReadOnlyList<JobPostDiscovery>> FetchList(
         string? searchText = null,
         CancellationToken cancellationToken = default);
 

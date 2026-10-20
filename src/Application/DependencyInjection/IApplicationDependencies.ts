@@ -2,9 +2,8 @@ import { ILlmInferenceProvider } from "../../Infrastructure/Inference/ILlmInfere
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
 import { SqliteDatabaseConnection } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteDatabaseConnection";
-import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
 import { IJobAssessmentQueue } from "../../Infrastructure/Persistence/Queues/JobAssessmentQueue/IJobAssessmentQueue";
-import { IJobPostSyncQueue } from "../../Infrastructure/Persistence/Queues/JobPostSyncQueue/IJobPostSyncQueue";
+import { IIngestionServiceGateway } from "../../Infrastructure/Ingestion/IIngestionServiceGateway";
 import { IJobApplicationService } from "../JobApplications/IJobApplicationService";
 import { IJobAssessmentService } from "../JobAssessment/IJobAssessmentService";
 import { IJobAssessmentQueueService } from "../JobAssessment/PipelineQueue/IJobAssessmentQueueService";
@@ -15,35 +14,25 @@ import { IJobScreeningService } from "../JobAssessment/Screening/IJobScreeningSe
 import { IJobCandidateProfileService } from "../JobCandidateProfiles/IJobCandidateProfileService";
 import { IJobPostResultTableService } from "../JobPost/IJobPostResultTableService";
 import { IJobPostService } from "../JobPost/IJobPostService";
-import { IJobPostDiscoveryServiceFactory } from "../JobPostDiscovery/IJobPostDiscoveryServiceFactory";
-import { IJobPostSyncService } from "../JobPostSync/IJobPostSyncService";
-import { IJobPostSyncDailySchedulerService } from "../JobPostSync/Queue/IJobPostSyncDailySchedulerService";
-import { IJobPostSyncQueueService } from "../JobPostSync/Queue/IJobPostSyncQueueService";
-import { IJobPostSyncQueueWorkerService } from "../JobPostSync/Queue/IJobPostSyncQueueWorkerService";
-import { IJobSourceService } from "../JobSources/IJobSourceService";
+import { IJobSourceGateway } from "../../Infrastructure/JobSourcing/IJobSourceGateway";
 
 export interface IApplicationDependencies {
     jobAssessmentService: IJobAssessmentService;
     logger: ILogger;
     sqliteConnection: SqliteDatabaseConnection;
     jobPostRepository: IJobPostRepository;
-    jobSourceRepository: IJobSourceRepository;
     jobPostResultService: IJobPostResultTableService;
-    jobPostSyncService: IJobPostSyncService;
-    jobPostSyncQueue: IJobPostSyncQueue;
-    jobPostSyncQueueService: IJobPostSyncQueueService;
-    jobPostSyncDailySchedulerService: IJobPostSyncDailySchedulerService;
+
     jobPostService: IJobPostService;
     jobAssessmentQueue: IJobAssessmentQueue;
     jobAssessmentQueueService: IJobAssessmentQueueService;
-    jobPostSyncQueueWorkerService: IJobPostSyncQueueWorkerService;
     jobCandidateProfileService: IJobCandidateProfileService;
-    jobSourceService: IJobSourceService;
     inferenceProvider: ILlmInferenceProvider;
     screeningService: IJobScreeningService;
     requirementsExtractionService: IJobRequirementsExtractionService;
     requirementsMatchingService: IJobRequirementsMatchingService;
-    jobPostDiscoveryServiceFactory: IJobPostDiscoveryServiceFactory;
     jobAssessmentQueueWorkerService: IJobAssessmentQueueWorkerService;
     jobApplicationService: IJobApplicationService;
+    ingestionGateway: IIngestionServiceGateway;
+    jobSourceGateway: IJobSourceGateway;
 }

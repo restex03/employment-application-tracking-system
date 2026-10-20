@@ -3,7 +3,8 @@ import { FastifyInstance } from "fastify";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 
 import { IRouteRegistrar } from "../Host/IRouteRegistrar";
-import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
+import { IIngestionServiceGateway } from "../../Infrastructure/Ingestion/IIngestionServiceGateway";
+import { IJobSourceGateway } from "../../Infrastructure/JobSourcing/IJobSourceGateway";
 
 interface JobSourceQuery {
     companyName?: string;
@@ -15,8 +16,8 @@ interface JobSourceParams {
 
 export class JobSourcesRoutes implements IRouteRegistrar {
     constructor(
-        private readonly jobSourceRepository: IJobSourceRepository,
-        private readonly logger: ILogger
+        private readonly jobSourceGateway: IJobSourceGateway,   
+        private readonly logger: ILogger,
     ) {}
 
     public register(server: FastifyInstance): void {
@@ -32,14 +33,14 @@ export class JobSourcesRoutes implements IRouteRegistrar {
                 if (companyName) {
                     this.logger.info(`[${request.method}]  ${request.url}`);
 
-                    const source = await this.jobSourceRepository.getByCompanyName(companyName);
+                    const source = await this.jobSourceGateway.getByCompanyName(companyName);
 
                     return source ? [source] : [];
                 }
 
                 this.logger.info(`[${request.method}]  ${request.url}`);
 
-                const sources = await this.jobSourceRepository.getAll();
+                const sources = await this.jobSourceGateway.getAllOrThrow();
                 return sources;
             } catch (error) {
                 const errMsg = error instanceof Error ? error.message : String(error);
@@ -60,7 +61,7 @@ export class JobSourcesRoutes implements IRouteRegistrar {
                 const { sourceId } = request.params;
                 this.logger.info(`[${request.method}]  ${request.url}`);
 
-                const source = await this.jobSourceRepository.getById(sourceId);
+                const source = await this.jobSourceGateway.getByIdOrThrow(sourceId);
 
                 if (!source) {
                     this.logger.info(`[${request.method}]  ${request.url} Job source not found`);

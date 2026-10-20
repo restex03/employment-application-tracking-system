@@ -8,7 +8,6 @@ import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IJobAssessmentRepository } from "../../Infrastructure/Persistence/JobAssessments/IJobAssessmentRepository";
 import { IJobCandidateProfileRepository } from "../../Infrastructure/Persistence/JobCandidateProfiles/IJobCandidateProfileRepository";
 import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
-import { IJobSourceRepository } from "../../Infrastructure/Persistence/JobSource/IJobSourceRepository";
 import { PipelineStepStatus } from "../Pipelines/IPipelineStepResult";
 import { PipelineRunner } from "../Pipelines/PipelineRunner";
 import { JobAssessmentService } from "./JobAssessmentService";
@@ -18,7 +17,6 @@ import { IJobRequirementMatch } from "./RequirementMatching/IJobRequirementMatch
 describe("JobAssessmentService", () => {
     let candidateProfileRepo: IJobCandidateProfileRepository;
     let pipeline: PipelineRunner<IJobAssessmentContext>;
-    let jobSourceRepository: IJobSourceRepository;
     let jobPostRepo: IJobPostRepository;
     let jobAssessmentRepo: IJobAssessmentRepository;
     let logger: ILogger;
@@ -51,11 +49,7 @@ describe("JobAssessmentService", () => {
             getCandidateProfileByIdOrThrow: vi.fn().mockResolvedValue(candidateProfile),
         } as unknown as IJobCandidateProfileRepository;
 
-        jobSourceRepository = {
-            getByIdOrThrow: vi.fn().mockResolvedValue(jobSource),
-        } as unknown as IJobSourceRepository;
-
-        jobPostRepo = {
+       jobPostRepo = {
             getByIdOrThrow: vi.fn().mockResolvedValue(jobPost),
             update: vi.fn().mockResolvedValue(undefined),
         } as unknown as IJobPostRepository;
@@ -82,7 +76,6 @@ describe("JobAssessmentService", () => {
         service = new JobAssessmentService(
             candidateProfileRepo,
             pipeline,
-            jobSourceRepository,
             jobPostRepo,
             jobAssessmentRepo,
             logger

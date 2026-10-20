@@ -94,7 +94,7 @@ public sealed class JobPostSyncService(
         return source ?? throw new InvalidOperationException($"Job source not found: {sourceId}");
     }
 
-    private static JobPost CreateJobPost(JobPostDiscoveryRecord discovery)
+    private static JobPost CreateJobPost(JobPostDiscovery.JobPostDiscovery discovery)
     {
         return new JobPost(
             Guid.NewGuid(),

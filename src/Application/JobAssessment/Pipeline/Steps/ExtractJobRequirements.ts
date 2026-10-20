@@ -8,7 +8,7 @@ export class ExtractJobRequirements implements IPipelineStep<IJobAssessmentConte
     constructor(private readonly requirementsSvc: IJobRequirementsExtractionService) {}
 
     public async execute(context: IJobAssessmentContext): Promise<IPipelineStepResult> {
-        if (!context.jobDetail) {
+        if (!context.job.detail) {
             return {
                 status: PipelineStepStatus.Failed,
                 reason: "Job details are required before extracting job requirements.",
@@ -16,7 +16,7 @@ export class ExtractJobRequirements implements IPipelineStep<IJobAssessmentConte
         }
 
         try {
-            context.requirements = await this.requirementsSvc.extract(context.jobDetail);
+            context.requirements = await this.requirementsSvc.extract(context.job.detail);
 
             return {
                 status: PipelineStepStatus.Succeeded,

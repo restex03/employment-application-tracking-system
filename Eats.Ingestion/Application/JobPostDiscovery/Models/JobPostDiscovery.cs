@@ -2,7 +2,7 @@ using Eats.Ingestion.Application.JobPostSync;
 
 namespace Eats.Ingestion.Application.JobPostDiscovery;
 
-public sealed record JobPostDiscoveryRecord(
+public sealed record JobPostDiscovery(
     Guid SourceId,
     string Title,
     string DetailPath,

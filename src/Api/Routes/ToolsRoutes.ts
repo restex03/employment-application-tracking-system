@@ -1,9 +1,7 @@
-import { FastifyInstance, FastifySchema } from "fastify";
-
+import { FastifyInstance } from "fastify";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { SqliteDatabaseConnection } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteDatabaseConnection";
 import { IRouteRegistrar } from "../Host/IRouteRegistrar";
-import { IJobSourceService } from "../../Application/JobSources/IJobSourceService";
 import { IJobCandidateProfileService } from "../../Application/JobCandidateProfiles/IJobCandidateProfileService";
 
 interface ResetDbResponse {
@@ -17,7 +15,6 @@ interface ResetDbError {
 export class ToolsRoutes implements IRouteRegistrar {
     constructor(
         private readonly sqliteConnection: SqliteDatabaseConnection,
-        private readonly jobSourceService: IJobSourceService,
         private readonly jobCandidateProfileService: IJobCandidateProfileService,
         private readonly logger: ILogger
     ) {}
@@ -54,7 +51,6 @@ export class ToolsRoutes implements IRouteRegistrar {
             try {
                 this.logger.info(`[${request.method}]  ${request.url}`);
                 this.sqliteConnection.reset();
-                this.jobSourceService.seedDefaultWorkdayJobSources();
                 this.jobCandidateProfileService.seedCandidateProfilesWithDefault();
                 this.logger.info(`[${request.method}]  ${request.url} Database reset completed`);
                 return reply.code(200).send({

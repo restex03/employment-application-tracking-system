@@ -34,7 +34,7 @@ export class HttpServer {
         new SwaggerConfig(this.dependencies.logger).register(this.app);
 
         this.routes = [
-            new JobSourcesRoutes(this.dependencies.jobSourceRepository, this.dependencies.logger),
+            new JobSourcesRoutes(this.dependencies.jobSourceGateway, this.dependencies.logger),
             new CandidateProfileRoutes(this.dependencies.jobCandidateProfileService, this.dependencies.logger),
             new JobPostRoutes(
                 this.dependencies.jobPostResultService,
@@ -42,8 +42,7 @@ export class HttpServer {
                 this.dependencies.logger
             ),
             new JobPostSyncRoutes(
-                this.dependencies.jobPostSyncService,
-                this.dependencies.jobPostSyncQueueService,
+                this.dependencies.ingestionGateway,
                 this.dependencies.logger
             ),
             new JobApplicationRoutes(this.dependencies.jobApplicationService, this.dependencies.logger),
@@ -56,13 +55,12 @@ export class HttpServer {
             ),
             new QueueJobsRoutes(
                 this.dependencies.jobAssessmentQueueService,
-                this.dependencies.jobPostSyncQueueService,
+                this.dependencies.ingestionGateway,
                 this.dependencies.logger
             ),
 
             new ToolsRoutes(
                 this.dependencies.sqliteConnection,
-                this.dependencies.jobSourceService,
                 this.dependencies.jobCandidateProfileService,
                 this.dependencies.logger
             ),
