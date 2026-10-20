@@ -11,7 +11,7 @@ public enum JobPostSyncQueueStatus
 public sealed class JobPostSyncQueueJob
 {
     public Guid Id { get; set; }
-    public string[] SourceIds { get; set; } = [];
+    public Guid[] SourceIds { get; set; } = [];
     public string? SearchText { get; set; }
     public JobPostSyncQueueStatus Status { get; set; }
     public string? Error { get; set; }

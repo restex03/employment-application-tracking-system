@@ -9,43 +9,27 @@ public sealed class JobPostDetailConfiguration : IEntityTypeConfiguration<JobPos
     public void Configure(EntityTypeBuilder<JobPostDetail> builder)
     {
         builder.ToTable(nameof(JobPostDetail));
-        builder.HasKey(detail => detail.Id);
-        builder.Property(detail => detail.Id)
-            .HasColumnName(nameof(JobPostDetail.Id))
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id)
             .IsRequired();
-        builder.Property(detail => detail.JobPostId)
-            .HasColumnName(nameof(JobPostDetail.JobPostId))
+        builder.Property(x => x.JobPostId)
             .IsRequired();
-        builder.Property(detail => detail.Description)
-            .HasColumnName(nameof(JobPostDetail.Description))
-            .HasColumnType("TEXT")
+        builder.Property(x => x.Description)
             .IsRequired();
-        builder.Property(detail => detail.EmploymentType)
-            .HasColumnName(nameof(JobPostDetail.EmploymentType))
-            .HasColumnType("TEXT");
-        var locations = builder.Property(detail => detail.Locations)
-            .HasColumnName(nameof(JobPostDetail.Locations))
-            .HasColumnType("TEXT")
+        builder.Property(x => x.EmploymentType);
+        var locations = builder.Property(x => x.Locations)
             .HasConversion(JsonArrayValueConverter<JobPostLocation>.Converter);
         locations.Metadata.SetValueComparer(JsonArrayValueConverter<JobPostLocation>.Comparer);
-        builder.Property(detail => detail.ValidThrough)
-            .HasColumnName(nameof(JobPostDetail.ValidThrough))
-            .HasColumnType("TEXT");
-        builder.Property(detail => detail.RemoteType)
-            .HasColumnName(nameof(JobPostDetail.RemoteType))
-            .HasColumnType("TEXT");
-        var applicantLocations = builder.Property(detail => detail.ApplicantLocations)
-            .HasColumnName(nameof(JobPostDetail.ApplicantLocations))
-            .HasColumnType("TEXT")
+        builder.Property(x => x.ValidThrough);
+        builder.Property(x => x.RemoteType);
+        var applicantLocations = builder.Property(x => x.ApplicantLocations)
             .HasConversion(JsonArrayValueConverter<string>.Converter);
         applicantLocations.Metadata.SetValueComparer(JsonArrayValueConverter<string>.Comparer);
-        builder.Property(detail => detail.FetchedAt)
-            .HasColumnName(nameof(JobPostDetail.FetchedAt))
-            .HasColumnType("timestamp with time zone")
+        builder.Property(x => x.FetchedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
 
-        builder.HasIndex(detail => detail.JobPostId)
+        builder.HasIndex(x => x.JobPostId)
             .IsUnique()
             .HasDatabaseName("IX_JobPostDetail_JobPostId");
     }

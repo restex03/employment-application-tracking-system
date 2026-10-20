@@ -14,12 +14,11 @@ public sealed class JobPostSyncService(
     ILogger<JobPostSyncService> logger) : IJobPostSyncService
 {
     public async Task SyncJobs(
-        IEnumerable<string> sourceIds,
+        IEnumerable<Guid> sourceIds,
         string? searchText = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken ct = default)
     {
-        var sources = await Task.WhenAll(sourceIds.Select(async sourceId =>
-            await GetSource(sourceId, cancellationToken)));
+        var sources = await jobSourceRepository.GetAllAsync(ct);
         var sourcesSynced = 0;
         var jobsDiscovered = 0;
 
@@ -29,7 +28,7 @@ public sealed class JobPostSyncService(
             {
                 logger.LogDebug("Syncing job posts from source {CompanyName}", source.CompanyName);
                 var discoveryService = discoveryServiceFactory.Create(source);
-                var discoveredJobs = await discoveryService.FetchList(searchText, cancellationToken);
+                var discoveredJobs = await discoveryService.FetchList(searchText, ct);
                 var jobPosts = discoveredJobs
                     .Where(screener.ScreenJobPost)
                     .Select(CreateJobPost)
@@ -84,10 +83,10 @@ public sealed class JobPostSyncService(
     }
 
     private async Task<JobSource> GetSource(
-        string sourceId,
+        Guid sourceId,
         CancellationToken cancellationToken)
     {
-        var source = await jobSourceRepository.GetById(sourceId, cancellationToken);
+        var source = await jobSourceRepository.GetByIdOrThrowAsync(sourceId, cancellationToken);
         return source ?? throw new InvalidOperationException($"Job source not found: {sourceId}");
     }
 

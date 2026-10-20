@@ -1,12 +1,15 @@
 using System.Text.RegularExpressions;
-using Eats.Ingestion.Application.JobPostDiscovery;
 
-namespace Eats.Ingestion.Application.JobPostSync;
-
-public sealed class JobPostScreener : IJobPostScreener
+public class RolesScreener: IScreener
 {
     private static readonly RegexOptions PatternOptions =
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled;
+    private static Regex[] CreatePatterns(params string[] patterns)
+    {
+        return patterns
+            .Select(pattern => new Regex(pattern, PatternOptions))
+            .ToArray();
+    }
 
     private static readonly Regex[] PassList = CreatePatterns(
         @"\bsoftware\b",
@@ -52,7 +55,7 @@ public sealed class JobPostScreener : IJobPostScreener
         @"\btechnical staff\b",
         @"\engineer\b");
 
-    private static readonly Regex[] FailRoles = CreatePatterns(
+    private static readonly Regex[] FailList = CreatePatterns(
         @"\brecruit(?:er|ing|ment)?\b",
         @"\btalent acquisition\b",
         @"\bproject manager\b",
@@ -64,54 +67,15 @@ public sealed class JobPostScreener : IJobPostScreener
         @"\bvice president\b",
         @"\b(?:director|vice president|vp)\b",
         @"\b(?:intern|internship)\b");
+        
 
-    private static readonly Regex[] FailPlaces = CreatePatterns(
-        @"\bindia\b",
-        @"\btaiwan\b",
-        @"\bchina\b",
-        @"\bhong kong\b",
-        @"\b(?:macau|macao)\b",
-        @"\bpakistan\b",
-        @"\bbangladesh\b",
-        @"\bsri lanka\b",
-        @"\bnepal\b",
-        @"\bsingapore\b",
-        @"\bmalaysia\b",
-        @"\bindonesia\b",
-        @"\bphilippines\b",
-        @"\bvietnam\b",
-        @"\bthailand\b",
-        @"\bjapan\b",
-        @"\b(?:south korea|republic of korea)\b",
-        @"\bbengaluru\b",
-        @"\bbangalore\b",
-        @"\btrivandrum\b",
-        @"\bmumbai\b",
-        @"\bcanada\b",
-        @"\bireland\b",
-        @"\bpuerto rico\b",
-        @"\bmexico\b",
-        @"\bbulgaria\b"
-    );
-
-    private static Regex[] CreatePatterns(params string[] patterns)
+    public bool IsSatisfiedBy(IJobScreenCriteria job)
     {
-        return patterns
-            .Select(pattern => new Regex(pattern, PatternOptions))
-            .ToArray();
-    }
-
-    public bool ScreenJobPost(JobPostDiscoveryRecord jobPost)
-    {
-        if (FailRoles.Any(pattern => pattern.IsMatch(jobPost.Title))) {
-            return false;
-        }
-        if (FailPlaces.Any(pattern => pattern.IsMatch(jobPost.Title)
-            || pattern.IsMatch(jobPost.DetailPath) )) {
+        if (FailList.Any(pattern => pattern.IsMatch(job.Title)))
+        {
             return false;
         }
 
-
-        return PassList.Any(pattern => pattern.IsMatch(jobPost.Title));
+        return PassList.Any(x => x.IsMatch(job.Title));
     }
 }

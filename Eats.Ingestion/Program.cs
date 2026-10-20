@@ -15,11 +15,16 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("JobPosts")
     ?? throw new InvalidOperationException("Connection string 'JobPosts' is not configured.");
 builder.Services.AddDbContext<JobPostDbContext>(options => options.UseNpgsql(connectionString));
-builder.Services.AddScoped<IJobPostRepository, JobPostRepository>();
-builder.Services.AddScoped<IJobPostSyncQueue, JobPostSyncQueueRepository>();
-builder.Services.AddScoped<IJobSourceRepository, JobSourceRepository>();
-builder.Services.AddScoped<IJobPostSyncService, JobPostSyncService>();
-builder.Services.AddScoped<IJobPostScreener, JobPostScreener>();
+builder.Services.AddScoped<IJobPostRepository, JobPostRepository>()
+    .AddScoped<IJobPostSyncQueue, JobPostSyncQueueRepository>()
+    .AddScoped<IJobSourceRepository, JobSourceRepository>()
+    .AddScoped<IJobPostSyncService, JobPostSyncService>()
+    .AddScoped<IJobSourceService, JobSourceService>()
+    .AddScoped<IJobPostScreener, JobPostScreener>(sp => new JobPostScreener([
+        new LocationScreener(),
+        new RolesScreener(),    
+    ])
+);
 builder.Services.AddSingleton<IJobPostDiscoveryServiceFactory, JobPostDiscoveryServiceFactory>();
 builder.Services.AddHttpClient(nameof(WorkdayJobsGateway), client =>
 {
@@ -40,6 +45,11 @@ await using (var scope = app.Services.CreateAsyncScope())
 await SeedDefaultWorkdaySourcesIfEmpty(app);
 
 app.MapGet("/", () => "Hello World!");
+
+app.MapGet("/ingestion/jobSources", async ([FromServices] IJobSourceService svc) =>
+{
+    return await svc.GetAll();
+});
 app.MapPost(
     "/ingestion/jobPosts/sync",
     async (
@@ -65,7 +75,7 @@ static async Task SeedDefaultWorkdaySourcesIfEmpty(WebApplication app)
 {
     await using var scope = app.Services.CreateAsyncScope();
     var sourceRepository = scope.ServiceProvider.GetRequiredService<IJobSourceRepository>();
-    if ((await sourceRepository.GetAll(app.Lifetime.ApplicationStopping)).Count > 0)
+    if ((await sourceRepository.GetAllAsync(app.Lifetime.ApplicationStopping)).Count > 0)
     {
         return;
     }
@@ -95,10 +105,10 @@ static async Task SeedDefaultWorkdaySourcesIfEmpty(WebApplication app)
             source.BaseUrl,
             @"/wday/cxs/[^/]+",
             "/en-US");
-        return new JobSource(Guid.NewGuid().ToString(), source.CompanyName, source.BaseUrl, browserBaseUrl);
+        return new JobSource(Guid.NewGuid(), source.CompanyName, source.BaseUrl, browserBaseUrl);
     }).ToArray();
 
-    await sourceRepository.AddMany(jobSources, app.Lifetime.ApplicationStopping);
+    await sourceRepository.AddManyAsync(jobSources, app.Lifetime.ApplicationStopping);
     app.Logger.LogInformation("Seeded {SourceCount} Workday sources from {SourcePath}", jobSources.Length, sourcePath);
 }
 
@@ -111,7 +121,7 @@ internal sealed class WorkdaySourceConfiguration
 
 internal sealed class JobPostSyncRequest
 {
-    public required string[] SourceIds { get; init; }
+    public required Guid[] SourceIds { get; init; }
 
     public required string SearchText { get; init; }
 }

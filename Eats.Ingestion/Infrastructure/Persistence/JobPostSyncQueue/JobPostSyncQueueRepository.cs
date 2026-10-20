@@ -9,14 +9,15 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobPostSyncQueue;
 public sealed class JobPostSyncQueueRepository(JobPostDbContext dbContext) : IJobPostSyncQueue
 {
     public async Task<Guid> Enqueue(
-        IEnumerable<string> sourceIds,
+        IEnumerable<Guid> sourceIds,
         string? searchText,
         CancellationToken cancellationToken = default)
     {
+        var distinctSourceIds = sourceIds.Distinct().ToArray();
         var job = new JobPostSyncQueueJob
         {
             Id = Guid.NewGuid(),
-            SourceIds = sourceIds.Distinct(StringComparer.Ordinal).ToArray(),
+            SourceIds = distinctSourceIds,
             SearchText = searchText,
             Status = JobPostSyncQueueStatus.Queued,
             CreatedAt = DateTime.UtcNow,

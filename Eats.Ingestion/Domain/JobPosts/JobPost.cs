@@ -8,7 +8,7 @@ public sealed class JobPost
 
     public JobPost(
         Guid id,
-        string sourceId,
+        Guid sourceId,
         string title,
         string detailPath,
         DateTime createdAt,
@@ -36,7 +36,7 @@ public sealed class JobPost
     }
 
     public Guid Id { get; private set; }
-    public string SourceId { get; private set; } = string.Empty;
+    public Guid SourceId { get; private set; }
     public string? RequisitionId { get; private set; }
     public string Title { get; private set; } = string.Empty;
     public string DetailPath { get; private set; } = string.Empty;

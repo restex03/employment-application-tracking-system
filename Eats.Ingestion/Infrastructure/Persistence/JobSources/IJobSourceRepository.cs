@@ -4,7 +4,7 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobSources;
 
 public interface IJobSourceRepository
 {
-    Task<JobSource?> GetById(string id, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<JobSource>> GetAll(CancellationToken cancellationToken = default);
-    Task AddMany(IEnumerable<JobSource> jobSources, CancellationToken cancellationToken = default);
+    Task<JobSource> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<JobSource>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task AddManyAsync(IEnumerable<JobSource> jobSources, CancellationToken cancellationToken = default);
 }

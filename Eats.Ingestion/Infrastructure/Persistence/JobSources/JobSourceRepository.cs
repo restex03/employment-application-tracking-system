@@ -6,14 +6,16 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobSources;
 
 public sealed class JobSourceRepository(JobPostDbContext dbContext) : IJobSourceRepository
 {
-    public Task<JobSource?> GetById(string id, CancellationToken cancellationToken = default)
+    public async Task<JobSource> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return dbContext.JobSources
+        var result = await dbContext.JobSources
             .AsNoTracking()
-            .FirstOrDefaultAsync(source => source.Id == id, cancellationToken);
+            .FirstOrDefaultAsync(source => source.Id == id, cancellationToken) 
+            ?? throw new KeyNotFoundException($"JobSource with Id '{id}' not found.");
+        return result;
     }
 
-    public async Task<IReadOnlyList<JobSource>> GetAll(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<JobSource>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         return await dbContext.JobSources
             .AsNoTracking()
@@ -21,7 +23,7 @@ public sealed class JobSourceRepository(JobPostDbContext dbContext) : IJobSource
             .ToListAsync(cancellationToken);
     }
 
-    public async Task AddMany(IEnumerable<JobSource> jobSources, CancellationToken cancellationToken = default)
+    public async Task AddManyAsync(IEnumerable<JobSource> jobSources, CancellationToken cancellationToken = default)
     {
         await dbContext.JobSources.AddRangeAsync(jobSources, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);

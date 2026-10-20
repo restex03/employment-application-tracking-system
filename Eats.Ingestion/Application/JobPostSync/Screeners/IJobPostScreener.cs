@@ -4,5 +4,5 @@ namespace Eats.Ingestion.Application.JobPostSync;
 
 public interface IJobPostScreener
 {
-    bool ScreenJobPost(JobPostDiscoveryRecord jobPost);
+    bool ScreenJobPost(IJobScreenCriteria jobPost);
 }

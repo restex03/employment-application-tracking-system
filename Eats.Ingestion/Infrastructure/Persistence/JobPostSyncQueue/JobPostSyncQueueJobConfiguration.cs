@@ -9,30 +9,20 @@ public sealed class JobPostSyncQueueJobConfiguration : IEntityTypeConfiguration<
     public void Configure(EntityTypeBuilder<JobPostSyncQueueJob> builder)
     {
         builder.ToTable(nameof(JobPostSyncQueueJob));
-        builder.HasKey(job => job.Id);
-        builder.Property(job => job.Id)
-            .HasColumnName(nameof(JobPostSyncQueueJob.Id))
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id)
             .IsRequired();
-        builder.Property(job => job.SourceIds)
-            .HasColumnName(nameof(JobPostSyncQueueJob.SourceIds))
-            .HasColumnType("text[]")
+        builder.Property(x => x.SourceIds)
             .IsRequired();
-        builder.Property(job => job.SearchText)
-            .HasColumnName(nameof(JobPostSyncQueueJob.SearchText))
-            .HasColumnType("text");
-        builder.Property(job => job.Status)
-            .HasColumnName(nameof(JobPostSyncQueueJob.Status))
+        builder.Property(x => x.SearchText);
+        builder.Property(x => x.Status)
             .HasConversion<int>()
             .IsRequired();
-        builder.Property(job => job.Error)
-            .HasColumnName(nameof(JobPostSyncQueueJob.Error))
-            .HasColumnType("text");
-        builder.Property(job => job.CreatedAt)
-            .HasColumnName(nameof(JobPostSyncQueueJob.CreatedAt))
-            .HasColumnType("timestamp with time zone")
+        builder.Property(x => x.Error);
+        builder.Property(x => x.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
-        builder.HasIndex(job => new { job.Status, job.CreatedAt })
+        builder.HasIndex(x => new { x.Status, x.CreatedAt })
             .HasDatabaseName("IX_JobPostSyncQueueJob_Status_CreatedAt");
     }
 }

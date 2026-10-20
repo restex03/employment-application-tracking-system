@@ -7,7 +7,7 @@ namespace Eats.Ingestion.Infrastructure.JobSources.Workday;
 
 public sealed partial class WorkdayJobPostMapper(ILogger<WorkdayJobPostMapper> logger)
 {
-    public JobPostDiscoveryRecord? Map(string sourceId, WorkdayJobPosting posting)
+    public JobPostDiscoveryRecord? Map(Guid sourceId, WorkdayJobPosting posting)
     {
         if (string.IsNullOrWhiteSpace(posting.Title) || string.IsNullOrWhiteSpace(posting.ExternalPath))
         {

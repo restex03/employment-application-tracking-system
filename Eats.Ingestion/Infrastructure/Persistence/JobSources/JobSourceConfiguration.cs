@@ -9,22 +9,19 @@ public sealed class JobSourceConfiguration : IEntityTypeConfiguration<JobSource>
     public void Configure(EntityTypeBuilder<JobSource> builder)
     {
         builder.ToTable(nameof(JobSource));
-        builder.HasKey(source => source.Id);
-        builder.Property(source => source.Id)
-            .HasColumnName(nameof(JobSource.Id))
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id)
+            .IsRequired()
+            .ValueGeneratedNever();;
+        builder.Property(x => x.CompanyName)
             .IsRequired();
-        builder.Property(source => source.CompanyName)
-            .HasColumnName(nameof(JobSource.CompanyName))
+        builder.Property(x => x.BaseUrl)
             .IsRequired();
-        builder.Property(source => source.BaseUrl)
-            .HasColumnName(nameof(JobSource.BaseUrl))
-            .IsRequired();
-        builder.Property(source => source.BrowserBaseUrl)
-            .HasColumnName(nameof(JobSource.BrowserBaseUrl))
+        builder.Property(x => x.BrowserBaseUrl)
             .IsRequired();
 
-        builder.HasIndex(source => source.CompanyName).IsUnique();
-        builder.HasIndex(source => source.BaseUrl).IsUnique();
-        builder.HasIndex(source => source.BrowserBaseUrl).IsUnique();
+        builder.HasIndex(x => x.CompanyName).IsUnique();
+        builder.HasIndex(x => x.BaseUrl).IsUnique();
+        builder.HasIndex(x => x.BrowserBaseUrl).IsUnique();
     }
 }

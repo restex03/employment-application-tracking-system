@@ -4,7 +4,7 @@ namespace Eats.Ingestion.Application.JobPostSync;
 
 public interface IJobPostSyncService
 {
-    Task SyncJobs(IEnumerable<string> sourceIds, string? searchText = null, CancellationToken cancellationToken = default);
+    Task SyncJobs(IEnumerable<Guid> sourceIds, string? searchText = null, CancellationToken cancellationToken = default);
     Task SyncJobDetails(Guid jobPostId, CancellationToken cancellationToken = default);
     Task AddMany(IEnumerable<JobPost> jobPosts, CancellationToken cancellationToken = default);
     Task Update(JobPost jobPost, CancellationToken cancellationToken = default);
