@@ -5,7 +5,7 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobPostSyncQueue;
 public interface IJobPostSyncQueue
 {
     Task<Guid> Enqueue(
-        IEnumerable<Guid> sourceIds,
+        IEnumerable<Guid>? sourceIds,
         string? searchText,
         CancellationToken cancellationToken = default);
 

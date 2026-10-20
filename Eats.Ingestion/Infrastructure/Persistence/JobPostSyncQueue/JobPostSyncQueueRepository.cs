@@ -9,11 +9,11 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobPostSyncQueue;
 public sealed class JobPostSyncQueueRepository(JobPostDbContext dbContext) : IJobPostSyncQueue
 {
     public async Task<Guid> Enqueue(
-        IEnumerable<Guid> sourceIds,
+        IEnumerable<Guid>? sourceIds,
         string? searchText,
         CancellationToken cancellationToken = default)
     {
-        var distinctSourceIds = sourceIds.Distinct().ToArray();
+        var distinctSourceIds = sourceIds?.Distinct().ToArray() ?? [];
         var job = new JobPostSyncQueueJob
         {
             Id = Guid.NewGuid(),

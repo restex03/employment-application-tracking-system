@@ -21,6 +21,7 @@ builder.Services.AddScoped<IJobPostRepository, JobPostRepository>()
     .AddScoped<IJobPostSyncService, JobPostSyncService>()
     .AddScoped<IJobSourceService, JobSourceService>()
     .AddScoped<IJobPostScreener, JobPostScreener>(sp => new JobPostScreener([
+        new DetailPathScreener(),
         new LocationScreener(),
         new RolesScreener(),    
     ])
@@ -75,7 +76,8 @@ static async Task SeedDefaultWorkdaySourcesIfEmpty(WebApplication app)
 {
     await using var scope = app.Services.CreateAsyncScope();
     var sourceRepository = scope.ServiceProvider.GetRequiredService<IJobSourceRepository>();
-    if ((await sourceRepository.GetAllAsync(app.Lifetime.ApplicationStopping)).Count > 0)
+    var sources = await sourceRepository.GetAllAsync(app.Lifetime.ApplicationStopping);
+    if (sources.Any())
     {
         return;
     }
@@ -121,7 +123,7 @@ internal sealed class WorkdaySourceConfiguration
 
 internal sealed class JobPostSyncRequest
 {
-    public required Guid[] SourceIds { get; init; }
+    public required Guid[]? SourceIds { get; init; }
 
     public required string SearchText { get; init; }
 }

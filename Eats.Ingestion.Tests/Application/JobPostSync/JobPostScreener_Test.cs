@@ -45,5 +45,6 @@ public sealed class JobPostScreenerTests
         public string Location => "NO_OP";
 
         public string Title => "NO_OP";
+        public string DetailPath => "NO_OP";
     }
 }

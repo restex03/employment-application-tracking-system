@@ -47,5 +47,7 @@ public sealed class RolesScreenerTests
         public string Location { get; } = "NO_OP";
 
         public string Title { get; } = title;
+
+        public string DetailPath { get; } = "NO_OP";
     }
 }

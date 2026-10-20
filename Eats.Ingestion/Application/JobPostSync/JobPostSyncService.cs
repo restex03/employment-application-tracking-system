@@ -18,7 +18,11 @@ public sealed class JobPostSyncService(
         string? searchText = null,
         CancellationToken ct = default)
     {
-        var sources = await jobSourceRepository.GetAllAsync(ct);
+
+        var sources = sourceIds.Any() 
+            ? await jobSourceRepository.GetRangeAsync([.. sourceIds], ct)
+            : await jobSourceRepository.GetAllAsync(ct);
+        
         var sourcesSynced = 0;
         var jobsDiscovered = 0;
 

@@ -15,7 +15,7 @@ public sealed class JobSourceRepository(JobPostDbContext dbContext) : IJobSource
         return result;
     }
 
-    public async Task<IReadOnlyList<JobSource>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<List<JobSource>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         return await dbContext.JobSources
             .AsNoTracking()
@@ -27,5 +27,15 @@ public sealed class JobSourceRepository(JobPostDbContext dbContext) : IJobSource
     {
         await dbContext.JobSources.AddRangeAsync(jobSources, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public Task<List<JobSource>> GetRangeAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken = default)
+    {
+        return dbContext.JobSources
+            .AsNoTracking()
+            .Where(source => ids.Contains(source.Id))
+            .ToListAsync(cancellationToken);
     }
 }

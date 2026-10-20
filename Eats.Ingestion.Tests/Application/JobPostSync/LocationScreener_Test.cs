@@ -235,7 +235,8 @@ public sealed class JobPostScreenerLocationTests
     {
         public string Location { get; set; } = location;
 
-        public string Title { get; set; } = "NO_OP";
+        public string Title => "NO_OP";
+        public string DetailPath => "NO_OP";
     }
 }
 
