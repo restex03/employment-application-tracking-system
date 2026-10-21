@@ -3,7 +3,6 @@ import { FastifyInstance } from "fastify";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 
 import { IRouteRegistrar } from "../Host/IRouteRegistrar";
-import { IIngestionServiceGateway } from "../../Infrastructure/Ingestion/IIngestionServiceGateway";
 import { IJobSourceGateway } from "../../Infrastructure/JobSourcing/IJobSourceGateway";
 
 interface JobSourceQuery {
@@ -28,19 +27,15 @@ export class JobSourcesRoutes implements IRouteRegistrar {
             { schema: { tags: ["Job Sources"] } },
             async (request, reply) => {
             try {
-                const { companyName } = request.query;
-
-                if (companyName) {
-                    this.logger.info(`[${request.method}]  ${request.url}`);
-
-                    const source = await this.jobSourceGateway.getByCompanyName(companyName);
-
-                    return source ? [source] : [];
-                }
-
                 this.logger.info(`[${request.method}]  ${request.url}`);
 
-                const sources = await this.jobSourceGateway.getAllOrThrow();
+                const { companyName } = request.query;
+                
+                if (companyName) {
+                    return await this.jobSourceGateway.getAllByCompanyName(companyName);
+                }
+
+                const sources = await this.jobSourceGateway.getAll();
                 return sources;
             } catch (error) {
                 const errMsg = error instanceof Error ? error.message : String(error);
