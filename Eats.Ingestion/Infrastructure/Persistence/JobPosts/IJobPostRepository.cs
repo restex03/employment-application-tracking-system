@@ -4,7 +4,7 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobPosts;
 
 public interface IJobPostRepository
 {
-    Task Upsert(JobPost jobPost);
-    Task UpsertMany(IEnumerable<JobPost> jobPosts);
-    Task<JobPost> GetByIdOrThrow(Guid id);
+    Task UpsertAsync(JobPost jobPost, CancellationToken cancellationToken = default);
+    Task UpsertManyAsync(IEnumerable<JobPost> jobPosts, CancellationToken cancellationToken = default);
+    Task<JobPost> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default);
 }

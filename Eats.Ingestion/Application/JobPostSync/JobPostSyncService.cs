@@ -42,7 +42,7 @@ public interface IJobPostSyncService
                     .Select(CreateJobPost)
                     .ToArray();
 
-                await jobPostRepository.UpsertMany(jobPosts);
+                await jobPostRepository.UpsertManyAsync(jobPosts, ct);
                 sourcesSynced++;
                 jobsDiscovered += jobPosts.Length;
 

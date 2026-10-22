@@ -37,12 +37,4 @@ public sealed class JobPostDetail
     public string? RemoteType { get; private set; }
     public string[]? ApplicantLocations { get; private set; }
     public DateTime FetchedAt { get; private set; }
-    public JobPost? JobPost { get; private set; }
-
-    internal void AttachTo(JobPost jobPost)
-    {
-        // TODO: Revisit this - I think we can get by with only fk reference and update type config
-        JobPost = jobPost;
-        JobPostId = jobPost.Id;
-    }
 }

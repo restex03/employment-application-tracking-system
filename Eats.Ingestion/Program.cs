@@ -164,6 +164,19 @@ app.MapPost("/ingestion/discovery/jobPostDetails", async ([FromBody] JobPostDeta
     }
 });
 
+app.MapGet("/ingestion/jobPosts/{jobPostId}", async ([FromRoute] Guid jobPostId, [FromServices] IJobPostService jobPostService, CancellationToken ct) =>
+{
+    try
+    {
+        var result = await jobPostService.GetByIdOrThrowAsync(jobPostId, ct);
+        return Results.Ok(result);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+});
+
 app.Run();
 
 static async Task SeedDefaultWorkdaySourcesIfEmpty(WebApplication app)

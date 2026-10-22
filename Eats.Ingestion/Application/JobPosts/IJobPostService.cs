@@ -8,7 +8,7 @@ public interface IJobPostService
 {
     Task AddMany(IEnumerable<JobPost> jobPosts, CancellationToken cancellationToken = default);
     Task Update(JobPost jobPost, CancellationToken cancellationToken = default);
-    Task<JobPost> GetByIdOrThrow(Guid id, CancellationToken cancellationToken = default);
+    Task<JobPost> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default);
 
     public class Imp(
         IJobPostRepository jobPostRepository,
@@ -20,19 +20,19 @@ public interface IJobPostService
         public Task AddMany(IEnumerable<JobPost> jobPosts, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return jobPostRepository.UpsertMany(jobPosts);
+            return jobPostRepository.UpsertManyAsync(jobPosts, cancellationToken);
         }
 
         public Task Update(JobPost jobPost, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return jobPostRepository.Upsert(jobPost);
+            return jobPostRepository.UpsertAsync(jobPost, cancellationToken);
         }
 
-        public async Task<JobPost> GetByIdOrThrow(Guid id, CancellationToken cancellationToken = default)
+        public async Task<JobPost> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var jobPost = await jobPostRepository.GetByIdOrThrow(id);
+            var jobPost = await jobPostRepository.GetByIdOrThrowAsync(id, cancellationToken);
             if (jobPost.Detail is null)
             {
                 logger.LogDebug("Syncing details for job post {JobPostId}", jobPost.Id);
@@ -42,7 +42,7 @@ public interface IJobPostService
 
                 jobPost.UpdateFromDetail(detail.RequisitionId, detail.RemoteType);
                 jobPost.HydrateDetail(detail.Detail);
-            await jobPostRepository.Upsert(jobPost);
+            await jobPostRepository.UpsertAsync(jobPost);
             }
 
             return jobPost;

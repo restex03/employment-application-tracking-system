@@ -50,7 +50,6 @@ public sealed class JobPost
     public void HydrateDetail(JobPostDetail detail)
     {
         Detail = detail;
-        detail.AttachTo(this);
     }
 
     public void UpdateFromDetail(string? requisitionId, string? remoteType)

@@ -40,7 +40,7 @@ public sealed class JobPostConfiguration : IEntityTypeConfiguration<JobPost>
             .HasForeignKey(x => x.SourceId)
             .OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Detail)
-            .WithOne(x => x.JobPost)
+            .WithOne()
             .HasForeignKey<JobPostDetail>(x => x.JobPostId)
             .OnDelete(DeleteBehavior.Cascade);
     }

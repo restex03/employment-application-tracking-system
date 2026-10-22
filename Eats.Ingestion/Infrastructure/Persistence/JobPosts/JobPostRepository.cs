@@ -8,36 +8,40 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobPosts;
 
 public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPostRepository
 {
-    public async Task Upsert(JobPost jobPost)
+    public async Task UpsertAsync(JobPost jobPost, CancellationToken cancellationToken = default)
     {
-        await UpsertBatch([jobPost]);
+        await UpsertBatchAsync([jobPost], cancellationToken);
     }
 
-    public async Task UpsertMany(IEnumerable<JobPost> jobPosts)
+    public async Task UpsertManyAsync(IEnumerable<JobPost> jobPosts, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         foreach (var batch in jobPosts.Chunk(250))
         {
-            await UpsertBatch(batch);
+            await UpsertBatchAsync(batch, cancellationToken);
         }
     }
 
-    public async Task<JobPost> GetByIdOrThrow(Guid id)
+    public async Task<JobPost> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var jobPost = await dbContext.JobPosts
             .Include(post => post.Detail)
-            .FirstOrDefaultAsync(post => post.Id == id);
+            .FirstOrDefaultAsync(post => post.Id == id, cancellationToken);
 
         return jobPost ?? throw new KeyNotFoundException($"Job post '{id}' was not found.");
     }
 
-    private async Task UpsertBatch(IReadOnlyCollection<JobPost> jobPosts)
+    private async Task UpsertBatchAsync(
+        IReadOnlyCollection<JobPost> jobPosts,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (jobPosts.Count == 0)
         {
             return;
         }
 
-        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         var values = new List<string>(jobPosts.Count);
         var parameters = new List<object>(jobPosts.Count * 9);
         var index = 0;
@@ -80,18 +84,20 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
                 "{nameof(JobPost.RemoteType)}" = EXCLUDED."{nameof(JobPost.RemoteType)}"
             """;
 
-        await dbContext.Database.ExecuteSqlRawAsync(sql, parameters);
+        await dbContext.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);
 
         var detailedPosts = jobPosts.Where(jobPost => jobPost.Detail is not null).ToArray();
         if (detailedPosts.Length > 0)
         {
-            await UpsertDetails(detailedPosts);
+            await UpsertDetails(detailedPosts, cancellationToken);
         }
 
-        await transaction.CommitAsync();
+        await transaction.CommitAsync(cancellationToken);
     }
 
-    private async Task UpsertDetails(IReadOnlyCollection<JobPost> jobPosts)
+    private async Task UpsertDetails(
+        IReadOnlyCollection<JobPost> jobPosts,
+        CancellationToken cancellationToken)
     {
         var canonicalValues = new List<string>(jobPosts.Count);
         var canonicalParameters = new List<object>(jobPosts.Count * 4);
@@ -130,7 +136,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
         }
 
         var updatePostsSql = $"""
-            UPDATE "{nameof(JobPost)}" AS post
+            UPDATE "JobPosts" AS post
             SET
                 "{nameof(JobPost.RequisitionId)}" = COALESCE(data."{nameof(JobPost.RequisitionId)}", post."{nameof(JobPost.RequisitionId)}"),
                 "{nameof(JobPost.Title)}" = data."{nameof(JobPost.Title)}",
@@ -143,7 +149,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             )
             WHERE post."{nameof(JobPost.Id)}" = data."{nameof(JobPost.Id)}"
             """;
-        await dbContext.Database.ExecuteSqlRawAsync(updatePostsSql, canonicalParameters);
+        await dbContext.Database.ExecuteSqlRawAsync(updatePostsSql, canonicalParameters, cancellationToken);
 
         var upsertDetailsSql = $"""
             INSERT INTO "JobPostDetails" (
@@ -168,7 +174,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
                 "{nameof(JobPostDetail.ApplicantLocations)}" = EXCLUDED."{nameof(JobPostDetail.ApplicantLocations)}",
                 "{nameof(JobPostDetail.FetchedAt)}" = EXCLUDED."{nameof(JobPostDetail.FetchedAt)}"
             """;
-        await dbContext.Database.ExecuteSqlRawAsync(upsertDetailsSql, detailParameters);
+        await dbContext.Database.ExecuteSqlRawAsync(upsertDetailsSql, detailParameters, cancellationToken);
     }
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
