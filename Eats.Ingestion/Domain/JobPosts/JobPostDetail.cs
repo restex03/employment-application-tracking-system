@@ -41,6 +41,7 @@ public sealed class JobPostDetail
 
     internal void AttachTo(JobPost jobPost)
     {
+        // TODO: Revisit this - I think we can get by with only fk reference and update type config
         JobPost = jobPost;
         JobPostId = jobPost.Id;
     }

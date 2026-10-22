@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace Eats.Ingestion.Infrastructure.Persistence.JobPosts;
 
-public sealed class JobPostRepository(JobPostDbContext dbContext) : IJobPostRepository
+public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPostRepository
 {
     public async Task Upsert(JobPost jobPost)
     {
@@ -61,7 +61,7 @@ public sealed class JobPostRepository(JobPostDbContext dbContext) : IJobPostRepo
         }
 
         var sql = $"""
-            INSERT INTO "{nameof(JobPost)}" (
+            INSERT INTO "JobPosts" (
                 "{nameof(JobPost.Id)}",
                 "{nameof(JobPost.SourceId)}",
                 "{nameof(JobPost.RequisitionId)}",
@@ -146,7 +146,7 @@ public sealed class JobPostRepository(JobPostDbContext dbContext) : IJobPostRepo
         await dbContext.Database.ExecuteSqlRawAsync(updatePostsSql, canonicalParameters);
 
         var upsertDetailsSql = $"""
-            INSERT INTO "{nameof(JobPostDetail)}" (
+            INSERT INTO "JobPostDetails" (
                 "{nameof(JobPostDetail.Id)}",
                 "{nameof(JobPostDetail.JobPostId)}",
                 "{nameof(JobPostDetail.Description)}",

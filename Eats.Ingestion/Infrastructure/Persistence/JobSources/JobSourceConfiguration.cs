@@ -8,7 +8,8 @@ public sealed class JobSourceConfiguration : IEntityTypeConfiguration<JobSource>
 {
     public void Configure(EntityTypeBuilder<JobSource> builder)
     {
-        builder.ToTable(nameof(JobSource));
+        var tableName = "JobSources";
+        builder.ToTable(tableName);
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id)
             .IsRequired()

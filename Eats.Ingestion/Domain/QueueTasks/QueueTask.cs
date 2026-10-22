@@ -1,19 +1,21 @@
 namespace Eats.Ingestion.Application.JobPostSync.Queue;
 
-public enum JobPostSyncQueueStatus
+
+
+public enum QueueTaskStatusDomain
 {
     Queued,
     InProgress,
     Completed,
-    Failed,
+    Failed
 }
 
-public sealed class JobPostSyncQueueJob
+public sealed class QueueTask
 {
     public Guid Id { get; set; }
     public Guid[] SourceIds { get; set; } = [];
     public string? SearchText { get; set; }
-    public JobPostSyncQueueStatus Status { get; set; }
+    public QueueTaskStatusDomain Status { get; set; }
     public string? Error { get; set; }
     public DateTime CreatedAt { get; set; }
 }

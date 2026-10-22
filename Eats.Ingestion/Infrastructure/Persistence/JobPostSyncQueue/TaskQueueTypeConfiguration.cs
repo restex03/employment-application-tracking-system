@@ -4,11 +4,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Eats.Ingestion.Infrastructure.Persistence.JobPostSyncQueue;
 
-public sealed class JobPostSyncQueueJobConfiguration : IEntityTypeConfiguration<JobPostSyncQueueJob>
+public sealed class TaskQueueTypeConfiguration : IEntityTypeConfiguration<QueueTask>
 {
-    public void Configure(EntityTypeBuilder<JobPostSyncQueueJob> builder)
+    public void Configure(EntityTypeBuilder<QueueTask> builder)
     {
-        builder.ToTable(nameof(JobPostSyncQueueJob));
+        var tableName = "QueueTasks";
+        builder.ToTable(tableName);
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id)
             .IsRequired();
@@ -23,6 +24,6 @@ public sealed class JobPostSyncQueueJobConfiguration : IEntityTypeConfiguration<
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
         builder.HasIndex(x => new { x.Status, x.CreatedAt })
-            .HasDatabaseName("IX_JobPostSyncQueueJob_Status_CreatedAt");
+            .HasDatabaseName($"IX_{tableName}_Status_CreatedAt");
     }
 }

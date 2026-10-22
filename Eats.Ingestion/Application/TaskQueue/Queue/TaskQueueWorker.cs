@@ -2,9 +2,9 @@ using Eats.Ingestion.Infrastructure.Persistence.JobPostSyncQueue;
 
 namespace Eats.Ingestion.Application.JobPostSync.Queue;
 
-public sealed class JobPostSyncQueueWorker(
+public sealed class TaskQueueWorker(
     IServiceScopeFactory scopeFactory,
-    ILogger<JobPostSyncQueueWorker> logger) : BackgroundService
+    ILogger<TaskQueueWorker> logger) : BackgroundService
 {
     private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(1000);
 
@@ -15,7 +15,7 @@ public sealed class JobPostSyncQueueWorker(
             try
             {
                 await using var scope = scopeFactory.CreateAsyncScope();
-                var queue = scope.ServiceProvider.GetRequiredService<IJobPostSyncQueue>();
+                var queue = scope.ServiceProvider.GetRequiredService<ITaskQueue>();
                 var job = await queue.ClaimNext(stoppingToken);
                 if (job is null)
                 {
@@ -27,7 +27,7 @@ public sealed class JobPostSyncQueueWorker(
                 var syncService = scope.ServiceProvider.GetRequiredService<IJobPostSyncService>();
                 try
                 {
-                    await syncService.SyncJobs(job.SourceIds, job.SearchText, stoppingToken);
+                    await syncService.SyncJobPostsOrThrowAsync(job.SourceIds, job.SearchText, stoppingToken);
                     await queue.Complete(job.Id, stoppingToken);
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)

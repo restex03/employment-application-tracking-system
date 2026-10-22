@@ -157,8 +157,8 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
     );
 
     const ingestionServiceBaseUrl = getIngestionServiceBaseUrlOrThrow();
-    const ingestionGateway: IIngestionServiceGateway = new IngestionServiceGateway(ingestionServiceBaseUrl);
-    const jobSourceGateway: IJobSourceGateway = new JobSourceGateway();
+    const ingestionGateway: IIngestionServiceGateway = new IngestionServiceGateway(ingestionServiceBaseUrl, logger);
+    const jobSourceGateway: IJobSourceGateway = new JobSourceGateway(ingestionServiceBaseUrl, logger);
 
     const jobApplicationService: IJobApplicationService = new JobApplicationService(
         jobApplicationRepository,

@@ -1,3 +1,8 @@
+using Eats.Ingestion.Application.JobPostSync;
+using Eats.Ingestion.Domain.JobPosts;
+using Eats.Ingestion.Infrastructure.Persistence.JobPosts;
+using Eats.Ingestion.Infrastructure.Persistence.JobSources;
+
 namespace Eats.Ingestion.Application.JobPostDiscovery;
 
 public interface IJobPostDiscoveryService

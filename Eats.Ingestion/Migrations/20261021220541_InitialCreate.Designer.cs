@@ -9,10 +9,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Eats.Ingestion.Infrastructure.Persistence.JobPosts.Migrations
+namespace Eats.Ingestion.Migrations
 {
-    [DbContext(typeof(JobPostDbContext))]
-    [Migration("20261019222306_InitialCreate")]
+    [DbContext(typeof(EatsIngestionDbContext))]
+    [Migration("20261021220541_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -25,7 +25,7 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobPosts.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Eats.Ingestion.Application.JobPostSync.Queue.JobPostSyncQueueJob", b =>
+            modelBuilder.Entity("Eats.Ingestion.Application.JobPostSync.Queue.QueueTask", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -52,9 +52,9 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobPosts.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Status", "CreatedAt")
-                        .HasDatabaseName("IX_JobPostSyncQueueJob_Status_CreatedAt");
+                        .HasDatabaseName("IX_QueueTasks_Status_CreatedAt");
 
-                    b.ToTable("JobPostSyncQueueJob", (string)null);
+                    b.ToTable("QueueTasks", (string)null);
                 });
 
             modelBuilder.Entity("Eats.Ingestion.Domain.JobPosts.JobPost", b =>
@@ -99,9 +99,9 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobPosts.Migrations
 
                     b.HasIndex("SourceId", "DetailPath")
                         .IsUnique()
-                        .HasDatabaseName("UX_JobPost_SourceId_DetailPath");
+                        .HasDatabaseName("UX_JobPosts_SourceId_DetailPath");
 
-                    b.ToTable("JobPost", (string)null);
+                    b.ToTable("JobPosts", (string)null);
                 });
 
             modelBuilder.Entity("Eats.Ingestion.Domain.JobPosts.JobPostDetail", b =>
@@ -141,9 +141,9 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobPosts.Migrations
 
                     b.HasIndex("JobPostId")
                         .IsUnique()
-                        .HasDatabaseName("IX_JobPostDetail_JobPostId");
+                        .HasDatabaseName("IX_JobPostDetails_JobPostId");
 
-                    b.ToTable("JobPostDetail", (string)null);
+                    b.ToTable("JobPostDetails", (string)null);
                 });
 
             modelBuilder.Entity("Eats.Ingestion.Domain.JobSources.JobSource", b =>
@@ -174,7 +174,7 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobPosts.Migrations
                     b.HasIndex("CompanyName")
                         .IsUnique();
 
-                    b.ToTable("JobSource", (string)null);
+                    b.ToTable("JobSources", (string)null);
                 });
 
             modelBuilder.Entity("Eats.Ingestion.Domain.JobPosts.JobPost", b =>

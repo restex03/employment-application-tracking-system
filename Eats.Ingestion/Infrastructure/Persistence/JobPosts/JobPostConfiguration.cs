@@ -9,7 +9,8 @@ public sealed class JobPostConfiguration : IEntityTypeConfiguration<JobPost>
 {
     public void Configure(EntityTypeBuilder<JobPost> builder)
     {
-        builder.ToTable(nameof(JobPost));
+        var tableName = "JobPosts";
+        builder.ToTable(tableName);
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id)
             .IsRequired()
@@ -33,7 +34,7 @@ public sealed class JobPostConfiguration : IEntityTypeConfiguration<JobPost>
 
         builder.HasIndex(x => new { x.SourceId, x.DetailPath })
             .IsUnique()
-            .HasDatabaseName("UX_JobPost_SourceId_DetailPath");
+            .HasDatabaseName($"UX_{tableName}_SourceId_DetailPath");
         builder.HasOne<JobSource>()
             .WithMany()
             .HasForeignKey(x => x.SourceId)

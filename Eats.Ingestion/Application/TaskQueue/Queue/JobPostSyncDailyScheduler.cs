@@ -29,7 +29,7 @@ public sealed class JobPostSyncDailyScheduler(
             {
                 await using var scope = scopeFactory.CreateAsyncScope();
                 var sourceRepository = scope.ServiceProvider.GetRequiredService<IJobSourceRepository>();
-                var queue = scope.ServiceProvider.GetRequiredService<IJobPostSyncQueue>();
+                var queue = scope.ServiceProvider.GetRequiredService<ITaskQueue>();
                 var sources = await sourceRepository.GetAllAsync(stoppingToken);
                 var jobId = await queue.Enqueue(
                     sources.Select(source => source.Id),

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Eats.Ingestion.Infrastructure.Persistence.JobPosts.Migrations
+namespace Eats.Ingestion.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration
@@ -12,7 +12,21 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobPosts.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "JobPostSyncQueueJob",
+                name: "JobSources",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    CompanyName = table.Column<string>(type: "text", nullable: false),
+                    BaseUrl = table.Column<string>(type: "text", nullable: false),
+                    BrowserBaseUrl = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_JobSources", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "QueueTasks",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -24,25 +38,11 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobPosts.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_JobPostSyncQueueJob", x => x.Id);
+                    table.PrimaryKey("PK_QueueTasks", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "JobSource",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    CompanyName = table.Column<string>(type: "text", nullable: false),
-                    BaseUrl = table.Column<string>(type: "text", nullable: false),
-                    BrowserBaseUrl = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_JobSource", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "JobPost",
+                name: "JobPosts",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -58,17 +58,17 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobPosts.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_JobPost", x => x.Id);
+                    table.PrimaryKey("PK_JobPosts", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_JobPost_JobSource_SourceId",
+                        name: "FK_JobPosts_JobSources_SourceId",
                         column: x => x.SourceId,
-                        principalTable: "JobSource",
+                        principalTable: "JobSources",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
-                name: "JobPostDetail",
+                name: "JobPostDetails",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -83,65 +83,65 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobPosts.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_JobPostDetail", x => x.Id);
+                    table.PrimaryKey("PK_JobPostDetails", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_JobPostDetail_JobPost_JobPostId",
+                        name: "FK_JobPostDetails_JobPosts_JobPostId",
                         column: x => x.JobPostId,
-                        principalTable: "JobPost",
+                        principalTable: "JobPosts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "UX_JobPost_SourceId_DetailPath",
-                table: "JobPost",
-                columns: new[] { "SourceId", "DetailPath" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_JobPostDetail_JobPostId",
-                table: "JobPostDetail",
+                name: "IX_JobPostDetails_JobPostId",
+                table: "JobPostDetails",
                 column: "JobPostId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_JobPostSyncQueueJob_Status_CreatedAt",
-                table: "JobPostSyncQueueJob",
-                columns: new[] { "Status", "CreatedAt" });
+                name: "UX_JobPosts_SourceId_DetailPath",
+                table: "JobPosts",
+                columns: new[] { "SourceId", "DetailPath" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_JobSource_BaseUrl",
-                table: "JobSource",
+                name: "IX_JobSources_BaseUrl",
+                table: "JobSources",
                 column: "BaseUrl",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_JobSource_BrowserBaseUrl",
-                table: "JobSource",
+                name: "IX_JobSources_BrowserBaseUrl",
+                table: "JobSources",
                 column: "BrowserBaseUrl",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_JobSource_CompanyName",
-                table: "JobSource",
+                name: "IX_JobSources_CompanyName",
+                table: "JobSources",
                 column: "CompanyName",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_QueueTasks_Status_CreatedAt",
+                table: "QueueTasks",
+                columns: new[] { "Status", "CreatedAt" });
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "JobPostDetail");
+                name: "JobPostDetails");
 
             migrationBuilder.DropTable(
-                name: "JobPostSyncQueueJob");
+                name: "QueueTasks");
 
             migrationBuilder.DropTable(
-                name: "JobPost");
+                name: "JobPosts");
 
             migrationBuilder.DropTable(
-                name: "JobSource");
+                name: "JobSources");
         }
     }
 }

@@ -5,10 +5,6 @@ import { IRouteRegistrar } from "../Host/IRouteRegistrar";
 import { IJobPostSyncTaskRequest } from "../../Application/JobPostSync/Queue/IJobPostSyncJob";
 import { IIngestionServiceGateway } from "../../Infrastructure/Ingestion/IIngestionServiceGateway";
 
-interface JobPostParams {
-    jobPostId: string;
-}
-
 interface SyncJobPostsBody {
     sourceIds: string[];
     searchText?: string;
@@ -54,27 +50,5 @@ export class JobPostSyncRoutes implements IRouteRegistrar {
             }
         });
 
-        server.post<{
-            Params: JobPostParams;
-        }>(
-            "/job-post-syncs/:jobPostId",
-            { schema: { tags: ["Job Post Syncs"] } },
-            async (request, reply) => {
-            try {
-                const { jobPostId } = request.params;
-                this.logger.info(`[${request.method}]  ${request.url}`);
-                await this.ingestionGateway.initiateJobPostDetailSyncTask([jobPostId]);
-
-                this.logger.info(`[${request.method}]  ${request.url} Sync completed successfully`);
-                return reply.code(200).send();
-            } catch (error) {
-                const errMsg = error instanceof Error ? error.message : String(error);
-
-                this.logger.error(`[${request.method}]  ${request.url} Sync job post detail failed: ${errMsg}`);
-                return reply.code(500).send({
-                    error: `Failed to sync job post details: ${errMsg}`,
-                });
-            }
-        });
     }
 }

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Eats.Ingestion.Infrastructure.Persistence.JobSources;
 
-public sealed class JobSourceRepository(JobPostDbContext dbContext) : IJobSourceRepository
+public sealed class JobSourceRepository(EatsIngestionDbContext dbContext) : IJobSourceRepository
 {
     public async Task<JobSource> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default)
     {

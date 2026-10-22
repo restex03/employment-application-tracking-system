@@ -53,11 +53,11 @@ public sealed class JobPost
         detail.AttachTo(this);
     }
 
-    public void UpdateFromDetail(string? requisitionId, string title, string? remoteType)
+    public void UpdateFromDetail(string? requisitionId, string? remoteType)
     {
         RequisitionId = requisitionId ?? RequisitionId;
-        Title = title;
         RemoteType = remoteType ?? RemoteType;
+        // TODO: Update Location to include location details from the job post detail if available
     }
 
     public void UpdateDiscoveryData(string? location, int? daysOld, string? remoteType)

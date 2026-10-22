@@ -1,4 +1,3 @@
-import { JobQueueStatus } from "../../../Infrastructure/Persistence/Queues/JobQueueStatus";
 
 export interface IJobPostSyncTaskRequest {
     sourceIds: string[];
@@ -7,7 +6,6 @@ export interface IJobPostSyncTaskRequest {
 
 export interface IJobPostSyncTask extends IJobPostSyncTaskRequest {
     id: string;
-    status: JobQueueStatus;
+    status: string;
     error?: string;
-    warnings?: string[];
 }

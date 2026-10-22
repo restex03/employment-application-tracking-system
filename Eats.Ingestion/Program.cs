@@ -13,12 +13,14 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("JobPosts")
     ?? throw new InvalidOperationException("Connection string 'JobPosts' is not configured.");
-builder.Services.AddDbContext<JobPostDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<EatsIngestionDbContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddScoped<IJobPostRepository, JobPostRepository>()
-    .AddScoped<IJobPostSyncQueue, JobPostSyncQueueRepository>()
+    .AddScoped<ITaskQueue, ITaskQueue.Imp>()
     .AddScoped<IJobSourceRepository, JobSourceRepository>()
-    .AddScoped<IJobPostSyncService, JobPostSyncService>()
+    .AddScoped<ITaskQueueService, ITaskQueueService.Imp>()
     .AddScoped<IJobSourceService, IJobSourceService.Imp>()
+    .AddScoped<IJobPostSyncService, IJobPostSyncService.Imp>()
+    .AddScoped<IJobPostService, IJobPostService.Imp>()
     .AddScoped<IJobPostScreener, JobPostScreener>(sp => new JobPostScreener([
         new DetailPathScreener(),
         new LocationScreener(),
@@ -31,21 +33,21 @@ builder.Services.AddHttpClient(nameof(WorkdayJobsGateway), client =>
     client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
     client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US");
 });
-builder.Services.AddHostedService<JobPostSyncQueueWorker>();
+builder.Services.AddHostedService<TaskQueueWorker>();
 builder.Services.AddHostedService<JobPostSyncDailyScheduler>();
 
 var app = builder.Build();
 
 await using (var scope = app.Services.CreateAsyncScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<JobPostDbContext>();
+    var dbContext = scope.ServiceProvider.GetRequiredService<EatsIngestionDbContext>();
     await dbContext.Database.MigrateAsync(app.Lifetime.ApplicationStopping);
 }
 
 await SeedDefaultWorkdaySourcesIfEmpty(app);
 
 
-app.MapGet("/jobSources/{id}", async ([FromServices] IJobSourceService svc, [FromRoute] Guid id) =>
+app.MapGet("/ingestion/jobSources/{id}", async ([FromServices] IJobSourceService svc, [FromRoute] Guid id) =>
 {
     try
     {
@@ -59,7 +61,7 @@ app.MapGet("/jobSources/{id}", async ([FromServices] IJobSourceService svc, [Fro
 });
 
 
-app.MapGet("/jobSources", async (
+app.MapGet("/ingestion/jobSources", async (
     [FromServices] IJobSourceService svc,
     [FromQuery] string? companyName) =>
 {
@@ -81,24 +83,48 @@ app.MapGet("/jobSources", async (
     
 });
 
+app.MapGet("/ingestion/queueTasks/{id}", async ([FromServices] ITaskQueueService svc, [FromRoute] Guid id) =>
+{
+    try
+    {
+        var result = await svc.GetByIdOrThrowAsync(id);
+        return Results.Ok(result);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+});
 
+app.MapGet("/ingestion/queueTasks", async ([FromServices] ITaskQueueService svc, [FromQuery] bool active = false) =>
+{
+    try
+    {
+        var result = active ? await svc.GetAllActiveAsync() : await svc.GetAllAsync();
+        return Results.Ok(result);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+});
 
 app.MapPost(
-    "/ingestion/jobPosts/sync",
+    "/ingestion/queueTasks/sync",
     async (
         [FromBody] JobPostSyncRequest req,
-        [FromServices] IServiceScopeFactory scopeFactory,
+        [FromServices] ITaskQueueService service,
          CancellationToken ct
     ) =>
 {
-    await using var scope = scopeFactory.CreateAsyncScope();
-    var queue = scope.ServiceProvider.GetRequiredService<IJobPostSyncQueue>();
-    var jobId = await queue.Enqueue(
-        req.SourceIds,
-        req.SearchText,
-        ct);
+    var jobId = await service.AddAsync(new JobPostSyncTask
+    {
+        SourceIds = req.SourceIds ?? [],
+        SearchText = req.SearchText
+    }, ct);
 
     return new { Id = jobId };
+    
 
 });
 
