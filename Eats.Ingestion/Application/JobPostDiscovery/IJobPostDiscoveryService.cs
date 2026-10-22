@@ -12,7 +12,6 @@ public interface IJobPostDiscoveryService
         CancellationToken cancellationToken = default);
 
     Task<JobPostDetailDiscovery> FetchDetail(
-        Guid jobPostId,
         string detailPath,
         CancellationToken cancellationToken = default);
 }

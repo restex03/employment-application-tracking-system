@@ -8,8 +8,8 @@ public sealed class JobPostDetail
 
     public JobPostDetail(
         Guid id,
-        Guid jobPostId,
         string description,
+        Guid? jobPostId = null,
         string? employmentType = null,
         JobPostLocation[]? locations = null,
         string? validThrough = null,
@@ -29,7 +29,7 @@ public sealed class JobPostDetail
     }
 
     public Guid Id { get; private set; }
-    public Guid JobPostId { get; private set; }
+    public Guid? JobPostId { get; private set; }
     public string Description { get; private set; } = string.Empty;
     public string? EmploymentType { get; private set; }
     public JobPostLocation[]? Locations { get; private set; }

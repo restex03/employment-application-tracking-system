@@ -46,12 +46,11 @@ public sealed class WorkdayJobDiscoveryService(
     }
 
     public async Task<JobPostDetailDiscovery> FetchDetail(
-        Guid jobPostId,
-        string detailPath,
+            string detailPath,
         CancellationToken cancellationToken = default)
     {
         var response = await gateway.GetDetail(GetBaseUri(jobSource.BaseUrl), detailPath, cancellationToken);
-        return jobDetailMapper.Map(response, jobPostId);
+        return jobDetailMapper.Map(response);
     }
 
     private static Uri GetBaseUri(string baseUrl)

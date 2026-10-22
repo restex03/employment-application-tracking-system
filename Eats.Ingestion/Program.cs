@@ -128,7 +128,7 @@ app.MapPost(
 
 });
 
-app.MapPost("/ingestion/discovery/jobPosts", async ([FromBody] JobPostDiscoveryRequest req, [FromServices] IServiceScopeFactory scopeFactory, CancellationToken ct) =>
+app.MapPost("/ingestion/discovery/jobPosts", async ([FromBody] JobPostDetailDiscoveryRequest req, [FromServices] IServiceScopeFactory scopeFactory, CancellationToken ct) =>
 {
     try
     {
@@ -137,7 +137,25 @@ app.MapPost("/ingestion/discovery/jobPosts", async ([FromBody] JobPostDiscoveryR
         var jobSourceRepo = scope.ServiceProvider.GetRequiredService<IJobSourceRepository>();
         var jobSource = await jobSourceRepo.GetByIdOrThrowAsync(req.JobSourceId, ct);
         var svc = svcFactory.Create(jobSource);
-        var result = await svc.FetchList(req.SearchText, ct);
+        var result = await svc.FetchDetail(req.DetailPath, ct);
+        return Results.Ok(result);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+});
+
+app.MapPost("/ingestion/discovery/jobPostDetails", async ([FromBody] JobPostDetailDiscoveryRequest req, [FromServices] IServiceScopeFactory scopeFactory, CancellationToken ct) =>
+{
+    try
+    {
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var svcFactory = scope.ServiceProvider.GetRequiredService<IJobPostDiscoveryServiceFactory>();
+        var jobSourceRepo = scope.ServiceProvider.GetRequiredService<IJobSourceRepository>();
+        var jobSource = await jobSourceRepo.GetByIdOrThrowAsync(req.JobSourceId, ct);
+        var svc = svcFactory.Create(jobSource);
+        var result = await svc.FetchDetail(req.DetailPath, ct);
         return Results.Ok(result);
     }
     catch (Exception ex)
@@ -208,4 +226,10 @@ internal sealed class JobPostDiscoveryRequest
 {
     public required Guid JobSourceId { get; init; }
     public required string SearchText { get; init; }
+}
+
+internal sealed class JobPostDetailDiscoveryRequest
+{
+    public required string DetailPath { get; init; }
+    public required Guid JobSourceId { get; init; }
 }

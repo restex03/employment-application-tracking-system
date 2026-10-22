@@ -18,7 +18,7 @@ public sealed partial class WorkdayJobDetailMapper
         sanitizer.AllowedAttributes.Add("alt");
     }
 
-    public JobPostDetailDiscovery Map(WorkdayJobDetailsApiResponse response, Guid jobPostId)
+    public JobPostDetailDiscovery Map(WorkdayJobDetailsApiResponse response)
     {
         var posting = response.JobPostingInfo;
         var locations = new List<JobPostLocation>();
@@ -43,8 +43,8 @@ public sealed partial class WorkdayJobDetailMapper
 
         var detail = new JobPostDetail(
             Guid.NewGuid(),
-            jobPostId,
             description,
+            jobPostId: null,
             posting.TimeType,
             distinctLocations,
             remoteType: posting.RemoteType,

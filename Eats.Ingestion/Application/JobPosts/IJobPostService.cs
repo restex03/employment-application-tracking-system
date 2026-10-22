@@ -38,7 +38,7 @@ public interface IJobPostService
                 logger.LogDebug("Syncing details for job post {JobPostId}", jobPost.Id);
                 var source = await GetSource(jobPost.SourceId, cancellationToken);
                 var discoveryService = discoveryServiceFactory.Create(source);
-                var detail = await discoveryService.FetchDetail(jobPost.Id, jobPost.DetailPath, cancellationToken);
+                var detail = await discoveryService.FetchDetail(jobPost.DetailPath, cancellationToken);
 
                 jobPost.UpdateFromDetail(detail.RequisitionId, detail.RemoteType);
                 jobPost.HydrateDetail(detail.Detail);
