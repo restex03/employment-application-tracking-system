@@ -1,4 +1,5 @@
 using Eats.Ingestion.Application.JobPostDiscovery;
+using Eats.Ingestion.Application.JobPosts.Models;
 using Eats.Ingestion.Domain.JobPosts;
 using Eats.Ingestion.Domain.JobSources;
 using Eats.Ingestion.Infrastructure.Persistence.JobPosts;
@@ -9,6 +10,7 @@ public interface IJobPostService
     Task AddMany(IEnumerable<JobPost> jobPosts, CancellationToken cancellationToken = default);
     Task Update(JobPost jobPost, CancellationToken cancellationToken = default);
     Task<JobPost> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<JobPostViewModel>> ListAsync(JobPostQuery query, CancellationToken ct);
 
     public class Imp(
         IJobPostRepository jobPostRepository,
@@ -31,8 +33,9 @@ public interface IJobPostService
 
         public async Task<JobPost> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             var jobPost = await jobPostRepository.GetByIdOrThrowAsync(id, cancellationToken);
+            
+            // Hydrate JobPostDetail if null upon JobPost fetch
             if (jobPost.Detail is null)
             {
                 logger.LogDebug("Syncing details for job post {JobPostId}", jobPost.Id);
@@ -57,5 +60,56 @@ public interface IJobPostService
             return source ?? throw new InvalidOperationException($"Job source not found: {sourceId}");
         }
 
+        public async Task<IReadOnlyList<JobPostViewModel>> ListAsync(JobPostQuery query, CancellationToken ct)
+        {
+            var result = await jobPostRepository.ListAsync(query, ct);
+
+            var mapped = result.Select(MapToViewModel).ToList();
+            return mapped;
+        }
+
+        private JobPostViewModel MapToViewModel(JobPost jobPost)
+        {
+            return new JobPostViewModel
+            {
+                Id = jobPost.Id,
+                SourceId = jobPost.SourceId,
+                RequisitionId = jobPost.RequisitionId,
+                Title = jobPost.Title,
+                DetailPath = jobPost.DetailPath,
+                Location = jobPost.Location,
+                DaysOld = jobPost.DaysOld,
+                CreatedAt = jobPost.CreatedAt,
+                Detail = MapToViewModel(jobPost.Detail),
+                RemoteType = jobPost.RemoteType,
+            };
+        }
+
+        private static JobPostDetailViewModel? MapToViewModel(JobPostDetail? detail)
+        {
+            if (detail is null)
+            {
+                return null;
+            }
+
+            return new JobPostDetailViewModel
+            {
+                Id = detail.Id,
+                Description = detail.Description,
+                EmploymentType = detail.EmploymentType,
+                Locations = detail.Locations?.Select(location => new JobPostLocationViewModel
+                {
+                    StreetAddress = location.StreetAddress,
+                    City = location.City,
+                    State = location.State,
+                    PostalCode = location.PostalCode,
+                    Country = location.Country
+                }).ToArray(),
+                ValidThrough = detail.ValidThrough,
+                RemoteType = detail.RemoteType,
+                ApplicantLocations = detail.ApplicantLocations,
+                FetchedAt = detail.FetchedAt
+            };
+        }
     }
 }

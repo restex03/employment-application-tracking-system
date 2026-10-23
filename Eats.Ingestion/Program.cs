@@ -9,6 +9,7 @@ using Eats.Ingestion.Infrastructure.Persistence.JobPosts;
 using Eats.Ingestion.Infrastructure.Persistence.JobPostSyncQueue;
 using Eats.Ingestion.Infrastructure.Persistence.JobSources;
 using Microsoft.EntityFrameworkCore;
+using Eats.Ingestion.Application.JobPosts.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("JobPosts")
@@ -169,6 +170,22 @@ app.MapGet("/ingestion/jobPosts/{jobPostId}", async ([FromRoute] Guid jobPostId,
     try
     {
         var result = await jobPostService.GetByIdOrThrowAsync(jobPostId, ct);
+        return Results.Ok(result);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+});
+
+app.MapGet("/ingestion/jobPosts", async (
+    [FromServices] IJobPostService jobPostService, 
+    CancellationToken ct, 
+    [AsParameters] JobPostQuery queryParams) =>
+{
+    try
+    {
+        var result = await jobPostService.ListAsync(queryParams, ct);
         return Results.Ok(result);
     }
     catch (Exception ex)

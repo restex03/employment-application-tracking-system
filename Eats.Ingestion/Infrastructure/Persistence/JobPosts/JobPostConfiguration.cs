@@ -25,9 +25,6 @@ public sealed class JobPostConfiguration : IEntityTypeConfiguration<JobPost>
         builder.Property(x => x.Location);
         builder.Property(x => x.DaysOld);
         builder.Property(x => x.RemoteType);
-        builder.Property(x => x.Dismissed)
-            .HasDefaultValue(false)
-            .IsRequired();
         builder.Property(x => x.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();

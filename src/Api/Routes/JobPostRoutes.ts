@@ -2,8 +2,7 @@ import { FastifyInstance } from "fastify";
 
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IRouteRegistrar } from "../Host/IRouteRegistrar";
-import { IJobPostResultTableService, JobPostQueryFilters } from "../../Application/JobPost/IJobPostResultTableService";
-import { IJobPostService } from "../../Application/JobPost/IJobPostService";
+import { IJobPostService, JobPostQueryFilters } from "../../Application/JobPost/IJobPostService";
 
 interface JobPostParams {
     jobPostId: string;
@@ -24,7 +23,6 @@ export interface JobPostQuery {
 
 export class JobPostRoutes implements IRouteRegistrar {
     constructor(
-        private readonly jobPostResultService: IJobPostResultTableService,
         private readonly jobPostService: IJobPostService,
         private readonly logger: ILogger
     ) {}
@@ -55,13 +53,14 @@ export class JobPostRoutes implements IRouteRegistrar {
                     applicationStatus: request.query.applicationStatus?.trim() || undefined,
                     includeDismissed: request.query.includeDismissed === "true",
                 } as JobPostQueryFilters;
-                const result = await this.jobPostResultService.getAll(pageCount, pageNumber, queryFilters);
+                const result = await this.jobPostService.list(pageCount, pageNumber, queryFilters);
                 return result;
             } catch (error) {
                 const errMsg = error instanceof Error ? error.message : String(error);
-                this.logger.error(`[${request.method}]  ${request.url} Failed to retrieve job posts: ${errMsg}`);
+                const aggregateMsg = `[${request.method}]  ${request.url} Failed to retrieve job posts: ${errMsg}`;
+                this.logger.error(aggregateMsg);
                 return reply.code(500).send({
-                    error: `Failed to retrieve job posts: ${errMsg}`,
+                    error: aggregateMsg,
                 });
             }
         });
@@ -73,10 +72,10 @@ export class JobPostRoutes implements IRouteRegistrar {
                 const { jobPostId } = request.params;
                 this.logger.info(`[${request.method}]  ${request.url}`);
 
-                const jobPost = await this.jobPostResultService.getByIdOrThrow(jobPostId);
+                const jobPost = await this.jobPostService.getById(jobPostId);
 
                 if (!jobPost) {
-                    this.logger.info(`[${request.method}]  ${request.url} Job post not found`);
+                    this.logger.warn(`[${request.method}]  ${request.url} Job post not found`);
                     return reply.code(404).send({
                         message: "Job post not found.",
                     });
@@ -96,25 +95,7 @@ export class JobPostRoutes implements IRouteRegistrar {
             Params: JobPostParams;
             Body: { dismissed?: boolean };
         }>("/job-posts/:jobPostId/dismissed", { schema: { tags: ["Job Posts"] } }, async (request, reply) => {
-            try {
-                const { jobPostId } = request.params;
-                const dismissed = request.body?.dismissed;
-                if (typeof dismissed !== "boolean") {
-                    return reply.code(400).send({ error: "Request body must include a boolean 'dismissed' field." });
-                }
-
-                this.logger.info(
-                    `[${request.method}]  ${request.url} Setting dismissed=${dismissed} for job post ${jobPostId}`
-                );
-                await this.jobPostService.setDismissed(jobPostId, dismissed);
-                return reply.code(204).send();
-            } catch (error) {
-                const errMsg = error instanceof Error ? error.message : String(error);
-                this.logger.error(`[${request.method}]  ${request.url} Failed to update dismissed: ${errMsg}`);
-                return reply.code(500).send({
-                    error: `Failed to update dismissed: ${errMsg}`,
-                });
-            }
+            throw new Error("Obsolete - marked for deletion");
         });
     }
 }

@@ -37,8 +37,6 @@ import { IJobAssessmentRepository } from "../../Infrastructure/Persistence/JobAs
 import { SqliteJobAssessmentRepository } from "../../Infrastructure/Persistence/JobAssessments/Sqlite/SqliteJobAssessmentRepository";
 import { IJobPostQueries } from "../../Infrastructure/Persistence/JobPost/IJobPostQueries";
 import { SqliteJobQueries } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteJobQueries";
-import { IJobPostResultTableService } from "../JobPost/IJobPostResultTableService";
-import { JobPostResultTableService } from "../JobPost/JobPostResultTableService";
 import { JobAssessmentQueueService } from "../JobAssessment/PipelineQueue/JobAssessmentQueueService";
 import { IJobAssessmentQueueService } from "../JobAssessment/PipelineQueue/IJobAssessmentQueueService";
 import { IJobAssessmentQueueWorkerService } from "../JobAssessment/PipelineQueue/IJobAssessmentQueueWorkerService";
@@ -61,6 +59,7 @@ import { IJobPostService } from "../JobPost/IJobPostService";
 
 import { IIngestionServiceGateway, IngestionServiceGateway } from "../../Infrastructure/Ingestion/IIngestionServiceGateway";
 import { IJobSourceGateway, JobSourceGateway } from "../../Infrastructure/JobSourcing/IJobSourceGateway";
+import { IJobPostGateway, JobPostGateway } from "../../Infrastructure/JobPosts/IJobPostGateway";
 
 export function buildDependencies(logLevel: LogLevel): IApplicationDependencies {
     const logger: ILogger = new ConsoleLogger(logLevel);
@@ -104,11 +103,6 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
     /*
      * Application Services
      */
-    const jobPostResultService: IJobPostResultTableService = new JobPostResultTableService(
-        jobPostRepository,
-        jobPostQueries,
-        logger
-    );
 
     const screeningService: IJobScreeningService = new JobScreeningService(inferenceProvider, logger);
 
@@ -165,7 +159,10 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         fileSystemRepository,
         logger
     );
-    const jobPostService: IJobPostService = new JobPostService(jobPostRepository, logger);
+
+    
+    const jobPostGateway: IJobPostGateway = new JobPostGateway(ingestionServiceBaseUrl, logger);
+    const jobPostService: IJobPostService = new JobPostService(jobPostGateway, logger);
 
     logger.debug("[buildDependencies] Application dependencies initialized");
 
@@ -180,10 +177,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         inferenceProvider,
         jobPostRepository,
         jobCandidateProfileService,
-        jobPostResultService,
-
         jobPostService,
-
         jobAssessmentQueue,
         jobAssessmentQueueService,
         screeningService,

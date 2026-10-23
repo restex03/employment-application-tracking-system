@@ -12,7 +12,6 @@ import { IJobRequirementsMatchingService } from "../JobAssessment/RequirementMat
 import { IJobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/IJobRequirementsExtractionService";
 import { IJobScreeningService } from "../JobAssessment/Screening/IJobScreeningService";
 import { IJobCandidateProfileService } from "../JobCandidateProfiles/IJobCandidateProfileService";
-import { IJobPostResultTableService } from "../JobPost/IJobPostResultTableService";
 import { IJobPostService } from "../JobPost/IJobPostService";
 import { IJobSourceGateway } from "../../Infrastructure/JobSourcing/IJobSourceGateway";
 
@@ -21,8 +20,6 @@ export interface IApplicationDependencies {
     logger: ILogger;
     sqliteConnection: SqliteDatabaseConnection;
     jobPostRepository: IJobPostRepository;
-    jobPostResultService: IJobPostResultTableService;
-
     jobPostService: IJobPostService;
     jobAssessmentQueue: IJobAssessmentQueue;
     jobAssessmentQueueService: IJobAssessmentQueueService;

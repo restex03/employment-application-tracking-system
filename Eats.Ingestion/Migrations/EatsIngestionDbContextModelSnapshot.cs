@@ -71,11 +71,6 @@ namespace Eats.Ingestion.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<bool>("Dismissed")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
                     b.Property<string>("Location")
                         .HasColumnType("text");
 
@@ -185,13 +180,11 @@ namespace Eats.Ingestion.Migrations
 
             modelBuilder.Entity("Eats.Ingestion.Domain.JobPosts.JobPostDetail", b =>
                 {
-                    b.HasOne("Eats.Ingestion.Domain.JobPosts.JobPost", "JobPost")
+                    b.HasOne("Eats.Ingestion.Domain.JobPosts.JobPost", null)
                         .WithOne("Detail")
                         .HasForeignKey("Eats.Ingestion.Domain.JobPosts.JobPostDetail", "JobPostId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("JobPost");
                 });
 
             modelBuilder.Entity("Eats.Ingestion.Domain.JobPosts.JobPost", b =>

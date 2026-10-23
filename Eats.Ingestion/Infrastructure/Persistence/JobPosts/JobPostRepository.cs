@@ -1,3 +1,4 @@
+using Eats.Ingestion.Application.JobPosts.Models;
 using Eats.Ingestion.Domain.JobPosts;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -182,5 +183,63 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
     private static object SerializeArray<T>(T[]? values)
     {
         return values is null ? DBNull.Value : JsonSerializer.Serialize(values, JsonOptions);
+    }
+
+    public async Task<IReadOnlyList<JobPost>> ListAsync(JobPostQuery query, CancellationToken ct)
+    {
+        var queryable = dbContext.JobPosts.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(query.CompanyName))
+        {
+            var companyNamePattern = $"%{EscapeLikePattern(query.CompanyName)}%";
+            var sourceIds = await dbContext.JobSources
+                .Where(source => EF.Functions.ILike(source.CompanyName, companyNamePattern, "\\"))
+                .Select(source => source.Id)
+                .ToListAsync(ct);
+            queryable = queryable.Where(jobPost => sourceIds.Contains(jobPost.SourceId));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Title))
+        {
+            var titlePattern = $"%{EscapeLikePattern(query.Title)}%";
+            queryable = queryable.Where(jobPost => EF.Functions.ILike(jobPost.Title, titlePattern, "\\"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.RequisitionId))
+        {
+            var requisitionIdPattern = $"%{EscapeLikePattern(query.RequisitionId)}%";
+            queryable = queryable.Where(jobPost =>
+                jobPost.RequisitionId != null &&
+                EF.Functions.ILike(jobPost.RequisitionId, requisitionIdPattern, "\\"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Location))
+        {
+            var locationPattern = $"%{EscapeLikePattern(query.Location)}%";
+            queryable = queryable.Where(jobPost =>
+                jobPost.Location != null &&
+                EF.Functions.ILike(jobPost.Location, locationPattern, "\\"));
+        }
+
+        if (query.DaysOld.HasValue)
+        {
+            queryable = queryable.Where(jobPost => jobPost.DaysOld <= query.DaysOld.Value);
+        }
+
+        queryable = queryable
+            .OrderBy(jobPost => jobPost.CreatedAt)
+            .ThenBy(jobPost => jobPost.Id)
+            .Skip(query.PageNumber * query.PageCount)
+            .Take(query.PageCount);
+
+        return await queryable.ToListAsync(ct);
+    }
+
+    private static string EscapeLikePattern(string value)
+    {
+        return value
+            .Replace("\\", "\\\\")
+            .Replace("%", "\\%")
+            .Replace("_", "\\_");
     }
 }

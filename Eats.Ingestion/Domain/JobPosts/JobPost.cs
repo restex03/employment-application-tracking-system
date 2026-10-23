@@ -16,8 +16,7 @@ public sealed class JobPost
         string? location = null,
         int? daysOld = null,
         JobPostDetail? detail = null,
-        string? remoteType = null,
-        bool dismissed = false)
+        string? remoteType = null)
     {
         Id = id;
         SourceId = sourceId;
@@ -28,7 +27,6 @@ public sealed class JobPost
         DaysOld = daysOld;
         CreatedAt = createdAt;
         RemoteType = remoteType;
-        Dismissed = dismissed;
         if (detail is not null)
         {
             HydrateDetail(detail);
@@ -45,7 +43,6 @@ public sealed class JobPost
     public DateTime CreatedAt { get; private set; }
     public JobPostDetail? Detail { get; private set; }
     public string? RemoteType { get; private set; }
-    public bool Dismissed { get; private set; }
 
     public void HydrateDetail(JobPostDetail detail)
     {
