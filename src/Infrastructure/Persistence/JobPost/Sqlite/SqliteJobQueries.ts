@@ -10,6 +10,19 @@ export interface IAssessmentHydration {
     requirementMatchScore: number;
 }
 
+
+interface IJobAssessmentRow {
+    id: string;
+    candidate_profile_id: string;
+    job_post_id: string;
+    created_at: string;
+    status: string;
+    review_status: string;
+    screen_result_json: string | null;
+    requirements_json: string | null;
+    requirement_matches_json: string | null;
+    job_match_score_json: string | null;
+}
 export interface IApplicationHydration {
     jobPostId: string;
     applicationStatus: string | null;
@@ -72,17 +85,14 @@ export class SqliteJobQueries implements IJobPostQueries {
         return result;
     }
     public async getJobAssessments(jobPostIds: string[], jobMatchScore: number | undefined): Promise<IAssessmentHydration[]> {
-        type IAssessmentRow = {
-            jobPostId: string;
-            jobMatchScoreJson: string;
-        }
+
         const rows = this.connection
             .prepare(this.getJobAssessmentsStatement)
-            .all({ job_post_ids: JSON.stringify(jobPostIds), jobMatchScore: jobMatchScore }) as IAssessmentRow[];
+            .all({ job_post_ids: JSON.stringify(jobPostIds), jobMatchScore: jobMatchScore }) as IJobAssessmentRow[];
         
         const result = rows.map(x => ({
-            jobPostId: x.jobPostId,
-            requirementMatchScore: SqliteJobQueries.extractRawJobMatchScoreOrThrow(x.jobMatchScoreJson),
+            jobPostId: x.job_post_id,
+            requirementMatchScore: SqliteJobQueries.extractRawJobMatchScoreOrThrow(x.job_match_score_json),
         }));
         return result as IAssessmentHydration[];
     }
