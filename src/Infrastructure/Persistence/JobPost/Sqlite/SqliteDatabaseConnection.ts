@@ -19,15 +19,13 @@ export class SqliteDatabaseConnection {
     public reset(): void {
         this.db.pragma("foreign_keys = OFF");
         this.db.exec(`
+            DELETE FROM job_applications;
             DELETE FROM job_assessments;
-            DELETE FROM job_post_details;
-            DELETE FROM job_posts;
             DELETE FROM candidate_employment_types;
             DELETE FROM candidate_location_preferences;
             DELETE FROM candidate_experience;
             DELETE FROM candidate_skills;
             DELETE FROM candidate_profiles;
-            DELETE FROM job_sources;
             DELETE FROM job_assessment_job_queue
         `);
         this.db.pragma("foreign_keys = ON");
@@ -38,14 +36,9 @@ export class SqliteDatabaseConnection {
     }
 
     private createSchema(): void {
-        this.createJobSourcesTable();
-        this.createJobPostsTable();
-        this.addJobPostRemoteTypeColumn();
-        this.createJobPostDetailsTable();
         this.createCandidateProfilesTable();
         this.createJobAssessmentsTable();
         this.createJobAssessmentJobQueueTable();
-        this.createJobPostSyncJobQueueTable();
         this.createJobApplicationsTable();
     }
 
@@ -55,34 +48,14 @@ export class SqliteDatabaseConnection {
                 id TEXT PRIMARY KEY NOT NULL,
                 job_post_id TEXT NOT NULL,
                 status TEXT NOT NULL,
+                notes TEXT NOT NULL DEFAULT '',
                 attachments TEXT NOT NULL DEFAULT '[]',
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-                FOREIGN KEY (job_post_id)
-                    REFERENCES job_posts(id)
-                    ON DELETE CASCADE
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
 
             CREATE INDEX IF NOT EXISTS ix_job_applications_job_post_id
                 ON job_applications(job_post_id);
         `);
-    }
-
-    private createJobPostSyncJobQueueTable(): void {
-        this.db.exec(`
-        CREATE TABLE IF NOT EXISTS job_post_sync_job_queue (
-            id TEXT PRIMARY KEY NOT NULL,
-            source_ids TEXT NOT NULL,
-            search_text TEXT NOT NULL,
-            status TEXT NOT NULL,
-            error TEXT,
-            warnings TEXT,
-            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-        );
-
-        CREATE INDEX IF NOT EXISTS ix_job_post_sync_job_queue_status_created_at
-            ON job_post_sync_job_queue(status, created_at);
-    `);
     }
 
     private createJobAssessmentJobQueueTable(): void {
@@ -95,10 +68,6 @@ export class SqliteDatabaseConnection {
             error TEXT,
             warnings TEXT,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-            FOREIGN KEY (job_post_id)
-                REFERENCES job_posts(id)
-                ON DELETE CASCADE,
 
             FOREIGN KEY (candidate_profile_id)
                 REFERENCES candidate_profiles(id)
@@ -115,120 +84,6 @@ export class SqliteDatabaseConnection {
             )
             WHERE status IN ('QUEUED', 'IN_PROGRESS');
     `);
-    }
-
-    private createJobSourcesTable(): void {
-        this.db.exec(`
-            CREATE TABLE IF NOT EXISTS job_sources (
-                id TEXT PRIMARY KEY NOT NULL,
-                company_name TEXT NOT NULL,
-                base_url TEXT NOT NULL UNIQUE,
-                browser_base_url TEXT NOT NULL UNIQUE
-            );
-
-            CREATE UNIQUE INDEX IF NOT EXISTS ux_job_sources_company_name
-            ON job_sources(company_name);
-        `);
-    }
-
-    private createJobPostsTable(): void {
-        this.db.exec(`
-            CREATE TABLE IF NOT EXISTS job_posts (
-                id TEXT PRIMARY KEY NOT NULL,
-                source_id TEXT NOT NULL,
-                requisition_id TEXT,
-                title TEXT NOT NULL,
-                detail_path TEXT NOT NULL,
-                locations TEXT,
-                days_old INTEGER,
-                remote_type TEXT,
-                dismissed INTEGER NOT NULL DEFAULT 0,
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-                FOREIGN KEY (source_id)
-                REFERENCES job_sources(id)
-            );
-
-            CREATE UNIQUE INDEX IF NOT EXISTS ux_job_posts_source_detail_path
-            ON job_posts(source_id, detail_path);
-        `);
-        this.migrateDaysOldToInteger();
-    }
-
-    /**
-     * Migrates existing days_old values from TEXT to INTEGER.
-     * "30+" -> 30, "00" -> 0, "09" -> 9, numeric strings -> their integer value.
-     * Non-numeric strings (e.g. "Unknown") are set to NULL.
-     */
-    private migrateDaysOldToInteger(): void {
-        const columns = this.db.pragma("table_info(job_posts)") as Array<{ name: string; type: string }>;
-        const daysOldCol = columns.find(c => c.name === "days_old");
-        if (!daysOldCol) return;
-
-        if (daysOldCol.type === "TEXT") {
-            this.db.exec(`
-                UPDATE job_posts
-                SET days_old = CASE
-                    WHEN days_old IS NULL OR TRIM(days_old) = '' THEN NULL
-                    WHEN days_old = '30+' THEN 30
-                    ELSE CAST(days_old AS INTEGER)
-                END
-                WHERE days_old IS NOT NULL AND TRIM(days_old) != '';
-            `);
-            // SQLite allows converting column type via a recreated table.
-            // Since we can't ALTER COLUMN TYPE directly, we use a no-op here:
-            // better-sqlite3 is dynamically typed, so the data is already stored as integers.
-            // Future INSERTs will store integers directly since the column is now declared INTEGER.
-            // For existing databases where the table was created with TEXT, we recreate the table.
-            this.db.exec(`
-                CREATE TABLE IF NOT EXISTS job_posts_new (
-                    id TEXT PRIMARY KEY NOT NULL,
-                    source_id TEXT NOT NULL,
-                    requisition_id TEXT,
-                    title TEXT NOT NULL,
-                    detail_path TEXT NOT NULL,
-                    locations TEXT,
-                    days_old INTEGER,
-                    remote_type TEXT,
-                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (source_id) REFERENCES job_sources(id)
-                );
-                INSERT INTO job_posts_new SELECT * FROM job_posts;
-                DROP TABLE job_posts;
-                ALTER TABLE job_posts_new RENAME TO job_posts;
-                CREATE UNIQUE INDEX IF NOT EXISTS ux_job_posts_source_detail_path
-                ON job_posts(source_id, detail_path);
-            `);
-        }
-    }
-
-    private addJobPostRemoteTypeColumn(): void {
-        const columns = this.db.pragma("table_info(job_posts)") as Array<{ name: string }>;
-        if (!columns.some(column => column.name === "remote_type")) {
-            this.db.exec("ALTER TABLE job_posts ADD COLUMN remote_type TEXT");
-        }
-    }
-
-    private createJobPostDetailsTable(): void {
-        this.db.exec(`
-            CREATE TABLE IF NOT EXISTS job_post_details (
-                id TEXT PRIMARY KEY NOT NULL,
-                job_post_id TEXT NOT NULL UNIQUE,
-
-                description TEXT NOT NULL,
-                employment_type TEXT,
-                locations TEXT,
-                valid_through TEXT,
-                remote_type TEXT,
-                applicant_locations TEXT,
-
-                fetched_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-                FOREIGN KEY (job_post_id)
-                    REFERENCES job_posts(id)
-                    ON DELETE CASCADE
-            );
-        `);
     }
 
     private createCandidateProfilesTable(): void {
@@ -323,9 +178,7 @@ export class SqliteDatabaseConnection {
                 job_match_score_json TEXT,
 
                 FOREIGN KEY (candidate_profile_id)
-                    REFERENCES candidate_profiles(id),
-                FOREIGN KEY (job_post_id)
-                    REFERENCES job_posts(id)
+                    REFERENCES candidate_profiles(id)
             );
 
             CREATE INDEX IF NOT EXISTS idx_job_assessments_candidate_profile

@@ -9,8 +9,6 @@ import JobPostModal from "../components/JobPostModal";
 import SyncModal from "../components/SyncModal";
 import ToolsModal from "../components/ToolsModal";
 import ToastContainer from "../components/ToastContainer";
-import RowOptionsMenu from "../components/RowOptionsMenu";
-import DismissJobModal from "../components/DismissJobModal";
 import { formatDate, formatLocations } from "../services/formatters";
 import {
     type SortDirection,
@@ -109,9 +107,6 @@ function JobPostsPage() {
     } = useJobAssessmentPolling({ candidateProfileId: CANDIDATE_PROFILE_ID });
     const [selectedJobPostIds, setSelectedJobPostIds] = useState<Set<string>>(new Set());
     const selectAllRef = useRef<HTMLInputElement>(null);
-    const [openOptionsRowId, setOpenOptionsRowId] = useState<string | null>(null);
-    const [dismissModalJobPost, setDismissModalJobPost] = useState<IJobPostData | null>(null);
-    const [dismissedOverrides, setDismissedOverrides] = useState<Record<string, boolean>>({});
 
     // Only show the polled status when it corresponds to the currently open job post.
     const modalJobStatus = selectedJobPost ? getAssessmentStatus(selectedJobPost.id) : null;
@@ -120,9 +115,8 @@ function JobPostsPage() {
     const filteredAndSortedPosts = useMemo(() => {
         let result = [...jobPosts];
 
-        // Hide posts dismissed in this session unless the user opted into showing dismissed posts.
         if (!filters.includeDismissed) {
-            result = result.filter(jp => !(dismissedOverrides[jp.id] ?? jp.dismissed));
+            result = result.filter(jp => !jp.dismissed);
         }
 
         if (sortColumn && sortDirection) {
@@ -181,7 +175,6 @@ function JobPostsPage() {
         sortColumn,
         sortDirection,
         getCompanyName,
-        dismissedOverrides,
         filters.includeDismissed,
     ]);
 
@@ -650,13 +643,12 @@ function JobPostsPage() {
                                 </div>
                             </th>
                             <th>Details</th>
-                            <th>Options</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredAndSortedPosts.length === 0 ? (
                             <tr>
-                                <td colSpan={13} className="no-data">
+                                <td colSpan={12} className="no-data">
                                     {totalCount === 0 && Object.values(filters).every(value => !value)
                                         ? isSyncing
                                             ? "No job posts yet. A sync is currently running and the Sync button is disabled until it completes \u2014 refresh the page to check for new results."
@@ -723,16 +715,6 @@ function JobPostsPage() {
                                             </svg>
                                         </button>
                                     </td>
-                                    <td onClick={e => e.stopPropagation()}>
-                                        <RowOptionsMenu
-                                            isOpen={openOptionsRowId === jobPost.id}
-                                            onToggle={() =>
-                                                setOpenOptionsRowId(prev => (prev === jobPost.id ? null : jobPost.id))
-                                            }
-                                            onClose={() => setOpenOptionsRowId(null)}
-                                            onDismiss={() => setDismissModalJobPost(jobPost)}
-                                        />
-                                    </td>
                                 </tr>
                             ))
                         )}
@@ -779,7 +761,6 @@ function JobPostsPage() {
                     jobPost={selectedJobPost}
                     jobStatus={modalJobStatus}
                     onRunAssessment={() => enqueueAssessment(selectedJobPost.id)}
-                    onDismiss={() => setDismissModalJobPost(selectedJobPost)}
                 />
             )}
 
@@ -795,17 +776,6 @@ function JobPostsPage() {
             />
 
             <ToolsModal isOpen={isToolsModalOpen} onClose={handleResetClose} />
-
-            <DismissJobModal
-                isOpen={dismissModalJobPost !== null}
-                onClose={() => setDismissModalJobPost(null)}
-                jobPostId={dismissModalJobPost?.id ?? ""}
-                jobTitle={dismissModalJobPost?.title ?? ""}
-                onDismissed={id => {
-                    setDismissedOverrides(prev => ({ ...prev, [id]: true }));
-                    closeModal();
-                }}
-            />
 
             <ToastContainer toasts={assessmentToasts} onDismiss={dismissAssessmentToast} />
         </div>

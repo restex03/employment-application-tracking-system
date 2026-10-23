@@ -15,12 +15,11 @@ interface JobPostModalProps {
     jobPost: IJobPostData;
     jobStatus: JobQueueStatus | null;
     onRunAssessment: () => void;
-    onDismiss: () => void;
 }
 
 const CANDIDATE_PROFILE_ID = "russell-estes";
 
-function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment, onDismiss }: JobPostModalProps) {
+function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: JobPostModalProps) {
     const [assessment, setAssessment] = useState<IJobAssessment | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -524,9 +523,6 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment, on
                 </div>
 
                 <div className="modal-footer">
-                    <button type="button" className="button-secondary dismiss-job-button" onClick={onDismiss}>
-                        Dismiss Job
-                    </button>
                     <button className="button-secondary" onClick={onClose}>
                         Close
                     </button>

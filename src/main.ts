@@ -4,7 +4,7 @@ import { LogLevel } from "./Infrastructure/Logging/LogLevel";
 import { HttpServer } from "./Api/Host/HttpServer";
 import { IJobCandidateProfileService } from "./Application/JobCandidateProfiles/IJobCandidateProfileService";
 
-const dependencies = buildDependencies(LogLevel.Debug);
+const dependencies = buildDependencies(LogLevel.Warn);
 
 await loadDefaultJobCandidateProfilesIfEmpty(dependencies.jobCandidateProfileService);
 const server = new HttpServer(dependencies);

@@ -544,12 +544,3 @@
     background-color: #93c5fd;
     cursor: not-allowed;
 }
-
-.dismiss-job-button {
-    margin-right: auto;
-    background-color: var(--error-color);
-}
-
-.dismiss-job-button:hover {
-    background-color: #dc2626;
-}
