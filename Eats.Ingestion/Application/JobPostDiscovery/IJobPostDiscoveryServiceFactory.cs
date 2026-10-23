@@ -10,7 +10,8 @@ public interface IJobPostDiscoveryServiceFactory
 
     public sealed class Imp(
     IHttpClientFactory httpClientFactory,
-    ILoggerFactory loggerFactory) : IJobPostDiscoveryServiceFactory
+    ILoggerFactory loggerFactory,
+    IJobLinkBuilder jobLinkBuilder) : IJobPostDiscoveryServiceFactory
 {
     public IJobPostDiscoveryService Create(JobSource source)
     {
@@ -19,7 +20,7 @@ public interface IJobPostDiscoveryServiceFactory
             new WorkdayJobsGateway(
                 httpClientFactory.CreateClient(nameof(WorkdayJobsGateway)),
                 loggerFactory.CreateLogger<WorkdayJobsGateway>()),
-            new WorkdayJobPostMapper(loggerFactory.CreateLogger<WorkdayJobPostMapper>()),
+            new WorkdayJobPostMapper(loggerFactory.CreateLogger<WorkdayJobPostMapper>(), jobLinkBuilder),
             new WorkdayJobDetailMapper(),
             loggerFactory.CreateLogger<WorkdayJobDiscoveryService>());
     }

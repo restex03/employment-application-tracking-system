@@ -1,4 +1,4 @@
-import { IJobPostResponse } from "../../Application/JobPost/IJobPostResponse";
+import { IJobPost } from "../../Domain/JobPosts/IJobPost";
 import { ILogger } from "../Logging/ILogger";
 
 
@@ -13,13 +13,13 @@ export interface JobPostQueryFilters {
 }
 
 export interface IJobPostGateway {
-    getJobPost(id: string): Promise<IJobPostResponse | undefined>;
+    getById(id: string): Promise<IJobPost | undefined>;
     
     list(
         pageCount: number, 
         pageNumber: number, 
         queryFilters: JobPostQueryFilters
-    ): Promise<{ data: IJobPostResponse[]; totalCount: number }>;
+    ): Promise<{ data: IJobPost[]; totalCount: number }>;
 
 }
 
@@ -27,7 +27,7 @@ export interface IJobPostGateway {
 export class JobPostGateway implements IJobPostGateway {
     constructor(private readonly baseUrl: string, private readonly logger: ILogger) {
     }
-    public async getJobPost(id: string): Promise<IJobPostResponse | undefined> {
+    public async getById(id: string): Promise<IJobPost | undefined> {
         const path = `/ingestion/jobPosts/${encodeURIComponent(id)}`;
         const fullUrl = new URL(`${path}`, this.baseUrl);
         const response = await fetch(fullUrl, {
@@ -51,7 +51,7 @@ export class JobPostGateway implements IJobPostGateway {
         return await response.json();
     }
 
-    public async list(pageCount: number, pageNumber: number, queryFilters: JobPostQueryFilters): Promise<{ data: IJobPostResponse[]; totalCount: number }> {
+    public async list(pageCount: number, pageNumber: number, queryFilters: JobPostQueryFilters): Promise<{ data: IJobPost[]; totalCount: number }> {
         const path = `/ingestion/jobPosts`;
         const fullURL = new URL(`${path}`, this.baseUrl);
         fullURL.searchParams.append("pageCount", pageCount.toString());

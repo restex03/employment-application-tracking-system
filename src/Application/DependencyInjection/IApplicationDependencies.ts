@@ -1,6 +1,5 @@
 import { ILlmInferenceProvider } from "../../Infrastructure/Inference/ILlmInferenceProvider";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
-import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
 import { SqliteDatabaseConnection } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteDatabaseConnection";
 import { IJobAssessmentQueue } from "../../Infrastructure/Persistence/Queues/JobAssessmentQueue/IJobAssessmentQueue";
 import { IIngestionServiceGateway } from "../../Infrastructure/Ingestion/IIngestionServiceGateway";
@@ -19,7 +18,6 @@ export interface IApplicationDependencies {
     jobAssessmentService: IJobAssessmentService;
     logger: ILogger;
     sqliteConnection: SqliteDatabaseConnection;
-    jobPostRepository: IJobPostRepository;
     jobPostService: IJobPostService;
     jobAssessmentQueue: IJobAssessmentQueue;
     jobAssessmentQueueService: IJobAssessmentQueueService;

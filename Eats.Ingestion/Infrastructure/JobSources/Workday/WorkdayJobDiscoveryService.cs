@@ -27,7 +27,7 @@ public sealed class WorkdayJobDiscoveryService(
             total ??= response.Total;
             foreach (var posting in response.JobPostings)
             {
-                var mapped = jobPostMapper.Map(jobSource.Id, posting);
+                var mapped = jobPostMapper.Map(jobSource, posting);
                 if (mapped is not null)
                 {
                     discovered[mapped.DetailPath] = mapped;

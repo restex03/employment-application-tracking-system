@@ -28,6 +28,7 @@ builder.Services.AddScoped<IJobPostRepository, JobPostRepository>()
         new RolesScreener(),    
     ])
 );
+builder.Services.AddSingleton<IJobLinkBuilder, JobLinkBuilder>();
 builder.Services.AddSingleton<IJobPostDiscoveryServiceFactory, IJobPostDiscoveryServiceFactory.Imp>();
 builder.Services.AddHttpClient(nameof(WorkdayJobsGateway), client =>
 {

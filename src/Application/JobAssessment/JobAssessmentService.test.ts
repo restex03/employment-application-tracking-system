@@ -3,11 +3,10 @@ import { JobRequirement } from "./RequirementsExtraction/JobRequirement";
 import { ICandidateProfile } from "../../Domain/Candidates/ICandidateProfile";
 import { IJobAssessment } from "../../Domain/JobAssessment/IJobAssessment";
 import { IJobPost } from "../../Domain/JobPosts/IJobPost";
-import { IJobSource } from "../../Domain/JobSources/IJobSource";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IJobAssessmentRepository } from "../../Infrastructure/Persistence/JobAssessments/IJobAssessmentRepository";
 import { IJobCandidateProfileRepository } from "../../Infrastructure/Persistence/JobCandidateProfiles/IJobCandidateProfileRepository";
-import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
+import { IJobPostGateway } from "../../Infrastructure/JobPosts/IJobPostGateway";
 import { PipelineStepStatus } from "../Pipelines/IPipelineStepResult";
 import { PipelineRunner } from "../Pipelines/PipelineRunner";
 import { JobAssessmentService } from "./JobAssessmentService";
@@ -17,26 +16,21 @@ import { IJobRequirementMatch } from "./RequirementMatching/IJobRequirementMatch
 describe("JobAssessmentService", () => {
     let candidateProfileRepo: IJobCandidateProfileRepository;
     let pipeline: PipelineRunner<IJobAssessmentContext>;
-    let jobPostRepo: IJobPostRepository;
+    let jobPostGateway: IJobPostGateway;
     let jobAssessmentRepo: IJobAssessmentRepository;
     let logger: ILogger;
     let service: JobAssessmentService;
 
     const candidateProfile = { id: "candidate-1" } as ICandidateProfile;
-    const jobSource = {
-        id: "source-1",
-        companyName: "Acme",
-        baseUrl: "https://acme.example.com",
-        browserBaseUrl: "https://acme.example.com",
-    } as IJobSource;
     const jobPost = {
         id: "job-1",
         sourceId: "source-1",
         title: "Senior Software Engineer",
         detailPath: "/job-1",
+        jobLink: "https://acme.example.com/job-1",
         createdAt: new Date("2026-01-01"),
         hydrateDetail: vi.fn(),
-    } as IJobPost;
+    } satisfies IJobPost;
 
     const requirementMatch: IJobRequirementMatch = {
         requirement: new JobRequirement(["Java"], "single", "Java experience"),
@@ -49,18 +43,19 @@ describe("JobAssessmentService", () => {
             getCandidateProfileByIdOrThrow: vi.fn().mockResolvedValue(candidateProfile),
         } as unknown as IJobCandidateProfileRepository;
 
-       jobPostRepo = {
-            getByIdOrThrow: vi.fn().mockResolvedValue(jobPost),
-            update: vi.fn().mockResolvedValue(undefined),
-        } as unknown as IJobPostRepository;
+        jobPostGateway = {
+            getById: vi.fn().mockResolvedValue(jobPost),
+            list: vi.fn(),
+        };
 
         jobAssessmentRepo = {
             storeAssessment: vi.fn().mockImplementation(async (result: IJobAssessment) => result),
             getById: vi.fn(),
             getByIdOrThrow: vi.fn(),
-            getByJobPostAndCandidateId: vi.fn(),
+            getLatestAssessment: vi.fn(),
             getLatestAssessmentOrThrow: vi.fn(),
-        } as unknown as IJobAssessmentRepository;
+            updateReviewStatus: vi.fn(),
+        };
 
         logger = {
             table: vi.fn(),
@@ -69,14 +64,15 @@ describe("JobAssessmentService", () => {
             info: vi.fn(),
             warn: vi.fn(),
             error: vi.fn(),
-        } as unknown as ILogger;
+        };
 
-        pipeline = { run: vi.fn() } as unknown as PipelineRunner<IJobAssessmentContext>;
+        pipeline = new PipelineRunner<IJobAssessmentContext>([]);
+        vi.spyOn(pipeline, "run");
 
         service = new JobAssessmentService(
             candidateProfileRepo,
             pipeline,
-            jobPostRepo,
+            jobPostGateway,
             jobAssessmentRepo,
             logger
         );
@@ -108,7 +104,7 @@ describe("JobAssessmentService", () => {
         });
     });
 
-    describe("getAssessmentOrThrow", () => {
+    describe("getLatestAssessmentOrThrow", () => {
         it("delegates to the repository using the job post and candidate ids", async () => {
             const stored = {
                 id: "assessment-2",
@@ -130,24 +126,18 @@ describe("JobAssessmentService", () => {
     });
 
     describe("runAssessment", () => {
-        it("persists a complete assessment and hydrates the job post when the pipeline succeeds", async () => {
-            vi.mocked(pipeline.run).mockImplementation(async context => {
-                context.requirementMatches = [requirementMatch];
-                return { status: PipelineStepStatus.Succeeded, context };
-            });
 
-            const result = await service.runAssessment(candidateProfile.id, jobPost.id);
+        it("throws before running the pipeline when the job post is not found", async () => {
+            vi.mocked(jobPostGateway.getById).mockResolvedValue(undefined);
 
-            expect(result.status).toBe("complete");
-            expect(jobAssessmentRepo.storeAssessment).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    candidateProfileId: candidateProfile.id,
-                    jobPostId: jobPost.id,
-                    status: "complete",
-                    requirementMatches: [requirementMatch],
-                })
+            await expect(service.runAssessment(candidateProfile.id, jobPost.id)).rejects.toThrow(
+                `Job post with ID ${jobPost.id} not found.`
             );
-            expect(jobPostRepo.update).toHaveBeenCalledWith(jobPost);
+
+            expect(jobPostGateway.getById).toHaveBeenCalledWith(jobPost.id);
+            expect(candidateProfileRepo.getCandidateProfileByIdOrThrow).not.toHaveBeenCalled();
+            expect(pipeline.run).not.toHaveBeenCalled();
+            expect(jobAssessmentRepo.storeAssessment).not.toHaveBeenCalled();
         });
 
         it("marks the assessment incomplete when the job post is rejected during screening", async () => {
@@ -158,13 +148,14 @@ describe("JobAssessmentService", () => {
 
             const result = await service.runAssessment(candidateProfile.id, jobPost.id);
 
+            expect(jobPostGateway.getById).toHaveBeenCalledWith(jobPost.id);
             expect(result.status).toBe("incomplete");
             expect(jobAssessmentRepo.storeAssessment).toHaveBeenCalledWith(
                 expect.objectContaining({ status: "incomplete" })
             );
         });
 
-        it("throws and does not persist anything when a pipeline step fails", async () => {
+        it("throws when a pipeline step fails", async () => {
             vi.mocked(pipeline.run).mockResolvedValue({
                 status: PipelineStepStatus.Failed,
                 context: {} as IJobAssessmentContext,
@@ -177,7 +168,7 @@ describe("JobAssessmentService", () => {
             );
 
             expect(jobAssessmentRepo.storeAssessment).not.toHaveBeenCalled();
-            expect(jobPostRepo.update).not.toHaveBeenCalled();
+
         });
 
         it("does not throw when the pipeline succeeds with no requirement matches", async () => {
@@ -185,12 +176,12 @@ describe("JobAssessmentService", () => {
                 return { status: PipelineStepStatus.Succeeded, context };
             });
 
-            await expect(service.runAssessment(candidateProfile.id, jobPost.id)).resolves.not.toThrow();
+            const result = await service.runAssessment(candidateProfile.id, jobPost.id);
 
+            expect(result.status).toBe("complete");
             expect(jobAssessmentRepo.storeAssessment).toHaveBeenCalledWith(
-                expect.objectContaining({ requirementMatches: [] })
+                expect.objectContaining({ status: "complete", requirementMatches: [] })
             );
-            expect(logger.info).toHaveBeenCalledWith(expect.stringContaining("No requirement matches to report."));
         });
     });
 });

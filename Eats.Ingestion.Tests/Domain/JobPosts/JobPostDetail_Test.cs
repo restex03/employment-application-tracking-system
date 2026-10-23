@@ -53,6 +53,7 @@ public sealed class JobPostDetailTests
             Guid.NewGuid(),
             "Software Engineer",
             "/jobs/123",
-            DateTime.UtcNow);
+            DateTime.UtcNow,
+            new Uri("https://acme.example.com/jobs/123"));
     }
 }

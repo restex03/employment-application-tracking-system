@@ -64,6 +64,7 @@ public interface IJobPostSyncService
                 discovery.Title,
                 discovery.DetailPath,
                 DateTime.UtcNow,
+                discovery.JobLink,
                 discovery.RequisitionId,
                 discovery.Location,
                 discovery.DaysOld,

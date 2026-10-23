@@ -1,12 +1,10 @@
-import { IJobPostResponse } from "../../../Application/JobPost/IJobPostResponse";
-import { JobPostQueryFilters } from "../../../Application/JobPost/IJobPostResultTableService";
+
+
+import { IApplicationHydration } from "./Sqlite/SqliteJobQueries";
+import { IAssessmentHydration } from "./Sqlite/SqliteJobQueries";
 
 export interface IJobPostQueries {
-    getJobPostTableResults(
-        pageCount: number,
-        pageNumber: number,
-        queryFilters: JobPostQueryFilters
-    ): Promise<{ data: IJobPostResponse[]; totalCount: number }>;
-    getJobPostTableResultById(id: string): Promise<IJobPostResponse | undefined>;
-    getJobPostTableResultByIdOrThrow(id: string): Promise<IJobPostResponse>;
+    getJobApplications(jobPostIds: string[]): Promise<IApplicationHydration[]>;
+    getJobAssessments(jobPostIds: string[]): Promise<IAssessmentHydration[]>;
 }
+

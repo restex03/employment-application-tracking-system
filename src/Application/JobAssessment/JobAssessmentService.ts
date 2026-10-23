@@ -4,7 +4,6 @@ import { JobAssessmentReviewStatus } from "../../Domain/JobAssessment/IJobAssess
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IJobAssessmentRepository } from "../../Infrastructure/Persistence/JobAssessments/IJobAssessmentRepository";
 import { IJobCandidateProfileRepository } from "../../Infrastructure/Persistence/JobCandidateProfiles/IJobCandidateProfileRepository";
-import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
 import { PipelineStepStatus } from "../Pipelines/IPipelineStepResult";
 import { PipelineRunner } from "../Pipelines/PipelineRunner";
 import { IJobAssessmentResult } from "./IJobAssessmentResult";
@@ -12,12 +11,14 @@ import { IJobAssessmentService } from "./IJobAssessmentService";
 import { JobAssessmentContext, IJobAssessmentContext } from "./Pipeline/IJobAssessmentContext";
 import { randomUUID } from "crypto";
 import { JobScreenDisposition } from "./Screening/IJobScreenResult";
+import { IJobPostGateway } from "../../Infrastructure/JobPosts/IJobPostGateway";
+import { IJobPost } from "../../Domain/JobPosts/IJobPost";
 
 export class JobAssessmentService implements IJobAssessmentService {
     constructor(
         private readonly candidateProfileRepo: IJobCandidateProfileRepository,
         private readonly pipeline: PipelineRunner<IJobAssessmentContext>,
-        private readonly jobPostRepo: IJobPostRepository,
+        private readonly jobPostGateway: IJobPostGateway,
         private readonly jobAssessmentRepo: IJobAssessmentRepository,
         private readonly logger: ILogger
     ) {}
@@ -72,7 +73,7 @@ export class JobAssessmentService implements IJobAssessmentService {
     public async runAssessment(candidateProfileId: string, jobPostId: string): Promise<IJobAssessmentResult> {
         this.logger.info(`[JobAssessmentService.runAssessment] Running assessment for job post: ${jobPostId}`);
 
-        const jobPost = await this.jobPostRepo.getByIdOrThrow(jobPostId);
+        const jobPost = await this.getJobPostOrThrow(jobPostId);
 
 
         const candidateProfile = await this.candidateProfileRepo.getCandidateProfileByIdOrThrow(candidateProfileId);
@@ -130,7 +131,13 @@ export class JobAssessmentService implements IJobAssessmentService {
         this.logger.warn(`[JobAssessmentService] Assessment unknown due to unknown status or disposition.`);
         return "unknown";
     }
-
+    private async getJobPostOrThrow(jobPostId: string): Promise<IJobPost> {
+        const jobPost = await this.jobPostGateway.getById(jobPostId);
+        if (!jobPost) {
+            throw new Error(`Job post with ID ${jobPostId} not found.`);
+        }
+        return jobPost;
+    }
     
 
     
@@ -148,3 +155,5 @@ function mapToResponse(result: IJobAssessment): IJobAssessmentResponse {
         jobMatchScore: result.jobMatchScore,
     };
 }
+
+

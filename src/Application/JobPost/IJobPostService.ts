@@ -9,7 +9,6 @@ export interface JobPostQueryFilters {
     daysOld?: number;
     jobMatchScore?: number;
     applicationStatus?: string;
-    includeDismissed?: boolean;
 }
 export interface IJobPostService {
      list(

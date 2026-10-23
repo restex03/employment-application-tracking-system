@@ -6,55 +6,13 @@ export interface IJobPost {
     requisitionId?: string;
     title: string;
     detailPath: string;
+    jobLink: string;
     locations?: unknown[];
     daysOld?: number;
     createdAt: Date;
     detail?: IJobPostDetail;
     remoteType?: string;
-    score?: number;
 
     hydrateDetail(detail: IJobPostDetail): void;
 }
 
-export interface JobPostProps {
-    id: string;
-    sourceId: string;
-    requisitionId?: string;
-    title: string;
-    detailPath: string;
-    locations?: unknown[];
-    daysOld?: number;
-    createdAt: Date;
-    detail?: IJobPostDetail;
-    remoteType?: string;
-}
-
-export class JobPost implements IJobPost {
-    public readonly id: string;
-    public readonly sourceId: string;
-    public readonly requisitionId?: string;
-    public readonly title: string;
-    public readonly detailPath: string;
-    public readonly locations?: unknown[];
-    public readonly daysOld?: number;
-    public readonly createdAt: Date;
-    public detail?: IJobPostDetail;
-    public readonly remoteType?: string;
-
-    constructor(props: JobPostProps) {
-        this.id = props.id;
-        this.sourceId = props.sourceId;
-        this.requisitionId = props.requisitionId;
-        this.title = props.title;
-        this.detailPath = props.detailPath;
-        this.locations = props.locations;
-        this.daysOld = props.daysOld;
-        this.createdAt = props.createdAt;
-        this.remoteType = props.remoteType;
-        this.detail = props.detail;
-    }
-
-    public hydrateDetail(detail: IJobPostDetail): void {
-        this.detail = detail;
-    }
-}

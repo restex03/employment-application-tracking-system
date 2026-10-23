@@ -1,13 +1,16 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Eats.Ingestion.Application.JobPostDiscovery;
+using Eats.Ingestion.Domain.JobSources;
 using Eats.Ingestion.Infrastructure.JobSources.Workday.Contracts;
 
 namespace Eats.Ingestion.Infrastructure.JobSources.Workday;
 
-public sealed partial class WorkdayJobPostMapper(ILogger<WorkdayJobPostMapper> logger)
+public sealed partial class WorkdayJobPostMapper(
+    ILogger<WorkdayJobPostMapper> logger,
+    IJobLinkBuilder jobLinkBuilder)
 {
-    public JobPostDiscovery? Map(Guid sourceId, WorkdayJobPosting posting)
+    public JobPostDiscovery? Map(JobSource jobSource, WorkdayJobPosting posting)
     {
         if (string.IsNullOrWhiteSpace(posting.Title) || string.IsNullOrWhiteSpace(posting.ExternalPath))
         {
@@ -20,17 +23,17 @@ public sealed partial class WorkdayJobPostMapper(ILogger<WorkdayJobPostMapper> l
         var tail = posting.ExternalPath.Split('_').LastOrDefault();
         var match = tail is null ? null : RequisitionIdRegex().Match(tail);
         var requisitionId = match is { Success: true } ? match.Groups[1].Value : posting.ExternalPath;
-
+        var jobLink = jobLinkBuilder.BuildJobLink(new Uri(jobSource.BrowserBaseUrl), posting.ExternalPath);
         return new JobPostDiscovery(
-            sourceId,
+            jobSource.Id,
             posting.Title,
             posting.ExternalPath,
+            jobLink,
             requisitionId,
             posting.LocationsText,
             NormalizeDaysOld(posting.PostedOn),
             posting.RemoteType);
     }
-
     private static int? NormalizeDaysOld(string? postedOn)
     {
         if (postedOn is "Posted Today")

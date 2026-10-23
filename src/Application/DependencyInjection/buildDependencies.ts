@@ -1,4 +1,3 @@
-import { SqliteJobRepository } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteJobRepository";
 import { SqliteDatabaseConnection } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteDatabaseConnection";
 import path from "path";
 import { ConsoleLogger } from "../../Infrastructure/Logging/Console/ConsoleLogger";
@@ -7,7 +6,6 @@ import { LogLevel } from "../../Infrastructure/Logging/LogLevel";
 import { IJobScreeningService } from "../JobAssessment/Screening/IJobScreeningService";
 import { JobScreeningService } from "../JobAssessment/Screening/Ollama/JobScreeningService";
 import { OpenAiInferenceProvider } from "../../Infrastructure/Inference/OpenAi/OpenAiInferenceProvider";
-import { IJobPostRepository } from "../../Infrastructure/Persistence/JobPost/IJobPostRepository";
 import { IJobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/IJobRequirementsExtractionService";
 import { JobRequirementsExtractionService } from "../JobAssessment/RequirementsExtraction/JobRequirementsExtractionService";
 import { IJobRequirementsMatchingService } from "../JobAssessment/RequirementMatching/IJobRequirementMatchingService";
@@ -68,8 +66,6 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
      * Persistence
      */
     const sqliteConnection = createSqliteConnection();
-
-    const jobPostRepository: IJobPostRepository = new SqliteJobRepository(sqliteConnection.db, logger);
 
     const jobCandidateProfileRepo: IJobCandidateProfileRepository = new SqliteJobCandidateProfileRepository(
         sqliteConnection.db,
@@ -134,10 +130,12 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         new MatchJobRequirements(requirementsMatchingService),
         new CalculateJobMatchScore(scoreCalculator),
     ]);
+    const ingestionServiceBaseUrl = getIngestionServiceBaseUrlOrThrow();
+    const jobPostGateway: IJobPostGateway = new JobPostGateway(ingestionServiceBaseUrl, logger);
     const jobAssessmentService: IJobAssessmentService = new JobAssessmentService(
         jobCandidateProfileRepo,
         jobAssessmentPipeline,
-        jobPostRepository,
+        jobPostGateway,
         jobAssessmentRepo,
         logger
     );
@@ -150,7 +148,6 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         logger
     );
 
-    const ingestionServiceBaseUrl = getIngestionServiceBaseUrlOrThrow();
     const ingestionGateway: IIngestionServiceGateway = new IngestionServiceGateway(ingestionServiceBaseUrl, logger);
     const jobSourceGateway: IJobSourceGateway = new JobSourceGateway(ingestionServiceBaseUrl, logger);
 
@@ -160,9 +157,7 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         logger
     );
 
-    
-    const jobPostGateway: IJobPostGateway = new JobPostGateway(ingestionServiceBaseUrl, logger);
-    const jobPostService: IJobPostService = new JobPostService(jobPostGateway, logger);
+    const jobPostService: IJobPostService = new JobPostService(jobPostGateway, jobPostQueries, logger);
 
     logger.debug("[buildDependencies] Application dependencies initialized");
 
@@ -175,7 +170,6 @@ export function buildDependencies(logLevel: LogLevel): IApplicationDependencies 
         logger,
         sqliteConnection,
         inferenceProvider,
-        jobPostRepository,
         jobCandidateProfileService,
         jobPostService,
         jobAssessmentQueue,

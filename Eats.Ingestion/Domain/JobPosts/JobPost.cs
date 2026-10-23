@@ -12,6 +12,7 @@ public sealed class JobPost
         string title,
         string detailPath,
         DateTime createdAt,
+        Uri jobLink,
         string? requisitionId = null,
         string? location = null,
         int? daysOld = null,
@@ -27,6 +28,7 @@ public sealed class JobPost
         DaysOld = daysOld;
         CreatedAt = createdAt;
         RemoteType = remoteType;
+        JobLink = jobLink;
         if (detail is not null)
         {
             HydrateDetail(detail);
@@ -43,6 +45,7 @@ public sealed class JobPost
     public DateTime CreatedAt { get; private set; }
     public JobPostDetail? Detail { get; private set; }
     public string? RemoteType { get; private set; }
+    public Uri JobLink { get; private set; }
 
     public void HydrateDetail(JobPostDetail detail)
     {

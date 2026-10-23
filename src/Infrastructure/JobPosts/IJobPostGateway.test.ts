@@ -23,7 +23,7 @@ describe("JobPostGateway", () => {
         vi.stubGlobal("fetch", fetchMock);
         const gateway = new JobPostGateway("https://ingestion.example.com", logger);
 
-        await expect(gateway.getJobPost("post-1")).resolves.toEqual(result);
+        await expect(gateway.getById("post-1")).resolves.toEqual(result);
 
         const [url, init] = fetchMock.mock.calls[0];
         expect(url.href).toBe("https://ingestion.example.com/ingestion/jobPosts/post-1");
@@ -35,7 +35,7 @@ describe("JobPostGateway", () => {
         vi.stubGlobal("fetch", fetchMock);
         const gateway = new JobPostGateway("https://ingestion.example.com", logger);
 
-        await gateway.getJobPost("post/1?#");
+        await gateway.getById("post/1?#");
 
         expect(fetchMock.mock.calls[0][0].href).toBe(
             "https://ingestion.example.com/ingestion/jobPosts/post%2F1%3F%23"
@@ -49,7 +49,7 @@ describe("JobPostGateway", () => {
         vi.stubGlobal("fetch", fetchMock);
         const gateway = new JobPostGateway("https://ingestion.example.com", logger);
 
-        await expect(gateway.getJobPost("missing")).resolves.toBeUndefined();
+        await expect(gateway.getById("missing")).resolves.toBeUndefined();
         expect(fetchMock).toHaveBeenCalledOnce();
         const [url, init] = fetchMock.mock.calls[0];
         expect(url.href).toBe("https://ingestion.example.com/ingestion/jobPosts/missing");
@@ -65,7 +65,7 @@ describe("JobPostGateway", () => {
         ));
         const gateway = new JobPostGateway("https://ingestion.example.com", logger);
 
-        await expect(gateway.getJobPost("post-1")).rejects.toThrow(
+        await expect(gateway.getById("post-1")).rejects.toThrow(
             "Failed to fetch job post post-1: HTTP 500 Internal Server Error. failure details"
         );
         expect(logger.error).toHaveBeenCalledOnce();
