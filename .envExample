@@ -2,6 +2,6 @@ RUN_LLM_REGRESSION=0
 DB_PATH=./data/job-app.db
 TEST_MODE=true
 API_PORT=3000
+INGESTION_SVC_BASE_URL=http://localhost:5223
 CANDIDATE_PROFILE=./data/CandidateProfiles/candidateProfile.json
-WORKDAY_SOURCES=./data/JobSources/workdaySources.json
 MISTRAL_API_KEY=your_mistral_api_key_here

@@ -1,323 +1,116 @@
-# Employment Application Tracking and Scoring System (EATS) (v1)
+# EATS
 
-A candidate-side job discovery, evaluation, and application tracking system built with TypeScript.
+EATS (Employment Application Tracking and Scoring System) helps job seekers collect Workday job postings, assess how well a role matches a candidate profile, and track application progress. It supports human decision-making; it does not submit applications.
 
-EATS retrieves job postings from supported career sites, normalizes them into a common domain model, evaluates their compatibility with a candidate profile, and ranks opportunities to help focus a job search on the strongest matches.
+The web app lets you sync configured job sources, review and filter postings, run AI-assisted assessments, and record application statuses, notes, and attachments.
 
-The application is designed to assist the candidate rather than automatically submit applications.
+## How it works
 
-## Overview
+Workday postings are collected by the ingestion service and stored in PostgreSQL. The web API reads those postings and uses a local SQLite database for candidate profiles, assessments, and application tracking. Assessments use the configured language-model provider. The React web app connects to both services through the API.
 
-EATS helps manage the job-search lifecycle by:
+## Requirements
 
-- Retrieving job postings from supported job sources
-- Normalizing provider-specific job data into a common model
-- Screening jobs against candidate requirements and constraints
-- Evaluating alignment with skills, experience, career goals, and preferences
-- Calculating compatibility scores for ranking opportunities
-- Persisting jobs and evaluation results locally
-- Tracking application status, notes, and attachments per job post
-- Providing an extensible architecture for additional job sources and evaluation strategies
+Install:
 
-## How It Works
+- [Node.js](https://nodejs.org/) LTS and npm
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+- [Docker](https://docs.docker.com/get-docker/) with its engine running (for PostgreSQL)
+- A Mistral API key to run job assessments
 
-At a high level:
-
-```text
-Job Sources
-    ↓
-Job Retrieval / Normalization
-    ↓
-Candidate Screening
-    ↓
-LLM Evaluation
-    ↓
-Compatibility Scoring
-    ↓
-Persistence
-    ↓
-Analysis
-```
-
-Provider-specific infrastructure is kept separate from the application and evaluation layers so additional job sources or evaluation implementations can be introduced without changing the core domain logic.
-
-## Project Structure
-
-```
-src/
-├── Api/                 # Fastify HTTP host, routes, and route contracts
-├── Application/         # Application workflows and orchestration
-│   ├── DependencyInjection/  # Dependency registration
-│   ├── JobAssessment/        # Job screening, scoring, and requirement evaluation
-│   ├── JobCandidateProfiles/ # Candidate profile CRUD workflows
-│   ├── JobPostDiscovery/     # Job retrieval workflows (e.g. Workday)
-│   ├── JobPostSync/          # Background job-post sync + queue
-│   ├── JobSources/           # Job source management
-│   └── Pipelines/            # Reusable pipeline execution engine
-├── Domain/              # Core application models and contracts
-│   ├── Candidates/      # Candidate profile definitions
-│   ├── JobAssessment/   # Assessment-related domain models
-│   ├── JobPosts/        # Job posting models and lookup contracts
-│   └── JobSources/      # Job source domain models
-├── Examples/            # Example/template data (e.g. candidateProfiles.example.json)
-└── Infrastructure/      # External systems and persistence
-    ├── Inference/       # LLM provider integrations (OpenAI-compatible / Ollama)
-    ├── JobSources/      # Job-source integrations (e.g. Workday)
-    ├── Logging/         # Logging implementations
-    └── Persistence/     # SQLite repositories and queues
-
-client/                  # React + Vite single-page frontend
-└── src/
-    ├── components/      # Modals, toasts, and other shared UI components
-    ├── hooks/           # Data-fetching and polling hooks
-    ├── pages/           # Top-level pages (Job Posts, Candidate Profiles)
-    ├── services/        # Framework-agnostic client services (e.g. job queue polling)
-    └── types/           # Client-side type definitions mirroring the API contracts
-
-data/                    # Runtime data, gitignored (see "Data Files" below)
-├── JobSources/workdaySources.json
-├── CandidateProfiles/candidateProfile.json
-└── job-app.db
-```
-
-## Technology Stack
-
-- Language: TypeScript (backend and frontend)
-- Backend Runtime: Node.js + Fastify (REST API at `/api/v1`)
-- Frontend: React + Vite (served separately from the API in development)
-- Database: SQLite (active; stores job sources, job posts, candidate profiles, assessments, job applications with status/notes/attachments, and background job queues)
-- LLM Runtime: Ollama by default, with optional Mistral API support
-- Job Sources: Workday-hosted career sites
-- Architecture: Layered architecture with dependency injection
-- Testing: Vitest for both the backend (`src/`) and frontend (`client/src/`)
-
-## Getting Started
-
-### Prerequisites
-
-- Current Node.js LTS
-- npm
-- Ollama (unless you configure `MISTRAL_API_KEY` instead)
-
-### Installation
-
-Install backend dependencies from the repository root, then install frontend dependencies in `client/`:
-
-```
-npm install
-cd client && npm install
-```
-
-For API documentation support (optional), also install:
-
-```
-npm install @fastify/swagger @fastify/swagger-ui
-```
-
-### Environment Configuration
-
-Copy the example environment file and fill in values for your machine:
-
-```
-cp .envExample .env
-```
-
-| Variable             | Required | Description                                                              |
-| -------------------- | -------- | ------------------------------------------------------------------------ |
-| `RUN_LLM_REGRESSION` | No       | Set to `1` to enable LLM regression tests (default `0`).                 |
-| `DB_PATH`            | Yes      | Path to the SQLite database file (e.g. `./data/job-app.db`).             |
-| `TEST_MODE`          | No       | Enables test mode (default `true`).                                      |
-| `API_PORT`           | No       | Port the API server listens on. Defaults to `3000`.                      |
-| `CANDIDATE_PROFILE`  | Yes      | Path to the candidate profile JSON file (see "Candidate Profile" below). |
-| `WORKDAY_SOURCES`    | Yes      | Path to the Workday job sources JSON file (see "Job Sources" below).     |
-| `OLLAMA_BASE_URL`    | Yes      | Base URL of the local Ollama server.                                     |
-| `OLLAMA_MODEL`       | Yes      | Ollama model name used for job evaluation.                               |
-| `MISTRAL_API_KEY`    | No       | If set, uses the Mistral API as the LLM provider instead of Ollama.      |
-
-### Candidate Profile Configuration
-
-The repository contains an example candidate profile that can be used as a template:
-
-`src/Examples/candidateProfiles.example.json`
-
-Copy it to the path referenced by `CANDIDATE_PROFILE` in your `.env` file:
-
-`data/CandidateProfiles/candidateProfile.json`
-
-Then customize the local profile with your own:
-
-- Skills and proficiency levels
-- Professional experience
-- Career strengths
-- Desired work
-- Growth areas
-- Compensation preferences
-- Work arrangements and locations
-- Hard constraints
-
-On first run, if no candidate profiles exist in the database, this file is automatically seeded. `data/` is gitignored, so this file contains private candidate information and is intentionally excluded from source control.
-
-Do not commit personal candidate data to the repository.
-
-### Job Sources
-
-Workday sources are configured in the file referenced by `WORKDAY_SOURCES` in your `.env` file:
-
-`data/JobSources/workdaySources.json`
-
-On first run, if no job sources exist in the database, this file is automatically seeded. Additional Workday-hosted career sites can be added through the existing source configuration.
-
-### Ollama
-
-Ensure Ollama is installed and running before starting the application, unless `MISTRAL_API_KEY` is set to use the Mistral API instead.
-
-The LLM implementation is accessed through an abstraction so model and provider implementations can be changed independently of the job-evaluation workflow.
-
-## Usage
-
-All commands below are run from the repository root unless noted otherwise.
-
-### Backend API
-
-| Command       | Description                                             |
-| ------------- | ------------------------------------------------------- |
-| `npm start`   | Start the API server once.                              |
-| `npm run dev` | Start the API server with auto-restart on file changes. |
-
-The API server starts at `http://localhost:3000` (or `API_PORT`), with routes mounted under `/api/v1` and a health check at `/health`.
-
-#### API Documentation (Swagger)
-
-Interactive API documentation is available at `http://localhost:3000/docs` when the server is running.
-
-The OpenAPI schema is generated automatically from route definitions and can be accessed at `/api/v1/documentation/json`.
-
-#### API Routes Overview
-
-| Tag                | Routes                                                                                                                                                                                             | Description                                 |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| Job Applications   | `GET /job-applications`, `GET /job-applications/:id`, `POST /job-applications/:id/status`, `GET /job-applications/job/:jobId`, `POST /job-applications/job/:jobId`                                 | Manage job applications and their status    |
-| Job Posts          | `GET /job-posts`, `GET /job-posts/:jobPostId`                                                                                                                                                      | Retrieve and filter job postings            |
-| Job Assessments    | `POST /job-post-assessments/:jobPostId/:candidateProfileId`, `GET /job-post-assessments/:jobPostId/:candidateProfileId`, `POST /job-post-assessments/:jobPostId/:candidateProfileId/review-status` | Run and manage job assessments              |
-| Candidate Profiles | `GET /candidate-profiles`, `POST /candidate-profiles`, `GET /candidate-profiles/:id`                                                                                                               | Manage candidate profiles                   |
-| Job Sources        | `GET /job-sources`, `GET /job-sources/:sourceId`                                                                                                                                                   | Configure job source providers              |
-| Job Post Syncs     | `POST /job-post-syncs`, `POST /job-post-syncs/:jobPostId`                                                                                                                                          | Trigger job post synchronization            |
-| Queue Jobs         | `GET /queue-jobs/assessments`, `GET /queue-jobs/assessments/:queueJobId`, `GET /queue-jobs/job-post-syncs`                                                                                         | Monitor background job queues               |
-| Attachments        | `POST /job-applications/:id/attachments`, `GET /job-applications/:id/attachments/:attachmentId`                                                                                                    | Upload and download application attachments |
-| Tools              | `POST /tools/reset-db`                                                                                                                                                                             | Reset database and re-seed defaults         |
-
-### Frontend
-
-| Command                    | Description                                                           |
-| -------------------------- | --------------------------------------------------------------------- |
-| `npm run frontend:dev`     | Start the Vite dev server (`client/`) at `http://localhost:3001`.     |
-| `npm run frontend:build`   | Build the frontend for production into `client/dist`.                 |
-| `npm run frontend:preview` | Preview the production frontend build locally.                        |
-| `npm run dev:full`         | Start both the backend (watch mode) and frontend dev server together. |
-
-The frontend dev server proxies `/api` requests to the backend at `http://localhost:3000`, so the backend must be running (e.g. via `npm run dev`) for the frontend to function.
-
-### Pre-run Validation
-
-Run typescript validation:
-`npm run typecheck`
-
-Run backend + frontend validation together:
-`npm run verify`
-
-## Features
-
-### Job Source Integration
-
-Retrieves job postings from Workday-hosted career sites and maps provider-specific responses into a normalized job representation.
-
-### Candidate Screening
-
-Filters opportunities based on candidate requirements and practical constraints before performing more expensive detailed evaluation.
-
-### Job Compatibility Evaluation
-
-Evaluates job requirements against candidate experience, skills, preferences, and career direction using a locally hosted LLM.
-
-### Compatibility Scoring (WIP)
-
-Uses structured evaluation results and deterministic scoring logic to rank job opportunities. Scoring remains a work in progress.
-
-### Local-First AI (Support your local AI!)
-
-This project supports local AI through Ollama. Candidate profile information and job-evaluation prompts can remain on the local machine, while development and testing avoid charges associated with hosted LLM APIs.
-
-#### Recommended Local Models
-
-The best performing local models so far are:
-
-- `qwen3:4b-instruct-8k`
-- `qwen3:8b-8k`
-- `ministral-3:8b`
-- `granite4.2:8b`
-
-The overall best local performer on limited hardware is `qwen3:4b-instruct-8k`.
-
-#### Benchmarking
-
-Use `src/Application/JobAssessment/RequirementMatching/JobRequirementMatchingRegression.test.ts` as a benchmark when evaluating model performance. This regression suite exercises the direct and transferable requirement-matching logic against representative candidate profiles and job requirements. Run it against a candidate model to measure whether it correctly distinguishes direct matches, transferable matches, and non-matches:
-
-```
-RUN_LLM_REGRESSION=1 OLLAMA_MODEL=<model-tag> npm run test:run -- --reporter=verbose src/Application/JobAssessment/RequirementMatching/JobRequirementMatchingRegression.test.ts
-```
-
-### Persistence
-
-SQLite persistence is implemented for job sources, discovered job posts, candidate profiles, job assessments, job applications (including status, notes, and attachments), and the background job queues used for syncing job posts and running assessments.
-
-### Job Posts Workspace (Frontend)
-
-The Job Posts page supports filtering (company, requisition ID, title, locations, days old, job match score) and sortable columns, background sync with live status polling, per-row job assessment status, and a per-row Options menu for tracking application status (Applied, Interview, Offer, Rejected) shown as colored badges.
-
-The Application Status modal lets the user set and save the application status, add application-level notes, and upload attachments (resumes, cover letters, emails, etc.). The attachments table within the modal supports sortable columns (File, Date Added, Notes), row numbers, and inline per-attachment notes that save on blur.
-
-#### Attachment Storage (v1)
-
-Attachments are stored on the local filesystem. File content is written directly to the data directory (the parent directory of `DB_PATH`) using the attachment's UUID as the filename, with no file extension. Attachment metadata — including file name, date added, and per-attachment notes — is stored as a JSON array in the `attachments` TEXT column on the `job_applications` row. This is a v1 approach chosen for simplicity; future versions may move metadata into a dedicated table or adopt an alternative storage backend.
-
-### Candidate Profiles (Frontend)
-
-A view-only Candidate Profiles page lists profiles from `GET /api/v1/candidate-profiles` with a detail modal for reviewing skills, experience, and preferences.
-
-### Extensible Architecture
-
-Job-source integrations, model connections, evaluators, and compatibility calculators are separated behind application boundaries so implementations can be replaced or extended independently.
-
-## Privacy
-
-Candidate profiles may contain résumé-level personal information and should not be committed to source control.
-
-The repository includes a generic example profile for configuration guidance while the actual local candidate profile is excluded through `.gitignore`.
-
-## Testing
-
-### Backend Tests
+## Get started
 
 From the repository root:
 
-| Command             | Description                                     |
-| ------------------- | ----------------------------------------------- |
-| `npm test`          | Run backend tests in watch mode.                |
-| `npm run test:run`  | Run backend tests once (CI-friendly).           |
-| `npm run typecheck` | Type-check the backend without emitting output. |
-| `npm run verify`    | Run `typecheck` followed by `test:run`.         |
+1. Install dependencies:
 
-### Frontend Tests
+   ```sh
+   npm ci
+   npm ci --prefix client
+   dotnet restore Eats.Ingestion/Eats.Ingestion.csproj
+   ```
 
-From the `client/` directory:
+2. Create local data files:
 
+   ```sh
+   mkdir -p data/CandidateProfiles data/JobSources
+   cp src/Examples/candidateProfiles.example.json data/CandidateProfiles/candidateProfile.json
+   printf '[]\n' > data/JobSources/workdaySources.json
+   cp .envExample .env
+   ```
+
+   Edit `.env` and set `MISTRAL_API_KEY`. The candidate profile is seeded into SQLite on first startup; customize the copied example first. The assessment UI currently uses a fixed candidate ID. Make the profile's `id` match the `CANDIDATE_PROFILE_ID` values in `client/src/pages/JobPostsPage.tsx` and `client/src/components/JobPostModal.tsx`, or update those values to match your profile.
+
+   Add the Workday career sites you want to sync to `data/JobSources/workdaySources.json`. It must be a JSON array of objects with `companyName` and `baseUrl` fields. The empty array above allows the service to start, but you must configure at least one source to sync postings.
+
+3. Set the ingestion service URL in `.env`:
+
+   ```dotenv
+   INGESTION_SVC_BASE_URL=http://localhost:5223
+   ```
+
+   `DB_PATH`, `CANDIDATE_PROFILE`, and `API_PORT` are already set in `.envExample`; adjust them only if needed.
+
+4. Start the services in separate terminals:
+
+   ```sh
+   bash devTools/infrastart.sh
+   dotnet run --project Eats.Ingestion/Eats.Ingestion.csproj
+   ```
+
+   The script starts the local PostgreSQL container. The ingestion service applies its database migrations on startup and loads configured Workday sources if its database has none.
+
+   ```sh
+   npm run dev
+   ```
+
+   This starts the API at `http://localhost:3000`.
+
+   ```sh
+   npm run frontend:dev
+   ```
+
+   Open `http://localhost:3001`. The frontend proxies API requests to port 3000. You can run the API and frontend together with `npm run dev:full` once the ingestion service is running.
+
+The API health check is at `http://localhost:3000/health`; interactive API docs are at `http://localhost:3000/docs`.
+
+## Using EATS
+
+Choose **Sync** in the Job Posts page to collect postings from configured sources. Select one or more postings and choose **Run Assessments** to screen and compare them with your candidate profile. Open a posting to review its details and assessment, and use its application controls to track status, notes, and attachments.
+
+## Data and reset
+
+Local data is stored in the ignored `data/` directory. Do not commit candidate profiles, source configuration, database files, or other personal information.
+
+There are two databases:
+
+- `data/job-app.db` (SQLite) stores candidate profiles, assessments, application tracking, and the assessment queue. Uploaded attachment files are stored separately under `data/`.
+- The `eats-postgres-data` Docker volume stores ingested job postings, Workday sources, and sync tasks.
+
+To clear the app's SQLite data through the UI, open **Tools → Reset Database**, then confirm. This clears profiles, assessments, application records, and assessment queue entries, then seeds the candidate profile from its configured JSON file. It does **not** remove job postings or sources in PostgreSQL, or uploaded attachment files.
+
+With the default `DB_PATH`, reset SQLite manually by stopping the API and removing its database and any SQLite sidecar files, then restarting the API:
+
+```sh
+rm -f data/job-app.db data/job-app.db-shm data/job-app.db-wal
+npm run dev
 ```
-cd client
-npx vitest run
+
+The API recreates the schema and seeds the candidate profile on startup. This does not affect PostgreSQL job data.
+
+For a completely fresh install of both databases, first reset SQLite using one of the methods above, then stop the ingestion service and remove its PostgreSQL container and data volume. This permanently deletes all ingested postings, sources, and sync tasks:
+
+```sh
+docker rm -f eats-postgres
+docker volume rm eats-postgres-data
+bash devTools/infrastart.sh
 ```
 
-Omit `run` (`npx vitest`) to run frontend tests in watch mode. To run a single test file:
+Then restart the ingestion service; it recreates the database and loads sources from the configured Workday JSON file.
 
-```
-npx vitest run src/services/JobQueuePollingManager.test.ts
+## Checks
+
+```sh
+npm run verify
+npm run frontend:build
+dotnet test Eats.Ingestion.Tests/Eats.Ingestion.Tests.csproj
 ```
