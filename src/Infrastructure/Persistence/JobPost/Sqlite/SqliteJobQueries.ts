@@ -65,20 +65,20 @@ export class SqliteJobQueries implements IJobPostQueries {
 
        
     }
-    public async getJobApplications(jobPostIds: string[]): Promise<IApplicationHydration[]> {
+    public async getJobApplications(jobPostIds: string[], applicationStatus: string | undefined): Promise<IApplicationHydration[]> {
         const result = this.connection
             .prepare(this.getJobApplicationsStatement)
-            .all({ job_post_ids: JSON.stringify(jobPostIds) }) as IApplicationHydration[];
+            .all({ job_post_ids: JSON.stringify(jobPostIds), applicationStatus: applicationStatus }) as IApplicationHydration[];
         return result;
     }
-    public async getJobAssessments(jobPostIds: string[]): Promise<IAssessmentHydration[]> {
+    public async getJobAssessments(jobPostIds: string[], jobMatchScore: number | undefined): Promise<IAssessmentHydration[]> {
         type IAssessmentRow = {
             jobPostId: string;
             jobMatchScoreJson: string;
         }
         const rows = this.connection
             .prepare(this.getJobAssessmentsStatement)
-            .all({ job_post_ids: JSON.stringify(jobPostIds) }) as IAssessmentRow[];
+            .all({ job_post_ids: JSON.stringify(jobPostIds), jobMatchScore: jobMatchScore }) as IAssessmentRow[];
         
         const result = rows.map(x => ({
             jobPostId: x.jobPostId,

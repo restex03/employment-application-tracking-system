@@ -35,7 +35,7 @@ export class IngestionServiceGateway implements IIngestionServiceGateway {
     }
 
     public async initiateJobPostSyncTask(taskRequest: { sourceIds: string[]; searchText: string; }): Promise<string> {
-        const path = `/ingestion/jobPosts/sync`;
+        const path = `/ingestion/queueTasks/sync`;
         const data = await this.requestJson<{ id: string }>(path, {
             method: "POST",
             headers: {
@@ -51,7 +51,8 @@ export class IngestionServiceGateway implements IIngestionServiceGateway {
         init: RequestInit,
         operation: string
     ): Promise<T> {
-        const response = await fetch(`${this.ingestionServiceBaseUrl}${path}`, init);
+        const url = new URL(path, this.ingestionServiceBaseUrl);
+        const response = await fetch(url.toString(), init);
         const body = await response.text();
 
         if (response.status < 200 || response.status >= 300) {

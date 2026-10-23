@@ -20,12 +20,12 @@ export class JobPostService implements IJobPostService {
         const jobPosts = await this.jobPostGateway.list(pageCount, pageNumber, queryFilters);
         
         // todo: pass filters
-        const assessments = await this.jobPostQueries.getJobAssessments(jobPosts.data.map(j => j.id));
-        const applications = await this.jobPostQueries.getJobApplications(jobPosts.data.map(j => j.id));
+        const assessments = await this.jobPostQueries.getJobAssessments(jobPosts.map(j => j.id));
+        const applications = await this.jobPostQueries.getJobApplications(jobPosts.map(j => j.id));
 
         const result = {
-            totalCount:jobPosts.totalCount,
-            data: jobPosts.data.map(x => {
+            totalCount:jobPosts.length,
+            data: jobPosts.map(x => {
                 return {
                     ...x,
                     requirementMatchScore: assessments.find(a => a.jobPostId === x.id)?.requirementMatchScore ?? undefined,

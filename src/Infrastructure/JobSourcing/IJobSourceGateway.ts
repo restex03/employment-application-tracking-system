@@ -13,8 +13,9 @@ export class JobSourceGateway implements IJobSourceGateway {
     constructor(private readonly baseUrl: string, private readonly logger: ILogger) {}
     
     public async getByIdOrThrow(sourceId: string): Promise<IJobSource | undefined> {
-        const path = `${this.baseUrl}/jobSources/${sourceId}`;
-        const response = await fetch(path, {
+        
+        const url = new URL(`/jobSources/${sourceId}`, this.baseUrl);
+        const response = await fetch(url.toString(), {
             method: "GET",
             headers: {
                 "Accept": "application/json"
@@ -31,8 +32,8 @@ export class JobSourceGateway implements IJobSourceGateway {
     }
 
     public async getAll(): Promise<IJobSource[]> {
-        const path = `${this.baseUrl}/jobSources`;
-        const response = await fetch(path, {
+        const url = new URL("/ingestion/jobSources", this.baseUrl);
+        const response = await fetch(url.toString(), {
             method: "GET",
             headers: {
                 "Accept": "application/json"
@@ -49,8 +50,8 @@ export class JobSourceGateway implements IJobSourceGateway {
     }
 
     public async getAllByCompanyName(companyName: string): Promise<IJobSource | undefined> {
-        const path = `${this.baseUrl}/jobSources?companyName=${encodeURIComponent(companyName)}`;
-        const response = await fetch(path, {
+        const url = new URL(`/ingestion/jobSources?companyName=${encodeURIComponent(companyName)}`, this.baseUrl);
+        const response = await fetch(url.toString(), {
             method: "GET",
             headers: {
                 "Accept": "application/json"

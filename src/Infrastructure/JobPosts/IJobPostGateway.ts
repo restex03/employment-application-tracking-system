@@ -19,7 +19,7 @@ export interface IJobPostGateway {
         pageCount: number, 
         pageNumber: number, 
         queryFilters: JobPostQueryFilters
-    ): Promise<{ data: IJobPost[]; totalCount: number }>;
+    ): Promise<IJobPost[]>;
 
 }
 
@@ -51,7 +51,7 @@ export class JobPostGateway implements IJobPostGateway {
         return await response.json();
     }
 
-    public async list(pageCount: number, pageNumber: number, queryFilters: JobPostQueryFilters): Promise<{ data: IJobPost[]; totalCount: number }> {
+    public async list(pageCount: number, pageNumber: number, queryFilters: JobPostQueryFilters): Promise<IJobPost[]> {
         const path = `/ingestion/jobPosts`;
         const fullURL = new URL(`${path}`, this.baseUrl);
         fullURL.searchParams.append("pageCount", pageCount.toString());
