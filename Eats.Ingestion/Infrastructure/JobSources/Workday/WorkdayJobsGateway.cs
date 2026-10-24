@@ -34,8 +34,9 @@ public sealed class WorkdayJobsGateway(HttpClient httpClient, ILogger<WorkdayJob
                 response.StatusCode);
         }
 
+        // TODO: Consider swallowing error or adding retries
         return JsonSerializer.Deserialize<WorkdayJobsApiResponse>(responseContent, JsonOptions)
-            ?? throw new InvalidOperationException("Workday jobs API returned an empty response.");
+            ?? throw new InvalidOperationException("Workday jobs API returned an empty response. Response content: " + responseContent);
     }
 
     public async Task<WorkdayJobDetailsApiResponse> GetDetail(
@@ -60,6 +61,6 @@ public sealed class WorkdayJobsGateway(HttpClient httpClient, ILogger<WorkdayJob
         }
 
         return JsonSerializer.Deserialize<WorkdayJobDetailsApiResponse>(responseContent, JsonOptions)
-            ?? throw new InvalidOperationException("Workday job detail API returned an empty response.");
+            ?? throw new InvalidOperationException("Workday job detail API returned an empty response. Response content: " + responseContent);
     }
 }

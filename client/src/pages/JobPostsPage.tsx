@@ -42,7 +42,6 @@ interface FilterState {
     daysOld: string;
     jobMatchScore: string;
     applicationStatus: string;
-    includeDismissed: boolean;
 }
 
 function JobPostsPage() {
@@ -54,7 +53,6 @@ function JobPostsPage() {
         daysOld: "",
         jobMatchScore: "",
         applicationStatus: "",
-        includeDismissed: false,
     });
     const {
         jobPosts,
@@ -72,7 +70,6 @@ function JobPostsPage() {
         daysOld: filters.daysOld,
         jobMatchScore: filters.jobMatchScore,
         applicationStatus: filters.applicationStatus,
-        includeDismissed: filters.includeDismissed ? "true" : "",
     });
     const { jobSources, getCompanyName, loading: sourcesLoading, error: sourcesError } = useJobSources();
     const {
@@ -113,11 +110,7 @@ function JobPostsPage() {
 
     // Sort the posts returned by the API.
     const filteredAndSortedPosts = useMemo(() => {
-        let result = [...jobPosts];
-
-        if (!filters.includeDismissed) {
-            result = result.filter(jp => !jp.dismissed);
-        }
+        const result = jobPosts.filter(jp => !jp.dismissed);
 
         if (sortColumn && sortDirection) {
             result.sort((a, b) => {
@@ -130,7 +123,7 @@ function JobPostsPage() {
                 }
 
                 if (sortColumn === "jobMatchScore") {
-                    return compareNumeric(a.jobMatchScore ?? -1, b.jobMatchScore ?? -1, sortDirection);
+                    return compareNumeric(a.requirementMatchScore ?? -1, b.requirementMatchScore ?? -1, sortDirection);
                 }
 
                 let aValue: string;
@@ -175,7 +168,6 @@ function JobPostsPage() {
         sortColumn,
         sortDirection,
         getCompanyName,
-        filters.includeDismissed,
     ]);
 
     const allVisibleSelected =
@@ -235,11 +227,6 @@ function JobPostsPage() {
         setPage(1);
     };
 
-    const handleDismissedToggle = (checked: boolean) => {
-        setFilters(prev => ({ ...prev, includeDismissed: checked }));
-        setPage(1);
-    };
-
     const clearAllFilters = () => {
         setFilters({
             company: "",
@@ -249,7 +236,6 @@ function JobPostsPage() {
             daysOld: "",
             jobMatchScore: "",
             applicationStatus: "",
-            includeDismissed: false,
         });
         setPage(1);
     };
@@ -563,14 +549,6 @@ function JobPostsPage() {
                         <option value={JobApplicationStatus.Offer}>Application Status: Offer</option>
                         <option value={JobApplicationStatus.Rejected}>Application Status: Rejected</option>
                     </select>
-                    <label className="filter-checkbox-label">
-                        <input
-                            type="checkbox"
-                            checked={filters.includeDismissed}
-                            onChange={e => handleDismissedToggle(e.target.checked)}
-                        />
-                        Show Dismissed Jobs
-                    </label>
                     <button onClick={clearAllFilters} className="clear-filters-button">
                         Clear
                     </button>
@@ -669,7 +647,7 @@ function JobPostsPage() {
                                             onChange={e => handleToggleJobPostSelection(jobPost.id, e.target.checked)}
                                         />
                                     </td>
-                                    <td className="score-cell">{renderScoreIndicator(jobPost.jobMatchScore)}</td>
+                                    <td className="score-cell">{renderScoreIndicator(jobPost.requirementMatchScore)}</td>
                                     <td>{getCompanyName(jobPost.sourceId)}</td>
                                     <td>{jobPost.requisitionId || "N/A"}</td>
                                     <td>{jobPost.title}</td>

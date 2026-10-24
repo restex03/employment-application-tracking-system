@@ -44,20 +44,21 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
 
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         var values = new List<string>(jobPosts.Count);
-        var parameters = new List<object>(jobPosts.Count * 9);
+        var parameters = new List<object>(jobPosts.Count * 10);
         var index = 0;
         foreach (var jobPost in jobPosts)
         {
             var suffix = index.ToString(CultureInfo.InvariantCulture);
             values.Add(
                 $"(@Id{suffix}, @SourceId{suffix}, @RequisitionId{suffix}, @Title{suffix}, " +
-                $"@DetailPath{suffix}, @Location{suffix}, @DaysOld{suffix}, @RemoteType{suffix}, " +
+                $"@DetailPath{suffix}, @JobLink{suffix}, @Location{suffix}, @DaysOld{suffix}, @RemoteType{suffix}, " +
                 $"@CreatedAt{suffix})");
             parameters.Add(new NpgsqlParameter($"Id{suffix}", jobPost.Id));
             parameters.Add(new NpgsqlParameter($"SourceId{suffix}", jobPost.SourceId));
             parameters.Add(new NpgsqlParameter($"RequisitionId{suffix}", (object?)jobPost.RequisitionId ?? DBNull.Value));
             parameters.Add(new NpgsqlParameter($"Title{suffix}", jobPost.Title));
             parameters.Add(new NpgsqlParameter($"DetailPath{suffix}", jobPost.DetailPath));
+            parameters.Add(new NpgsqlParameter($"JobLink{suffix}", jobPost.JobLink.ToString()));
             parameters.Add(new NpgsqlParameter($"Location{suffix}", (object?)jobPost.Location ?? DBNull.Value));
             parameters.Add(new NpgsqlParameter($"DaysOld{suffix}", (object?)jobPost.DaysOld ?? DBNull.Value));
             parameters.Add(new NpgsqlParameter($"RemoteType{suffix}", (object?)jobPost.RemoteType ?? DBNull.Value));
@@ -72,6 +73,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
                 "{nameof(JobPost.RequisitionId)}",
                 "{nameof(JobPost.Title)}",
                 "{nameof(JobPost.DetailPath)}",
+                "{nameof(JobPost.JobLink)}",
                 "{nameof(JobPost.Location)}",
                 "{nameof(JobPost.DaysOld)}",
                 "{nameof(JobPost.RemoteType)}",

@@ -22,6 +22,12 @@ public sealed class JobPostConfiguration : IEntityTypeConfiguration<JobPost>
             .IsRequired();
         builder.Property(x => x.DetailPath)
             .IsRequired();
+        builder.Property(x => x.JobLink)
+            .IsRequired()
+            .HasConversion(
+                uri => uri.ToString(),
+                value => new Uri(value, UriKind.Absolute))
+            .HasColumnType("TEXT");
         builder.Property(x => x.Location);
         builder.Property(x => x.DaysOld);
         builder.Property(x => x.RemoteType);

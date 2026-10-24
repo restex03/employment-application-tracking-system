@@ -16,7 +16,7 @@ public sealed class JobPost
         string? requisitionId = null,
         string? location = null,
         int? daysOld = null,
-        JobPostDetail? detail = null,
+        JobPostDetailDiscovery? detail = null,
         string? remoteType = null)
     {
         Id = id;
@@ -47,15 +47,21 @@ public sealed class JobPost
     public string? RemoteType { get; private set; }
     public Uri JobLink { get; private set; }
 
-    public void HydrateDetail(JobPostDetail detail)
+    public void HydrateDetail(JobPostDetailDiscovery detail)
     {
-        Detail = detail;
-    }
+        ArgumentNullException.ThrowIfNull(detail);
 
-    public void UpdateFromDetail(string? requisitionId, string? remoteType)
-    {
-        RequisitionId = requisitionId ?? RequisitionId;
-        RemoteType = remoteType ?? RemoteType;
+        Detail = new JobPostDetail(
+            Id,
+            detail.Description,
+            detail.EmploymentType,
+            detail.Locations,
+            detail.ValidThrough,
+            detail.RemoteType,
+            detail.ApplicantLocations,
+            detail.FetchedAt);
+        RequisitionId = detail.RequisitionId ?? RequisitionId;
+        RemoteType = detail.RemoteType ?? RemoteType;
         // TODO: Update Location to include location details from the job post detail if available
     }
 

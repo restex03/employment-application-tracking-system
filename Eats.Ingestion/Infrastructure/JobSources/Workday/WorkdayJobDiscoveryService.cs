@@ -1,4 +1,5 @@
 using Eats.Ingestion.Application.JobPostDiscovery;
+using Eats.Ingestion.Domain.JobPosts;
 using Eats.Ingestion.Domain.JobSources;
 
 namespace Eats.Ingestion.Infrastructure.JobSources.Workday;

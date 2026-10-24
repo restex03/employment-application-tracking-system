@@ -43,9 +43,8 @@ public interface IJobPostService
                 var discoveryService = discoveryServiceFactory.Create(source);
                 var detail = await discoveryService.FetchDetail(jobPost.DetailPath, cancellationToken);
 
-                jobPost.UpdateFromDetail(detail.RequisitionId, detail.RemoteType);
-                jobPost.HydrateDetail(detail.Detail);
-            await jobPostRepository.UpsertAsync(jobPost);
+                jobPost.HydrateDetail(detail);
+                await jobPostRepository.UpsertAsync(jobPost, cancellationToken);
             }
 
             return jobPost;

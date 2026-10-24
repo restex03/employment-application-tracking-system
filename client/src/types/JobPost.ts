@@ -33,7 +33,7 @@ export interface IJobPostDetail {
 export interface IJobPostData {
     id: string;
     sourceId: string;
-    jobMatchScore: number;
+    requirementMatchScore: number;
     requisitionId?: string;
     title: string;
     remoteType?: string;

@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using Eats.Ingestion.Application.JobPostDiscovery;
 using Eats.Ingestion.Domain.JobPosts;
 using Eats.Ingestion.Infrastructure.JobSources.Workday.Contracts;
 using Ganss.Xss;
@@ -41,16 +40,14 @@ public sealed partial class WorkdayJobDetailMapper
             .ToArray();
         var description = NormalizeHtml(sanitizer.Sanitize(posting.JobDescription ?? string.Empty));
 
-        var detail = new JobPostDetail(
-            Guid.NewGuid(),
+        return new JobPostDetailDiscovery(
             description,
-            jobPostId: null,
+            posting.JobReqId,
+            posting.Title ?? string.Empty,
+            posting.RemoteType,
             posting.TimeType,
             distinctLocations,
-            remoteType: posting.RemoteType,
-            fetchedAt: DateTime.UtcNow);
-
-        return new JobPostDetailDiscovery(detail, posting.JobReqId, posting.Title ?? string.Empty, posting.RemoteType);
+            FetchedAt: DateTime.UtcNow);
     }
 
     private static string NormalizeHtml(string html)

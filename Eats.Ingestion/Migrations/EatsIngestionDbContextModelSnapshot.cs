@@ -73,7 +73,7 @@ namespace Eats.Ingestion.Migrations
 
                     b.Property<string>("JobLink")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Location")
                         .HasColumnType("text");
