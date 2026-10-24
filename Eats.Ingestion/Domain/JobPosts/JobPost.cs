@@ -28,7 +28,7 @@ public sealed class JobPost
         DaysOld = daysOld;
         CreatedAt = createdAt;
         RemoteType = remoteType;
-        JobLink = jobLink;
+        JobLink = jobLink ?? throw new ArgumentNullException(nameof(jobLink));
         if (detail is not null)
         {
             HydrateDetail(detail);
@@ -45,7 +45,7 @@ public sealed class JobPost
     public DateTime CreatedAt { get; private set; }
     public JobPostDetail? Detail { get; private set; }
     public string? RemoteType { get; private set; }
-    public Uri JobLink { get; private set; }
+    public Uri JobLink { get; private set; } = null!;
 
     public void HydrateDetail(JobPostDetailDiscovery detail)
     {

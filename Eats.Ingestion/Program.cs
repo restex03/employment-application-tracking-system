@@ -1,5 +1,9 @@
 using System.Text.Json;
+using System.Net;
+using Microsoft.Extensions.Http.Resilience;
+using Polly;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Eats.Ingestion.Application.JobPostDiscovery;
 using Eats.Ingestion.Application.JobPostSync;
 using Eats.Ingestion.Application.JobPostSync.Queue;
@@ -8,8 +12,8 @@ using Eats.Ingestion.Infrastructure.JobSources.Workday;
 using Eats.Ingestion.Infrastructure.Persistence.JobPosts;
 using Eats.Ingestion.Infrastructure.Persistence.JobPostSyncQueue;
 using Eats.Ingestion.Infrastructure.Persistence.JobSources;
-using Microsoft.EntityFrameworkCore;
 using Eats.Ingestion.Application.JobPosts.Models;
+
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("JobPosts")
@@ -31,10 +35,53 @@ builder.Services.AddScoped<IJobPostRepository, JobPostRepository>()
 builder.Services.AddSingleton<IJobLinkBuilder, JobLinkBuilder>();
 builder.Services.AddSingleton<IJobPostDiscoveryServiceFactory, IJobPostDiscoveryServiceFactory.Imp>();
 builder.Services.AddHttpClient(nameof(WorkdayJobsGateway), client =>
-{
-    client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
-    client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US");
-});
+    {
+        client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+        client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US");
+    })
+    .AddResilienceHandler("workday-retry", (builder, context) =>
+    {
+        var logger = context.ServiceProvider
+            .GetRequiredService<ILogger<WorkdayJobsGateway>>();
+
+        builder.AddRetry(new HttpRetryStrategyOptions
+        {
+            MaxRetryAttempts = 3,
+            Delay = TimeSpan.FromSeconds(1),
+            MaxDelay = TimeSpan.FromSeconds(10),
+            BackoffType = DelayBackoffType.Exponential,
+            UseJitter = true,
+            ShouldRetryAfterHeader = true,
+            ShouldHandle = args =>
+            {
+                if (args.Outcome.Exception is HttpRequestException)
+                    return ValueTask.FromResult(true);
+
+                if (args.Outcome.Result is { } response)
+                {
+                    var retry = response.StatusCode is
+                        HttpStatusCode.TooManyRequests or
+                        HttpStatusCode.RequestTimeout or
+                        HttpStatusCode.BadGateway or
+                        HttpStatusCode.ServiceUnavailable or
+                        HttpStatusCode.GatewayTimeout;
+
+                    return ValueTask.FromResult(retry);
+                }
+
+                return ValueTask.FromResult(false);
+            },
+            OnRetry = args =>
+            {
+                logger.LogWarning(
+                    "Retrying Workday request. Attempt: {Attempt}, Delay: {Delay}",
+                    args.AttemptNumber + 1,
+                    args.RetryDelay);
+
+                return default;
+            }
+        });
+    });
 builder.Services.AddHostedService<TaskQueueWorker>();
 builder.Services.AddHostedService<JobPostSyncDailyScheduler>();
 

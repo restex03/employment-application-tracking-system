@@ -24,21 +24,12 @@ public sealed class WorkdayJobsGateway(HttpClient httpClient, ILogger<WorkdayJob
             offset,
             searchText = searchText ?? string.Empty,
         };
-        using var response = await httpClient.PostAsJsonAsync(url, requestBody, JsonOptions, cancellationToken);
-        var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new HttpRequestException(
-                $"Workday jobs API returned HTTP {(int)response.StatusCode} {response.ReasonPhrase}: {responseContent}",
-                null,
-                response.StatusCode);
-        }
+        using var response = await httpClient.PostAsJsonAsync(
+            url, requestBody, JsonOptions, cancellationToken);
 
-        // TODO: Consider swallowing error or adding retries
-        return JsonSerializer.Deserialize<WorkdayJobsApiResponse>(responseContent, JsonOptions)
-            ?? throw new InvalidOperationException("Workday jobs API returned an empty response. Response content: " + responseContent);
+        return await DeserializeResponse<WorkdayJobsApiResponse>(
+            response, cancellationToken);
     }
-
     public async Task<WorkdayJobDetailsApiResponse> GetDetail(
         Uri baseUri,
         string detailPath,
@@ -50,17 +41,35 @@ public sealed class WorkdayJobsGateway(HttpClient httpClient, ILogger<WorkdayJob
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Accept.ParseAdd("application/json");
         request.Headers.AcceptLanguage.ParseAdd("en-US");
-        using var response = await httpClient.SendAsync(request, cancellationToken);
-        var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+        
+        
+        using var response = await httpClient.SendAsync(
+            request, cancellationToken);
+
+        return await DeserializeResponse<WorkdayJobDetailsApiResponse>(
+            response, cancellationToken);
+    }
+
+
+    private static async Task<T> DeserializeResponse<T>(
+        HttpResponseMessage response,
+        CancellationToken cancellationToken)
+    {
+        var content = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
         if (!response.IsSuccessStatusCode)
         {
             throw new HttpRequestException(
-                $"Workday job detail API returned HTTP {(int)response.StatusCode} {response.ReasonPhrase}: {responseContent}",
+                $"Workday API returned HTTP {(int)response.StatusCode} " +
+                $"{response.ReasonPhrase}: {content}",
                 null,
                 response.StatusCode);
         }
 
-        return JsonSerializer.Deserialize<WorkdayJobDetailsApiResponse>(responseContent, JsonOptions)
-            ?? throw new InvalidOperationException("Workday job detail API returned an empty response. Response content: " + responseContent);
+        return JsonSerializer.Deserialize<T>(content, JsonOptions)
+            ?? throw new InvalidOperationException(
+                $"Workday API returned an empty response: {content}");
     }
+
 }
