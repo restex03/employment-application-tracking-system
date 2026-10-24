@@ -27,6 +27,7 @@ describe("JobAssessmentService", () => {
         sourceId: "source-1",
         title: "Senior Software Engineer",
         detailPath: "/job-1",
+        detail: {} as any,
         jobLink: "https://acme.example.com/job-1",
         createdAt: new Date("2026-01-01"),
         hydrateDetail: vi.fn(),

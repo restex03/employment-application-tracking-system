@@ -8,6 +8,8 @@ The web app lets you sync configured job sources, review and filter postings, ru
 
 Workday postings are collected by the ingestion service and stored in PostgreSQL. The web API reads those postings and uses a local SQLite database for candidate profiles, assessments, and application tracking. Assessments use the configured language-model provider. The React web app connects to both services through the API.
 
+Detail discovery returns a flat `JobPostDetailDiscovery` model in the ingestion domain. `JobPost.HydrateDetail` creates the detail entity, assigns the owning post's ID, and applies discovered requisition and remote-type values. Detail entities generate their own IDs.
+
 ## Requirements
 
 Install:

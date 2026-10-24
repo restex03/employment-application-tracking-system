@@ -20,8 +20,8 @@ export class JobPostService implements IJobPostService {
         const jobPosts = await this.jobPostGateway.list(pageCount, pageNumber, queryFilters);
         
         // todo: pass filters
-        const assessments = await this.jobPostQueries.getJobAssessments(jobPosts.map(j => j.id));
-        const applications = await this.jobPostQueries.getJobApplications(jobPosts.map(j => j.id));
+        const assessments = await this.jobPostQueries.getJobAssessments(jobPosts.map(j => j.id), queryFilters.jobMatchScore);
+        const applications = await this.jobPostQueries.getJobApplications(jobPosts.map(j => j.id), queryFilters.applicationStatus);
 
         const result = {
             totalCount:jobPosts.length,
@@ -45,8 +45,8 @@ export class JobPostService implements IJobPostService {
             return;
         }
 
-        const assessment = await this.jobPostQueries.getJobAssessments([jobPost.id]);
-        const application = await this.jobPostQueries.getJobApplications([jobPost.id]);
+        const assessment = await this.jobPostQueries.getJobAssessments([jobPost.id], undefined);
+        const application = await this.jobPostQueries.getJobApplications([jobPost.id], undefined);
 
         const result = {
             ...jobPost,

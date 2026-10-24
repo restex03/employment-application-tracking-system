@@ -1,8 +1,6 @@
 import { ICandidateProfile } from "../../../Domain/Candidates/ICandidateProfile";
 import { IJobMatchScore } from "../../../Domain/JobAssessment/Scoring/IJobMatchScore";
 import { IJobPost } from "../../../Domain/JobPosts/IJobPost";
-import { IJobPostDetail } from "../../../Domain/JobPosts/IJobPostDetail";
-import { IJobSource } from "../../../Domain/JobSources/IJobSource";
 import { IJobRequirementMatch } from "../RequirementMatching/IJobRequirementMatch";
 import { IJobRequirement } from "../RequirementsExtraction/IJobRequirement";
 import { IJobScreenResult } from "../Screening/IJobScreenResult";
@@ -25,7 +23,6 @@ export class JobAssessmentContext implements IJobAssessmentContext {
     public readonly candidateProfile: ICandidateProfile;
     public readonly job: IJobPost;
     public screenResult: IJobScreenResult | undefined;
-    public jobDetail: IJobPostDetail | undefined;
     public requirements: IJobRequirement[] | undefined;
     public requirementMatches: IJobRequirementMatch[] | undefined;
 }

@@ -10,7 +10,7 @@ export interface IJobPost {
     locations?: unknown[];
     daysOld?: number;
     createdAt: Date;
-    detail?: IJobPostDetail;
+    detail: IJobPostDetail;
     remoteType?: string;
 
     hydrateDetail(detail: IJobPostDetail): void;
