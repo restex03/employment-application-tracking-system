@@ -27,7 +27,7 @@ public sealed class TaskQueueWorker(
                 var syncService = scope.ServiceProvider.GetRequiredService<IJobPostSyncService>();
                 try
                 {
-                    await syncService.SyncJobPostsOrThrowAsync(job.SourceIds, job.SearchText, stoppingToken);
+                    await syncService.SyncJobPostsOrThrowAsync(job.SourceId, job.SearchText, stoppingToken);
                     await queue.Complete(job.Id, stoppingToken);
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)

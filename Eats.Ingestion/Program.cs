@@ -166,13 +166,13 @@ app.MapPost(
          CancellationToken ct
     ) =>
 {
-    var jobId = await service.AddAsync(new JobPostSyncTask
+    var jobIds = await service.AddAsync(new JobPostSyncTask
     {
         SourceIds = req.SourceIds ?? [],
         SearchText = req.SearchText
     }, ct);
 
-    return new { Id = jobId };
+    return new { JobIds = jobIds };
     
 
 });

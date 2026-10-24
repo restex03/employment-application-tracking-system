@@ -39,9 +39,8 @@ namespace Eats.Ingestion.Migrations
                     b.Property<string>("SearchText")
                         .HasColumnType("text");
 
-                    b.PrimitiveCollection<Guid[]>("SourceIds")
-                        .IsRequired()
-                        .HasColumnType("uuid[]");
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");

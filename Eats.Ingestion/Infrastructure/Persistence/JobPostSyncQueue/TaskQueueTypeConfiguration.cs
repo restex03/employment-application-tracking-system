@@ -13,7 +13,7 @@ public sealed class TaskQueueTypeConfiguration : IEntityTypeConfiguration<QueueT
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id)
             .IsRequired();
-        builder.Property(x => x.SourceIds)
+        builder.Property(x => x.SourceId)
             .IsRequired();
         builder.Property(x => x.SearchText);
         builder.Property(x => x.Status)

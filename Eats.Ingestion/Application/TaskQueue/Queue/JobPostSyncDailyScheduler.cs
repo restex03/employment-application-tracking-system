@@ -31,11 +31,15 @@ public sealed class JobPostSyncDailyScheduler(
                 var sourceRepository = scope.ServiceProvider.GetRequiredService<IJobSourceRepository>();
                 var queue = scope.ServiceProvider.GetRequiredService<ITaskQueue>();
                 var sources = await sourceRepository.GetAllAsync(stoppingToken);
-                var jobId = await queue.Enqueue(
-                    sources.Select(source => source.Id),
-                    SearchText,
-                    stoppingToken);
-                logger.LogInformation("Enqueued daily job-post sync {JobId}", jobId);
+                foreach (var source in sources)
+                {
+                    await queue.Enqueue(
+                        source.Id,
+                        SearchText,
+                        stoppingToken);
+                }
+                
+                logger.LogInformation("Enqueued daily job-post sync for {SourceCount} sources", sources.Count);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {

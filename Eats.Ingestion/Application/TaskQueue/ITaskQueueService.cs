@@ -15,12 +15,13 @@ public interface ITaskQueueService
 
 
     Task<QueueTaskViewModel> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<Guid> AddAsync(JobPostSyncTask task, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<JobPostSyncQueueTask>> AddAsync(JobPostSyncTask task, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<QueueTaskViewModel>> GetAllActiveAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<QueueTaskViewModel>> GetAllAsync(CancellationToken cancellationToken = default);
 
     public sealed class Imp(
         ITaskQueue taskQueue,
+        IJobSourceRepository sourceRepository,
         ILogger<Imp> logger) 
     : ITaskQueueService
     {
@@ -47,17 +48,23 @@ public interface ITaskQueueService
             return result.Select(MapToViewModel).ToList();
         }
 
-        public async Task<Guid> AddAsync(JobPostSyncTask task, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<JobPostSyncQueueTask>> AddAsync(JobPostSyncTask task, CancellationToken cancellationToken = default)
         {
             logger.LogDebug("[ITaskQueueService.Imp.AddAsync] Adding a new queue task with search text {SearchText} and source ids {SourceIds}", task.SearchText, task.SourceIds);
+            var queueTasks = new List<JobPostSyncQueueTask>(); 
+            var sourceIds = task.SourceIds.Any()
+            ?  task.SourceIds
+            : (await sourceRepository.GetAllAsync(cancellationToken)).Select(s => s.Id);
+            foreach (var sourceId in sourceIds)
+            {
+                var jobId = await taskQueue.Enqueue(
+                    sourceId,
+                    task.SearchText,
+                    cancellationToken);
 
-            var jobId = await taskQueue.Enqueue(
-                task.SourceIds,
-                task.SearchText,
-                cancellationToken);
-
-            return jobId;
-
+                queueTasks.Add(new JobPostSyncQueueTask { SourceId = sourceId, JobId = jobId });
+            }
+            return queueTasks;
         }
 
         private static QueueTaskViewModel MapToViewModel(QueueTask task)
@@ -79,4 +86,10 @@ public interface ITaskQueueService
             };
         }
     }
+}
+
+public class JobPostSyncQueueTask
+{
+    public required Guid SourceId { get; init; }
+    public required Guid JobId { get; init; }
 }

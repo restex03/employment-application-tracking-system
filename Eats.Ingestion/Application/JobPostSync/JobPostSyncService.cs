@@ -6,7 +6,7 @@ using Eats.Ingestion.Infrastructure.Persistence.JobSources;
 
 public interface IJobPostSyncService
 {
-       Task SyncJobPostsOrThrowAsync(IEnumerable<Guid> sourceIds, string? searchText = null, CancellationToken cancellationToken = default);
+       Task SyncJobPostsOrThrowAsync(Guid sourceId, string? searchText = null, CancellationToken cancellationToken = default);
 
      public class Imp(
             IJobSourceRepository jobSourceRepository,
@@ -19,39 +19,30 @@ public interface IJobPostSyncService
 
 
         public async Task SyncJobPostsOrThrowAsync(
-            IEnumerable<Guid> sourceIds,
+            Guid sourceId,
             string? searchText = null,
             CancellationToken ct = default)
         {
 
-            var sources = sourceIds.Any() 
-                ? await jobSourceRepository.GetRangeAsync([.. sourceIds], ct)
-                : await jobSourceRepository.GetAllAsync(ct);
+            var source = await jobSourceRepository.GetByIdOrThrowAsync(sourceId, ct);
             
-            var sourcesSynced = 0;
             var jobsDiscovered = 0;
 
-            foreach (var source in sources)
-            {
+            logger.LogDebug("Syncing job posts from source {CompanyName}", source.CompanyName);
+            var discoveryService = discoveryServiceFactory.Create(source);
+            var discoveredJobs = await discoveryService.FetchList(searchText, ct);
+            var jobPosts = discoveredJobs
+                .Where(screener.ScreenJobPost)
+                .Select(CreateJobPost)
+                .ToArray();
 
-                logger.LogDebug("Syncing job posts from source {CompanyName}", source.CompanyName);
-                var discoveryService = discoveryServiceFactory.Create(source);
-                var discoveredJobs = await discoveryService.FetchList(searchText, ct);
-                var jobPosts = discoveredJobs
-                    .Where(screener.ScreenJobPost)
-                    .Select(CreateJobPost)
-                    .ToArray();
-
-                await jobPostRepository.UpsertManyAsync(jobPosts, ct);
-                sourcesSynced++;
-                jobsDiscovered += jobPosts.Length;
-
-            }
+            await jobPostRepository.UpsertManyAsync(jobPosts, ct);
+            jobsDiscovered += jobPosts.Length;
 
             logger.LogDebug(
-                "Synced {SourcesSynced} sources and discovered {JobsDiscovered} jobs",
-                sourcesSynced,
-                jobsDiscovered);
+                "Discovered {JobsDiscovered} jobs from {CompanyName}",
+                jobsDiscovered,
+                source.CompanyName);
             logger.LogDebug("Completed syncing all job sources");
         }
 

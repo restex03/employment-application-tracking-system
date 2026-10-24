@@ -10,7 +10,7 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobPostSyncQueue;
 public interface ITaskQueue
 {
     Task<Guid> Enqueue(
-        IEnumerable<Guid>? sourceIds,
+        Guid sourceId,
         string? searchText,
         CancellationToken cancellationToken = default);
 
@@ -19,25 +19,25 @@ public interface ITaskQueue
     Task Fail(Guid jobId, string error, CancellationToken cancellationToken = default);
     Task<QueueTask> GetTaskByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<QueueTask>> GetAllActive(CancellationToken cancellationToken = default);
-    Task<IEnumerable<QueueTask>> GetAllAsync(CancellationToken cancellationToken);
+    Task<IEnumerable<QueueTask>> GetAllAsync(CancellationToken cancellationToken = default);
 
     public sealed class Imp(EatsIngestionDbContext dbContext) : ITaskQueue
 {
     public async Task<Guid> Enqueue(
-        IEnumerable<Guid>? sourceIds,
+        Guid sourceId,
         string? searchText,
         CancellationToken cancellationToken = default)
     {
-        var distinctSourceIds = sourceIds?.Distinct().ToArray() ?? [];
-        var job = new QueueTask
+        if (sourceId == Guid.Empty)
         {
-            Id = Guid.NewGuid(),
-            SourceIds = distinctSourceIds,
-            SearchText = searchText,
-            Status = QueueTaskStatusDomain.Queued,
-            CreatedAt = DateTime.UtcNow,
-        };
-
+            throw new InvalidOperationException("SourceId cannot be empty.");
+        }
+        var job = new QueueTask(
+            sourceId,
+            searchText,
+            QueueTaskStatusDomain.Queued,
+            DateTime.UtcNow
+        );
         dbContext.QueueTasks.Add(job);
         await dbContext.SaveChangesAsync(cancellationToken);
         return job.Id;
@@ -75,7 +75,7 @@ public interface ITaskQueue
         var jobId = (Guid)result;
         var job = await dbContext.QueueTasks
             .FirstAsync(candidate => candidate.Id == jobId, cancellationToken);
-        job.Status = QueueTaskStatusDomain.InProgress;
+        job.SetStatus(QueueTaskStatusDomain.InProgress);
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return job;
