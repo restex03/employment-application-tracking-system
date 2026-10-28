@@ -29,6 +29,7 @@ public sealed class TaskQueueWorker(
                 {
                     await syncService.SyncJobPostsOrThrowAsync(job.SourceId, job.SearchText, stoppingToken);
                     await queue.Complete(job.Id, stoppingToken);
+                    
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {

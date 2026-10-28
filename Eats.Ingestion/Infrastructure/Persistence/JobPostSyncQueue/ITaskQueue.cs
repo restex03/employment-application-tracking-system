@@ -88,6 +88,7 @@ public interface ITaskQueue
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(job => job.Status, QueueTaskStatusDomain.Completed)
+                    .SetProperty(job => job.CompletedAt, DateTime.UtcNow)
                     .SetProperty(job => job.Error, (string?)null),
                 cancellationToken);
         if (updated != 1)
@@ -103,6 +104,7 @@ public interface ITaskQueue
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(job => job.Status, QueueTaskStatusDomain.Failed)
+                    .SetProperty(job => job.CompletedAt, DateTime.UtcNow)
                     .SetProperty(job => job.Error, error),
                 cancellationToken);
         if (updated != 1)

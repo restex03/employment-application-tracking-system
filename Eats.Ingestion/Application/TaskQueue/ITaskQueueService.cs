@@ -82,7 +82,8 @@ public interface ITaskQueueService
                 Id = task.Id,
                 Status = status,
                 Error = task.Error,
-                CreatedAt = task.CreatedAt
+                CreatedAt = task.CreatedAt,
+                CompletedAt = task.CompletedAt
             };
         }
     }

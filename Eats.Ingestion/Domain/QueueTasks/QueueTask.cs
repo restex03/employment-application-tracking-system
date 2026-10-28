@@ -25,6 +25,7 @@ public sealed class QueueTask
     public QueueTaskStatusDomain Status { get; private set; }
     public string? Error { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public DateTime? CompletedAt { get; private set; }
 
     internal void SetStatus(QueueTaskStatusDomain status)
     {
@@ -34,5 +35,10 @@ public sealed class QueueTask
     internal void SetError(string? error)
     {
         Error = error;
+    }
+
+    internal void SetCompleted()
+    {
+        CompletedAt = DateTime.UtcNow;
     }
 }
