@@ -21,6 +21,9 @@
         "dev:full": "concurrently \"npm run dev\" \"npm run frontend:dev\""
     },
     "knip": {
+        "ignore": [
+            "client/**"
+        ],
         "ignoreDependencies": [
             "dotenv"
         ]
