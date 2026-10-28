@@ -4,20 +4,23 @@ using Microsoft.Extensions.Http.Resilience;
 using Polly;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Eats.Ingestion.Application.JobPostDiscovery;
 using Eats.Ingestion.Application.JobPostSync;
 using Eats.Ingestion.Application.JobPostSync.Queue;
+using Eats.Ingestion.Application.JobPosts.Models;
 using Eats.Ingestion.Domain.JobSources;
 using Eats.Ingestion.Infrastructure.JobSources.Workday;
 using Eats.Ingestion.Infrastructure.Persistence.JobPosts;
 using Eats.Ingestion.Infrastructure.Persistence.JobPostSyncQueue;
 using Eats.Ingestion.Infrastructure.Persistence.JobSources;
-using Eats.Ingestion.Application.JobPosts.Models;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
-var connectionString = builder.Configuration.GetConnectionString("JobPosts")
-    ?? throw new InvalidOperationException("Connection string 'JobPosts' is not configured.");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
 builder.Services.AddDbContext<EatsIngestionDbContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddScoped<IJobPostRepository, JobPostRepository>()
     .AddScoped<ITaskQueue, ITaskQueue.Imp>()
@@ -85,7 +88,27 @@ builder.Services.AddHttpClient(nameof(WorkdayJobsGateway), client =>
 builder.Services.AddHostedService<TaskQueueWorker>();
 builder.Services.AddHostedService<JobPostSyncDailyScheduler>();
 
+
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<EatsIngestionDbContext>(
+        name: "postgresql",
+        failureStatus: HealthStatus.Unhealthy,
+        tags: ["ready"]
+    );
+
+
+
 var app = builder.Build();
+
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false
+});
+
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready"),
+});
 
 await using (var scope = app.Services.CreateAsyncScope())
 {
@@ -177,7 +200,7 @@ app.MapPost(
 
 });
 
-app.MapPost("/ingestion/discovery/jobPosts", async ([FromBody] JobPostDetailDiscoveryRequest req, [FromServices] IServiceScopeFactory scopeFactory, CancellationToken ct) =>
+app.MapPost("/ingestion/discovery/jobPosts", async ([FromBody] JobPostDiscoveryRequest req, [FromServices] IServiceScopeFactory scopeFactory, CancellationToken ct) =>
 {
     try
     {
@@ -186,7 +209,7 @@ app.MapPost("/ingestion/discovery/jobPosts", async ([FromBody] JobPostDetailDisc
         var jobSourceRepo = scope.ServiceProvider.GetRequiredService<IJobSourceRepository>();
         var jobSource = await jobSourceRepo.GetByIdOrThrowAsync(req.JobSourceId, ct);
         var svc = svcFactory.Create(jobSource);
-        var result = await svc.FetchDetail(req.DetailPath, ct);
+        var result = await svc.FetchList(null, ct);
         return Results.Ok(result);
     }
     catch (Exception ex)
