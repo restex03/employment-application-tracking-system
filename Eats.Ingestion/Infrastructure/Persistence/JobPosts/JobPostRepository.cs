@@ -244,4 +244,19 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             .Replace("%", "\\%")
             .Replace("_", "\\_");
     }
+
+
+    public async Task<IReadOnlyList<JobPost>> GetNextRandomDryBatchAsync(int count, CancellationToken cancellationToken = default)
+    {
+        // Note: No tracking is used here to avoid loading unnecessary entity state.
+        // UpsertAsync method above uses raw SQL instead of SaveChangesAsync, so 
+        // no tracking is needed here.
+        var result = await dbContext.JobPosts.AsNoTracking()
+            .Where(jobPost => jobPost.Detail == null)
+            .OrderBy(_ => EF.Functions.Random())
+            .Take(count)
+            .ToListAsync(cancellationToken);
+
+        return result;
+    }
 }

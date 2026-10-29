@@ -1,11 +1,15 @@
+using Microsoft.FeatureManagement;
 using Eats.Ingestion.Infrastructure.Persistence.JobPostSyncQueue;
 using Eats.Ingestion.Infrastructure.Persistence.JobSources;
+using Eats.Ingestion.Application.FeatureFlags;
 
-namespace Eats.Ingestion.Application.JobPostSync.Queue;
 
-public sealed class JobPostSyncDailyScheduler(
+namespace Eats.Ingestion.HostedServices;
+
+public sealed class JobSynchronizerTaskScheduler(
     IServiceScopeFactory scopeFactory,
-    ILogger<JobPostSyncDailyScheduler> logger) : BackgroundService
+    IFeatureManager featureManager,
+    ILogger<JobSynchronizerTaskScheduler> logger) : BackgroundService
 {
     private const int RunHour = 5;
     private const int RunMinute = 0;
@@ -13,6 +17,15 @@ public sealed class JobPostSyncDailyScheduler(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        var isEnabled = await featureManager.IsEnabledAsync(FeatureConstants.JobSynchronizer);
+        if (!isEnabled)
+        {
+            logger.LogInformation("Feature disabled: JobSynchronizer");
+            return;
+        }
+
+        logger.LogInformation("Feature enabled: JobSynchronizer");
+
         while (!stoppingToken.IsCancellationRequested)
         {
             var now = DateTime.Now;
@@ -22,7 +35,7 @@ public sealed class JobPostSyncDailyScheduler(
                 nextRun = nextRun.AddDays(1);
             }
 
-            logger.LogInformation("Next daily job-post sync scheduled for {NextRun}", nextRun);
+            logger.LogInformation("Next daily JobPost sync scheduled for {NextRun}", nextRun);
             await Task.Delay(nextRun - now, stoppingToken);
 
             try
@@ -39,7 +52,7 @@ public sealed class JobPostSyncDailyScheduler(
                         stoppingToken);
                 }
                 
-                logger.LogInformation("Enqueued daily job-post sync for {SourceCount} sources", sources.Count);
+                logger.LogInformation("Enqueued daily JobPost sync for {SourceCount} sources", sources.Count);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -47,7 +60,7 @@ public sealed class JobPostSyncDailyScheduler(
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to enqueue the daily job-post sync");
+                logger.LogError(exception, "Failed to enqueue the daily JobPost sync");
             }
         }
     }

@@ -6,19 +6,21 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.FeatureManagement;
 using Eats.Ingestion.Application.JobPostDiscovery;
 using Eats.Ingestion.Application.JobPostSync;
-using Eats.Ingestion.Application.JobPostSync.Queue;
 using Eats.Ingestion.Application.JobPosts.Models;
 using Eats.Ingestion.Domain.JobSources;
 using Eats.Ingestion.Infrastructure.JobSources.Workday;
 using Eats.Ingestion.Infrastructure.Persistence.JobPosts;
 using Eats.Ingestion.Infrastructure.Persistence.JobPostSyncQueue;
 using Eats.Ingestion.Infrastructure.Persistence.JobSources;
+using Eats.Ingestion.HostedServices;
 
 
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddFeatureManagement();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
 builder.Services.AddDbContext<EatsIngestionDbContext>(options => options.UseNpgsql(connectionString));
@@ -85,8 +87,9 @@ builder.Services.AddHttpClient(nameof(WorkdayJobsGateway), client =>
             }
         });
     });
-builder.Services.AddHostedService<TaskQueueWorker>();
-builder.Services.AddHostedService<JobPostSyncDailyScheduler>();
+builder.Services.AddHostedService<JobSynchronizer>();
+builder.Services.AddHostedService<JobSynchronizerTaskScheduler>();
+builder.Services.AddHostedService<JobDetailHydrator>();
 
 
 builder.Services.AddHealthChecks()

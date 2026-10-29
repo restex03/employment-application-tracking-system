@@ -1,34 +1,46 @@
+using Microsoft.FeatureManagement;
 using Eats.Ingestion.Infrastructure.Persistence.JobPostSyncQueue;
+using Eats.Ingestion.Application.FeatureFlags;
 
-namespace Eats.Ingestion.Application.JobPostSync.Queue;
+namespace Eats.Ingestion.HostedServices;
 
-public sealed class TaskQueueWorker(
+public sealed class JobSynchronizer(
     IServiceScopeFactory scopeFactory,
-    ILogger<TaskQueueWorker> logger) : BackgroundService
+    IFeatureManager featureManager,
+    ILogger<JobSynchronizer> logger) : BackgroundService
 {
     private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(1000);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+
+        var isEnabled = await featureManager.IsEnabledAsync(FeatureConstants.JobSynchronizer);
+        if (!isEnabled)
+        {
+            logger.LogInformation("Feature disabled: JobSynchronizer");
+            return;
+        }
+
+        logger.LogInformation("Feature enabled: JobSynchronizer");
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
                 await using var scope = scopeFactory.CreateAsyncScope();
                 var queue = scope.ServiceProvider.GetRequiredService<ITaskQueue>();
-                var job = await queue.ClaimNext(stoppingToken);
-                if (job is null)
+                var queueTask = await queue.ClaimNext(stoppingToken);
+                if (queueTask is null)
                 {
                     await Task.Delay(PollInterval, stoppingToken);
                     continue;
                 }
 
-                logger.LogDebug("Processing job-post sync queue item {JobId}", job.Id);
+                logger.LogDebug("Processing JobPost synchronization task {Id}", queueTask.Id);
                 var syncService = scope.ServiceProvider.GetRequiredService<IJobPostSyncService>();
                 try
                 {
-                    await syncService.SyncJobPostsOrThrowAsync(job.SourceId, job.SearchText, stoppingToken);
-                    await queue.Complete(job.Id, stoppingToken);
+                    await syncService.SyncJobPostsOrThrowAsync(queueTask.SourceId, queueTask.SearchText, stoppingToken);
+                    await queue.Complete(queueTask.Id, stoppingToken);
                     
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -37,8 +49,8 @@ public sealed class TaskQueueWorker(
                 }
                 catch (Exception exception)
                 {
-                    logger.LogError(exception, "Job-post sync queue item {JobId} failed", job.Id);
-                    await queue.Fail(job.Id, exception.Message, stoppingToken);
+                    logger.LogError(exception, "JobPost synchronization task {Id} failed", queueTask.Id);
+                    await queue.Fail(queueTask.Id, exception.Message, stoppingToken);
                 }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -47,7 +59,7 @@ public sealed class TaskQueueWorker(
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Job-post sync queue worker iteration failed");
+                logger.LogError(exception, "JobPost synchronization worker iteration failed");
                 await Task.Delay(PollInterval, stoppingToken);
             }
         }
