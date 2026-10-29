@@ -28,7 +28,7 @@ public interface IJobPostSyncService
             
             var jobsDiscovered = 0;
 
-            logger.LogDebug("Syncing job posts from source {CompanyName}", source.CompanyName);
+            logger.LogInformation("Syncing job posts from source {CompanyName}", source.CompanyName);
             var discoveryService = discoveryServiceFactory.Create(source);
             var discoveredJobs = await discoveryService.FetchList(searchText, ct);
             var jobPosts = discoveredJobs
@@ -39,11 +39,10 @@ public interface IJobPostSyncService
             await jobPostRepository.UpsertManyAsync(jobPosts, ct);
             jobsDiscovered += jobPosts.Length;
 
-            logger.LogDebug(
+            logger.LogInformation(
                 "Discovered {JobsDiscovered} jobs from {CompanyName}",
                 jobsDiscovered,
                 source.CompanyName);
-            logger.LogDebug("Completed syncing all job sources");
         }
 
 
