@@ -12,7 +12,6 @@ public sealed class JobPostQuerySorting_Test
     [InlineData("companyName")]
     [InlineData("requisitionId")]
     [InlineData("title")]
-    [InlineData("location")]
     [InlineData("postedDate")]
     public void Sorts_All_Matches_Before_Paging_With_Unknowns_Last(string sortBy)
     {
@@ -53,7 +52,6 @@ public sealed class JobPostQuerySorting_Test
     [InlineData("companyName")]
     [InlineData("requisitionId")]
     [InlineData("title")]
-    [InlineData("location")]
     [InlineData("postedDate")]
     public void Sorting_Translates_To_Postgres_Before_Limit(string sortBy)
     {

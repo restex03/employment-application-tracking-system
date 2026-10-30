@@ -1,3 +1,5 @@
+using Eats.Ingestion.Infrastructure.JobSources.Workday;
+
 namespace Eats.Ingestion.Domain.JobPosts;
 
 public sealed class JobPost
@@ -50,6 +52,31 @@ public sealed class JobPost
     public void HydrateDetail(JobPostDetailDiscovery detail)
     {
         ArgumentNullException.ThrowIfNull(detail);
+
+        if (detail.Locations is not null)
+        {
+            var cities = detail.Locations
+                .Select(x => x.City)
+                .OfType<string>()
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct()
+                .ToArray();
+
+            var countries = detail.Locations
+                .Select(x => x.Country)
+                .OfType<string>()
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct()
+                .ToArray();
+
+            var currentLocations = Locations ?? [];
+            var combined = currentLocations
+                .Concat(cities)
+                .Concat(countries)
+                .OrderBy(x => x)
+                .ToArray();
+            Locations = combined;
+        }
 
         Detail = new JobPostDetail(
             Id,

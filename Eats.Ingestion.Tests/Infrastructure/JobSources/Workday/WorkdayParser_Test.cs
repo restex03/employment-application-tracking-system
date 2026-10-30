@@ -5,6 +5,51 @@ public sealed class WorkdayParser_Test
     private readonly IWorkdayParser.Imp _sut = new();
 
     [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" \t\r\n")]
+    [InlineData(",,,")]
+    [InlineData("1 Location")]
+    [InlineData("2 Locations")]
+    [InlineData("30 LOCATIONS")]
+    [InlineData("2 Locations, 3 Locations")]
+    public void ParseLocations_Returns_Null_When_No_Locations_Remain(string? locationsText)
+    {
+        var result = _sut.ParseLocations(locationsText);
+
+        Assert.Null(result);
+    }
+
+    [Theory]
+    [InlineData("Atlanta", "Atlanta")]
+    [InlineData("Atlanta, GA", "Atlanta, GA")]
+    [InlineData("  Atlanta ,  GA  ", "Atlanta, GA")]
+    [InlineData("Atlanta,,GA,", "Atlanta, GA")]
+    [InlineData("Atlanta, GA, Boston, MA", "Atlanta, GA, Boston, MA")]
+    [InlineData("Remote", "Remote")]
+    [InlineData("Locations", "Locations")]
+    [InlineData("123 Main Street, Boston", "123 Main Street, Boston")]
+    public void ParseLocations_Normalizes_Comma_Separated_Location_Text(string locationsText, string expected)
+    {
+        var result = _sut.ParseLocations(locationsText);
+
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData("2 Locations, Atlanta, GA", "Atlanta, GA")]
+    [InlineData("Atlanta, 2 Locations, GA", "Atlanta, GA")]
+    [InlineData("Atlanta, GA, 2 Locations", "Atlanta, GA")]
+    [InlineData("1 location, Atlanta, 30 LOCATIONS", "Atlanta")]
+    [InlineData("  12   Locations  , Boston", "Boston")]
+    public void ParseLocations_Removes_Location_Count_Placeholders(string locationsText, string expected)
+    {
+        var result = _sut.ParseLocations(locationsText);
+
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
     [InlineData("JR123")]
     [InlineData("JR-123")]
     [InlineData("R123")]

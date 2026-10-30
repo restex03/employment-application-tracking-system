@@ -35,7 +35,7 @@ export class JobPostRoutes implements IRouteRegistrar {
         }>("/job-posts", {
             schema: {
                 tags: ["Job Posts"],
-                description: "List job posts sorted before pagination. sortBy: companyName, requisitionId, title, location, postedDate. sortDirection: asc or desc. Default: postedDate desc, unknown values last. postedDate filters on or after an ISO 8601 timestamp.",
+                description: "List job posts sorted before pagination. sortBy: companyName, requisitionId, title, postedDate. sortDirection: asc or desc. Default: postedDate desc, unknown values last. postedDate filters on or after an ISO 8601 timestamp.",
             },
         }, async (request, reply) => {
             try {

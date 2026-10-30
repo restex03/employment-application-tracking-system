@@ -16,4 +16,7 @@ internal sealed partial class WorkdayRegexCompileTimeHelpers
 
     [GeneratedRegex(@"</?(?:b|strong)\b[^>]*>", RegexOptions.IgnoreCase)]
     internal static partial Regex BoldTagRegex();
+
+    [GeneratedRegex(@"^\d+\s+Locations?$", RegexOptions.IgnoreCase)]
+    internal static partial Regex LocationsRegex();
 }

@@ -12,7 +12,6 @@ public sealed record JobPostSortBy
     public static JobPostSortBy CompanyName { get; } = new(Values.CompanyName);
     public static JobPostSortBy RequisitionId { get; } = new(Values.RequisitionId);
     public static JobPostSortBy Title { get; } = new(Values.Title);
-    public static JobPostSortBy Location { get; } = new(Values.Location);
     public static JobPostSortBy PostedDate { get; } = new(Values.PostedDate);
 
     public static bool TryParse(string? value, [NotNullWhen(true)] out JobPostSortBy? result)
@@ -22,7 +21,6 @@ public sealed record JobPostSortBy
             Values.CompanyName => CompanyName,
             Values.RequisitionId => RequisitionId,
             Values.Title => Title,
-            Values.Location => Location,
             Values.PostedDate => PostedDate,
             _ => null
         };
@@ -36,7 +34,6 @@ public sealed record JobPostSortBy
         public const string CompanyName = "companyName";
         public const string RequisitionId = "requisitionId";
         public const string Title = "title";
-        public const string Location = "location";
         public const string PostedDate = "postedDate";
     }
 }

@@ -16,7 +16,6 @@ public sealed class JobPostSortBy_Test
     [InlineData(JobPostSortBy.Values.CompanyName)]
     [InlineData(JobPostSortBy.Values.RequisitionId)]
     [InlineData(JobPostSortBy.Values.Title)]
-    [InlineData(JobPostSortBy.Values.Location)]
     [InlineData(JobPostSortBy.Values.PostedDate)]
     public void TryParse_Preserves_The_Wire_Value(string value)
     {
@@ -31,6 +30,8 @@ public sealed class JobPostSortBy_Test
     [InlineData("Title")]
     [InlineData("invalid")]
     [InlineData("jobMatchScore")]
+    [InlineData("location")]
+    [InlineData("locations")]
     [InlineData("applicationStatus")]
     [InlineData("title,location")]
     public void TryParse_Rejects_Unsupported_Values(string? value)
@@ -64,7 +65,7 @@ public sealed class JobPostSortBy_Test
             foreach (var value in new[]
             {
                 JobPostSortBy.CompanyName, JobPostSortBy.RequisitionId, JobPostSortBy.Title,
-                JobPostSortBy.Location, JobPostSortBy.PostedDate
+                JobPostSortBy.PostedDate
             })
             {
                 using var response = await client.GetAsync($"{path}&sortBy={value}");
@@ -88,7 +89,7 @@ public sealed class JobPostSortBy_Test
             }
             var successfulRequests = queries.Count;
 
-            foreach (var invalid in new[] { "", "invalid", "Title", "jobMatchScore", "applicationStatus", "title,location" })
+            foreach (var invalid in new[] { "", "invalid", "Title", "jobMatchScore", "applicationStatus", "location", "locations", "title,location" })
             {
                 using var response = await client.GetAsync($"{path}&sortBy={Uri.EscapeDataString(invalid)}");
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

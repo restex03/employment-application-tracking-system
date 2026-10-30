@@ -8,7 +8,7 @@ public static class JobPostApi
     {
         group.MapGet("/{id}", GetById);
         group.MapGet("/", List)
-            .WithDescription("Returns { data, totalCount }, with the matching count before pagination. sortBy: companyName, requisitionId, title, location, postedDate. sortDirection: asc or desc. Default: postedDate desc. Unknown values last, ID tie-breaker.");
+            .WithDescription("Returns { data, totalCount }, with the matching count before pagination. sortBy: companyName, requisitionId, title, postedDate. sortDirection: asc or desc. Default: postedDate desc. Unknown values last, ID tie-breaker.");
 
         return group;
     }

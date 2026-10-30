@@ -68,4 +68,4 @@ export interface QueryFilterParams {
     sortDirection?: "asc" | "desc";
 }
 
-export type JobPostSortBy = "companyName" | "requisitionId" | "title" | "location" | "postedDate";
+export type JobPostSortBy = "companyName" | "requisitionId" | "title" | "postedDate";

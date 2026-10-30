@@ -9,7 +9,7 @@ import JobPostModal from "../components/JobPostModal";
 import SyncModal from "../components/SyncModal";
 import ToolsModal from "../components/ToolsModal";
 import ToastContainer from "../components/ToastContainer";
-import { formatDate, formatLocations } from "../services/formatters";
+import { formatDate } from "../services/formatters";
 import { getSortIndicator } from "../services/sortHelpers";
 import { postedDateSince } from "../services/postedDateFilters";
 import { getApplicationStatusColor, getScoreCategory } from "../services/statusColors";
@@ -476,6 +476,7 @@ function JobPostsPage() {
                                 />
                             </th>
                             <th className="score-column">Job Match</th>
+                            <th>Application Status</th>
                             <th className="sortable-column" onClick={() => handleSort("companyName")}>
                                 <div className="sortable-header">
                                     <span>Company</span>
@@ -494,28 +495,21 @@ function JobPostsPage() {
                                     <span className="sort-icon">{getSortIndicatorFor("title")}</span>
                                 </div>
                             </th>
-                            <th>Application Status</th>
                             <th>Detail Path</th>
-                            <th className="sortable-column" onClick={() => handleSort("location")}>
-                                <div className="sortable-header">
-                                    <span>Locations</span>
-                                    <span className="sort-icon">{getSortIndicatorFor("location")}</span>
-                                </div>
-                            </th>
+                            <th>Locations</th>
                             <th className="sortable-column" onClick={() => handleSort("postedDate")}>
                                 <div className="sortable-header">
                                     <span>Posted Date</span>
                                     <span className="sort-icon">{getSortIndicatorFor("postedDate")}</span>
                                 </div>
                             </th>
-                            <th>Synced</th>
                             <th>Details</th>
                         </tr>
                     </thead>
                     <tbody>
                         {jobPosts.length === 0 ? (
                             <tr>
-                                <td colSpan={12} className="no-data">
+                                <td colSpan={11} className="no-data">
                                     {totalCount === 0 && Object.values(filters).every(value => !value)
                                         ? isSyncing
                                             ? "No job posts yet. A sync is currently running and the Sync button is disabled until it completes \u2014 refresh the page to check for new results."
@@ -537,9 +531,6 @@ function JobPostsPage() {
                                         />
                                     </td>
                                     <td className="score-cell">{renderScoreIndicator(jobPost.requirementMatchScore)}</td>
-                                    <td>{getCompanyName(jobPost.sourceId)}</td>
-                                    <td>{jobPost.requisitionId || "N/A"}</td>
-                                    <td>{jobPost.title}</td>
                                     <td>
                                         {(() => {
                                             const status = jobPost.applicationStatus;
@@ -560,10 +551,20 @@ function JobPostsPage() {
                                             );
                                         })()}
                                     </td>
+                                    <td>{getCompanyName(jobPost.sourceId)}</td>
+                                    <td>{jobPost.requisitionId || "N/A"}</td>
+                                    <td>{jobPost.title}</td>
                                     <td className="detail-path">{jobPost.detailPath}</td>
-                                    <td>{formatLocations(jobPost.locations)}</td>
+                                    <td>
+                                        {jobPost.locations?.length ? (
+                                            <ul className="job-post-locations">
+                                                {jobPost.locations.map((location, index) => (
+                                                    <li key={index}>{location}</li>
+                                                ))}
+                                            </ul>
+                                        ) : "N/A"}
+                                    </td>
                                     <td>{formatDate(jobPost.postedDate)}</td>
-                                    <td>{formatDate(jobPost.createdAt)}</td>
                                     <td>
                                         <button
                                             type="button"

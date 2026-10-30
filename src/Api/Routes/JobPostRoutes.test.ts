@@ -32,7 +32,7 @@ describe("JobPostRoutes postedDate filter", () => {
         }));
     });
 
-    it.each(["companyName", "requisitionId", "title", "location", "postedDate"])(
+    it.each(["companyName", "requisitionId", "title", "postedDate"])(
         "forwards a single %s sort in both directions",
         async sortBy => {
             for (const sortDirection of ["asc", "desc"]) {
@@ -48,7 +48,7 @@ describe("JobPostRoutes postedDate filter", () => {
     );
 
     it.each([
-        "sortBy=jobMatchScore", "sortBy=applicationStatus", "sortBy=title,location",
+        "sortBy=jobMatchScore", "sortBy=applicationStatus", "sortBy=location", "sortBy=locations", "sortBy=title,location",
         "sortBy=title&sortBy=location", "sortDirection=dsc", "sortDirection=invalid",
         "pageNumber=0", "pageCount=0", "pageCount=1.5",
     ])("rejects unsupported query %s", async query => {

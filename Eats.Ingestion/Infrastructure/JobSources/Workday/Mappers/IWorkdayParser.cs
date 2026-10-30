@@ -4,6 +4,7 @@ using Eats.Ingestion.Infrastructure.JobSources.Workday;
 public interface IWorkdayParser
 {
     DateTime? MapToPostedDate(string? postedOn);
+    string? ParseLocations(string? locationsText);
     string? ParseRequisitionId(string? input);
 
 
@@ -53,11 +54,31 @@ public interface IWorkdayParser
 
             return null;
         }
-        public static DateTime? NormalizePostedDate(string? postedOn)
+
+        public string? ParseLocations(string? locationsText)
+        {
+            if (string.IsNullOrWhiteSpace(locationsText))
+                return null;
+
+            var locations = locationsText
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(x => !WorkdayRegexCompileTimeHelpers.LocationsRegex().IsMatch(x))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            return locations.Length > 0
+                ? string.Join(", ", locations)
+                : null;
+        }
+
+        private static DateTime? NormalizePostedDate(string? postedOn)
         {
             var daysOld = NormalizeDaysOld(postedOn);
             return daysOld.HasValue ? DateTime.UtcNow.AddDays(-daysOld.Value) : null;
         }
+ 
         private static readonly Regex DaysAgoRegex = WorkdayRegexCompileTimeHelpers.DaysAgoRegex();
+
+
     }
 }

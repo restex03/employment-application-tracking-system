@@ -28,11 +28,10 @@ public sealed partial class WorkdayJobPostMapper(
             posting.ExternalPath,
             jobLink,
             requisitionId,
-            posting.LocationsText,
+            workdayParser.ParseLocations(posting.LocationsText),
             workdayParser.MapToPostedDate(posting.PostedOn),
             posting.RemoteType);
     }
     
-
 
 }

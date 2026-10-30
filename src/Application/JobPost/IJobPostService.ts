@@ -1,6 +1,6 @@
 import { IJobPostResponse } from "./IJobPostResponse";
 
-export const jobPostSortFields = ["companyName", "requisitionId", "title", "location", "postedDate"] as const;
+export const jobPostSortFields = ["companyName", "requisitionId", "title", "postedDate"] as const;
 export type JobPostSortBy = typeof jobPostSortFields[number];
 export type JobPostSortDirection = "asc" | "desc";
 
