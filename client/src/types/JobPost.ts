@@ -39,8 +39,7 @@ export interface IJobPostData {
     remoteType?: string;
     applicationStatus?: JobApplicationStatus;
     detailPath: string;
-    locations?: unknown[];
-    location?: string | null;
+    locations?: string[] | null;
     postedDate?: string | null;
     createdAt: string;
     detail?: IJobPostDetail;

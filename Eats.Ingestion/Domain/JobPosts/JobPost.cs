@@ -14,7 +14,7 @@ public sealed class JobPost
         DateTime createdAt,
         Uri jobLink,
         string? requisitionId = null,
-        string? location = null,
+        string[]? locations = null,
         DateTime? postedDate = null,
         JobPostDetailDiscovery? detail = null,
         string? remoteType = null)
@@ -24,7 +24,7 @@ public sealed class JobPost
         RequisitionId = requisitionId;
         Title = title;
         DetailPath = detailPath;
-        Location = location;
+        Locations = locations ?? [];
         PostedDate = postedDate;
         CreatedAt = createdAt;
         RemoteType = remoteType;
@@ -40,7 +40,7 @@ public sealed class JobPost
     public string? RequisitionId { get; private set; }
     public string Title { get; private set; } = string.Empty;
     public string DetailPath { get; private set; } = string.Empty;
-    public string? Location { get; private set; }
+    public string[] Locations { get; private set; } = [];
     public DateTime CreatedAt { get; private set; }
     public JobPostDetail? Detail { get; private set; }
     public string? RemoteType { get; private set; }
@@ -63,7 +63,7 @@ public sealed class JobPost
         RequisitionId = detail.RequisitionId ?? RequisitionId;
         RemoteType = detail.RemoteType ?? RemoteType;
         PostedDate = detail.PostedDate ?? PostedDate;
-        // TODO: Update Location to include location details from the job post detail if available
+        // TODO: Update Locations to include location details from the job post detail if available
     }
 
 }

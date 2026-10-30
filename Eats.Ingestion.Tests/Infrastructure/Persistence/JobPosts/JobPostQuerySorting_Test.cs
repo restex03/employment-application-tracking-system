@@ -76,7 +76,7 @@ public sealed class JobPostQuerySorting_Test
 
     private static JobPost Post(Guid sourceId, string text, DateTime? date) =>
         new(Guid.NewGuid(), sourceId, text, "/job", DateTime.UtcNow,
-            new Uri("https://example.com/job"), requisitionId: text, location: text, postedDate: date);
+            new Uri("https://example.com/job"), requisitionId: text, locations: text == "" ? [] : [text], postedDate: date);
 
     private static JobPostQuery Query(string? sortBy, string? direction) => new()
     {

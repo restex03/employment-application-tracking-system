@@ -51,7 +51,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             var suffix = index.ToString(CultureInfo.InvariantCulture);
             values.Add(
                 $"(@Id{suffix}, @SourceId{suffix}, @RequisitionId{suffix}, @Title{suffix}, " +
-                $"@DetailPath{suffix}, @JobLink{suffix}, @Location{suffix}, @PostedDate{suffix}, @RemoteType{suffix}, " +
+                $"@DetailPath{suffix}, @JobLink{suffix}, @Locations{suffix}, @PostedDate{suffix}, @RemoteType{suffix}, " +
                 $"@CreatedAt{suffix})");
             parameters.Add(new NpgsqlParameter($"Id{suffix}", jobPost.Id));
             parameters.Add(new NpgsqlParameter($"SourceId{suffix}", jobPost.SourceId));
@@ -59,7 +59,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             parameters.Add(new NpgsqlParameter($"Title{suffix}", jobPost.Title));
             parameters.Add(new NpgsqlParameter($"DetailPath{suffix}", jobPost.DetailPath));
             parameters.Add(new NpgsqlParameter($"JobLink{suffix}", jobPost.JobLink.ToString()));
-            parameters.Add(new NpgsqlParameter($"Location{suffix}", (object?)jobPost.Location ?? DBNull.Value));
+            parameters.Add(new NpgsqlParameter($"Locations{suffix}", jobPost.Locations));
             parameters.Add(new NpgsqlParameter($"PostedDate{suffix}", (object?)jobPost.PostedDate ?? DBNull.Value));
             parameters.Add(new NpgsqlParameter($"RemoteType{suffix}", (object?)jobPost.RemoteType ?? DBNull.Value));
             parameters.Add(new NpgsqlParameter($"CreatedAt{suffix}", jobPost.CreatedAt));
@@ -74,7 +74,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
                 "{nameof(JobPost.Title)}",
                 "{nameof(JobPost.DetailPath)}",
                 "{nameof(JobPost.JobLink)}",
-                "{nameof(JobPost.Location)}",
+                "{nameof(JobPost.Locations)}",
                 "{nameof(JobPost.PostedDate)}",
                 "{nameof(JobPost.RemoteType)}",
                 "{nameof(JobPost.CreatedAt)}"
@@ -82,7 +82,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             VALUES {string.Join(",\n", values)}
             ON CONFLICT ("{nameof(JobPost.SourceId)}", "{nameof(JobPost.DetailPath)}")
             DO UPDATE SET
-                "{nameof(JobPost.Location)}" = EXCLUDED."{nameof(JobPost.Location)}",
+                "{nameof(JobPost.Locations)}" = EXCLUDED."{nameof(JobPost.Locations)}",
                 "{nameof(JobPost.RemoteType)}" = EXCLUDED."{nameof(JobPost.RemoteType)}"
             """;
 
@@ -233,8 +233,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
         {
             var locationPattern = $"%{EscapeLikePattern(query.Location)}%";
             queryable = queryable.Where(jobPost =>
-                jobPost.Location != null &&
-                EF.Functions.ILike(jobPost.Location, locationPattern, "\\"));
+                jobPost.Locations.Any(location => EF.Functions.ILike(location, locationPattern, "\\")));
         }
 
         if (query.PostedDate.HasValue)

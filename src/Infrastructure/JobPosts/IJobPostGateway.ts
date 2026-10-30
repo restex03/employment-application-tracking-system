@@ -99,6 +99,12 @@ export class JobPostGateway implements IJobPostGateway {
     }
 
     private validateJobPost(jobPost: IJobPost): IJobPost {
+        if (jobPost.locations !== undefined && jobPost.locations !== null &&
+            (!Array.isArray(jobPost.locations) || jobPost.locations.some(location => typeof location !== "string"))) {
+            const errorMessage = `Invalid locations returned for job post ${jobPost.id}: expected a string array.`;
+            this.logger.error(errorMessage);
+            throw new Error(errorMessage);
+        }
         const postedDate = jobPost.postedDate;
         if (postedDate === undefined || postedDate === null) {
             return jobPost;

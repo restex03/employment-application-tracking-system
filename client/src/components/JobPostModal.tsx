@@ -84,7 +84,7 @@ function JobPostModal({ isOpen, onClose, jobPost, jobStatus, onRunAssessment }: 
 
     const jobPostData = jobPost;
 
-    const formatLocationsAsList = (locations: unknown[] | undefined): React.ReactNode => {
+    const formatLocationsAsList = (locations: unknown[] | null | undefined): React.ReactNode => {
         if (!locations || locations.length === 0) return "N/A";
         return (
             <ul className="locations-list">

@@ -28,7 +28,9 @@ public sealed class JobPostConfiguration : IEntityTypeConfiguration<JobPost>
                 uri => uri.ToString(),
                 value => new Uri(value, UriKind.Absolute))
             .HasColumnType("TEXT");
-        builder.Property(x => x.Location);
+        builder.Property(x => x.Locations)
+            .HasColumnType("text[]")
+            .IsRequired();
         builder.Property(x => x.PostedDate);
         builder.Property(x => x.RemoteType);
         builder.Property(x => x.CreatedAt)

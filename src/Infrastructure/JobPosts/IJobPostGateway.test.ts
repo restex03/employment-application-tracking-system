@@ -138,6 +138,32 @@ describe("JobPostGateway", () => {
     });
 
     it.each([
+        { locations: ["Atlanta, GA", "Boston, MA"] }, { locations: [] },
+        { locations: null }, { locations: undefined },
+    ])(
+        "preserves locations $locations without a singular location property",
+        async ({ locations }) => {
+            const post = { id: "post-1", locations };
+            vi.stubGlobal("fetch", vi.fn().mockImplementation(async () => new Response(JSON.stringify(post))));
+            const gateway = new JobPostGateway("https://ingestion.example.com", logger);
+            const result = await gateway.getById("post-1");
+            expect(result?.locations).toEqual(locations);
+            expect(result).not.toHaveProperty("location");
+        }
+    );
+
+    it.each([
+        { locations: "Atlanta" }, { locations: [123] }, { locations: [{ city: "Atlanta" }] },
+    ])("rejects malformed locations $locations", async ({ locations }) => {
+        vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+            new Response(JSON.stringify({ id: "post-1", locations }))
+        ));
+        const gateway = new JobPostGateway("https://ingestion.example.com", logger);
+        await expect(gateway.getById("post-1")).rejects.toThrow("Invalid locations");
+        expect(logger.error).toHaveBeenCalledOnce();
+    });
+
+    it.each([
         null, [], {}, { data: [], totalCount: "75" }, { data: [], totalCount: -1 },
         { data: [], totalCount: 1.5 }, { data: {}, totalCount: 0 },
     ])("rejects an invalid list envelope %j", async result => {

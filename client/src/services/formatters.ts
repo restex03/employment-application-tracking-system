@@ -58,7 +58,7 @@ export function formatLocation(loc: unknown): string {
  * Formats an array of location objects into a single semicolon-delimited string.
  * Returns `fallback` (default "N/A") when the array is empty.
  */
-export function formatLocations(locations: unknown[] | undefined, fallback = "N/A"): string {
+export function formatLocations(locations: unknown[] | null | undefined, fallback = "N/A"): string {
     if (!locations || locations.length === 0) return fallback;
     return locations.map(formatLocation).join("; ");
 }

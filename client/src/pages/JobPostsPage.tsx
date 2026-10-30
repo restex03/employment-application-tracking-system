@@ -561,7 +561,7 @@ function JobPostsPage() {
                                         })()}
                                     </td>
                                     <td className="detail-path">{jobPost.detailPath}</td>
-                                    <td>{jobPost.location || formatLocations(jobPost.locations)}</td>
+                                    <td>{formatLocations(jobPost.locations)}</td>
                                     <td>{formatDate(jobPost.postedDate)}</td>
                                     <td>{formatDate(jobPost.createdAt)}</td>
                                     <td>

@@ -56,7 +56,7 @@ public interface IJobPostSyncService
                 DateTime.UtcNow,
                 discovery.JobLink,
                 discovery.RequisitionId,
-                discovery.Location,
+                string.IsNullOrWhiteSpace(discovery.Location) ? [] : [discovery.Location],
                 postedDate: discovery.PostedDate,
                 remoteType: discovery.RemoteType);
         }

@@ -29,8 +29,7 @@ export interface IJobPostResponse {
     title: string;
     detailPath: string;
     jobLink: string;
-    locations?: unknown[];
-    location?: string | null;
+    locations?: string[] | null;
     postedDate?: string | null;
     createdAt: Date;
     detail?: IJobPostDetailResponse;

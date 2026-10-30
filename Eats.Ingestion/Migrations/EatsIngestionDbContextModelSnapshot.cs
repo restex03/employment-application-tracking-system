@@ -74,8 +74,9 @@ namespace Eats.Ingestion.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Location")
-                        .HasColumnType("text");
+                    b.PrimitiveCollection<string[]>("Locations")
+                        .IsRequired()
+                        .HasColumnType("text[]");
 
                     b.Property<DateTime?>("PostedDate")
                         .HasColumnType("timestamp with time zone");

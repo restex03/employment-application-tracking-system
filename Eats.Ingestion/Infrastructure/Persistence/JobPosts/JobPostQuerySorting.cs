@@ -25,7 +25,7 @@ internal static class JobPostQuerySorting
                 .Select(source => source.CompanyName.ToLower()).FirstOrDefault(),
             JobPostSortBy.Values.RequisitionId => post => post.RequisitionId == null ? null : post.RequisitionId.ToLower(),
             JobPostSortBy.Values.Title => post => post.Title.ToLower(),
-            JobPostSortBy.Values.Location => post => post.Location == null ? null : post.Location.ToLower(),
+            JobPostSortBy.Values.Location => post => string.Join("; ", post.Locations).ToLower(),
             _ => throw new InvalidOperationException("Unhandled job post sort field.")
         };
         var missing = Expression.Lambda<Func<JobPost, bool>>(
