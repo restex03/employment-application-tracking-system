@@ -182,15 +182,15 @@
     border-bottom: 2px solid var(--border-color);
 }
 
-.job-posts-table th:not([onClick]) {
+.job-posts-table th:not(.sortable-column) {
     cursor: default;
 }
 
-.job-posts-table th[onClick] {
+.job-posts-table th.sortable-column {
     cursor: pointer;
 }
 
-.job-posts-table th[onClick]:hover {
+.job-posts-table th.sortable-column:hover {
     background-color: #e2e8f0;
 }
 

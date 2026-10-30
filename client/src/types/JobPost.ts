@@ -40,6 +40,7 @@ export interface IJobPostData {
     applicationStatus?: JobApplicationStatus;
     detailPath: string;
     locations?: unknown[];
+    location?: string | null;
     postedDate?: string | null;
     createdAt: string;
     detail?: IJobPostDetail;
@@ -64,4 +65,8 @@ export interface QueryFilterParams {
     postedDate?: string;
     jobMatchScore?: string;
     applicationStatus?: string;
+    sortBy?: JobPostSortBy;
+    sortDirection?: "asc" | "desc";
 }
+
+export type JobPostSortBy = "companyName" | "requisitionId" | "title" | "location" | "postedDate";

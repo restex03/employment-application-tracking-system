@@ -21,7 +21,7 @@ describe("JobPostService postedDate responses", () => {
                 hydrateDetail: vi.fn(),
             };
             const gateway: IJobPostGateway = {
-                list: vi.fn().mockResolvedValue([post]),
+                list: vi.fn().mockResolvedValue({ data: [post], totalCount: 42 }),
                 getById: vi.fn().mockResolvedValue(post),
             };
             const queries: IJobPostQueries = {
@@ -36,13 +36,19 @@ describe("JobPostService postedDate responses", () => {
             const filters = {
                 companyName: "", requisitionId: "", title: "", location: "",
                 postedDate: "2026-10-28T00:00:00Z",
+                jobMatchScore: 50,
+                applicationStatus: "APPLIED",
             };
 
             const list = await service.list(10, 0, filters);
             const single = await service.getById(post.id);
             expect(list.data[0].postedDate).toBe(postedDate);
             expect(single?.postedDate).toBe(postedDate);
-            expect(gateway.list).toHaveBeenCalledWith(10, 0, filters);
+            expect(gateway.list).toHaveBeenCalledWith(10, 0, {
+                companyName: "", requisitionId: "", title: "", location: "",
+                postedDate: filters.postedDate,
+            });
+            expect(list.totalCount).toBe(42);
             expect(list.data[0]).not.toHaveProperty("daysOld");
             expect(single).not.toHaveProperty("daysOld");
         }

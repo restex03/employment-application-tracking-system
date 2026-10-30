@@ -24,6 +24,45 @@ describe("JobPostRoutes postedDate filter", () => {
         vi.clearAllMocks();
     });
 
+    it("defaults to postedDate descending", async () => {
+        const response = await server.inject({ method: "GET", url: "/job-posts" });
+        expect(response.statusCode).toBe(200);
+        expect(service.list).toHaveBeenCalledWith(10, 1, expect.objectContaining({
+            sortBy: "postedDate", sortDirection: "desc",
+        }));
+    });
+
+    it.each(["companyName", "requisitionId", "title", "location", "postedDate"])(
+        "forwards a single %s sort in both directions",
+        async sortBy => {
+            for (const sortDirection of ["asc", "desc"]) {
+                const response = await server.inject({
+                    method: "GET", url: `/job-posts?sortBy=${sortBy}&sortDirection=${sortDirection}&pageCount=25&pageNumber=2`,
+                });
+                expect(response.statusCode).toBe(200);
+                expect(service.list).toHaveBeenLastCalledWith(25, 2, expect.objectContaining({
+                    sortBy, sortDirection,
+                }));
+            }
+        }
+    );
+
+    it.each([
+        "sortBy=jobMatchScore", "sortBy=applicationStatus", "sortBy=title,location",
+        "sortBy=title&sortBy=location", "sortDirection=dsc", "sortDirection=invalid",
+        "pageNumber=0", "pageCount=0", "pageCount=1.5",
+    ])("rejects unsupported query %s", async query => {
+        const response = await server.inject({ method: "GET", url: `/job-posts?${query}` });
+        expect(response.statusCode).toBe(400);
+        expect(service.list).not.toHaveBeenCalled();
+        expect(logger.warn).toHaveBeenCalledOnce();
+    });
+
+    it("no longer exposes the obsolete dismissed route", async () => {
+        const response = await server.inject({ method: "PATCH", url: "/job-posts/post-1/dismissed" });
+        expect(response.statusCode).toBe(404);
+    });
+
     it("preserves the ISO timestamp filter including its offset and precision", async () => {
         const postedDate = "2026-10-29T15:00:00.1234567+03:00";
         const response = await server.inject({

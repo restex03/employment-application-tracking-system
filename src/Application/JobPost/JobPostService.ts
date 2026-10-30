@@ -17,14 +17,15 @@ export class JobPostService implements IJobPostService {
         queryFilters: JobPostQueryFilters
     ): Promise<{ data: IJobPostResponse[]; totalCount: number }> {
         this.logger.info(`[JobPostResultTableService.list] Retrieving job posts (pageCount=${pageCount}, pageNumber=${pageNumber})`);
-        const jobPosts = await this.jobPostGateway.list(pageCount, pageNumber, queryFilters);
+        const { jobMatchScore, applicationStatus, ...ingestionFilters } = queryFilters;
+        const { data: jobPosts, totalCount } = await this.jobPostGateway.list(pageCount, pageNumber, ingestionFilters);
         
         // todo: pass filters
         const assessments = await this.jobPostQueries.getJobAssessments(jobPosts.map(j => j.id), queryFilters.jobMatchScore);
         const applications = await this.jobPostQueries.getJobApplications(jobPosts.map(j => j.id), queryFilters.applicationStatus);
 
         const result = {
-            totalCount:jobPosts.length,
+            totalCount,
             data: jobPosts.map(x => {
                 return {
                     ...x,

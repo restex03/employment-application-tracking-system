@@ -19,4 +19,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.13" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Eats.Ingestion.Tests" />
+  </ItemGroup>
+
 </Project>

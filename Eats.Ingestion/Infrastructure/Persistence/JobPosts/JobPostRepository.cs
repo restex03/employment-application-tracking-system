@@ -188,7 +188,22 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
 
     public async Task<IReadOnlyList<JobPost>> ListAsync(JobPostQuery query, CancellationToken ct)
     {
-        var queryable = dbContext.JobPosts.AsQueryable();
+        var queryable = await FilterAsync(query, ct);
+        return await JobPostQuerySorting.Apply(queryable, dbContext.JobSources, query)
+            .ThenBy(jobPost => jobPost.Id)
+            .Skip((query.PageNumber - 1) * query.PageCount)
+            .Take(query.PageCount)
+            .ToListAsync(ct);
+    }
+
+    public async Task<int> CountAsync(JobPostQuery query, CancellationToken ct = default)
+    {
+        return await (await FilterAsync(query, ct)).CountAsync(ct);
+    }
+
+    private async Task<IQueryable<JobPost>> FilterAsync(JobPostQuery query, CancellationToken ct)
+    {
+        var queryable = dbContext.JobPosts.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(query.CompanyName))
         {
@@ -227,13 +242,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             queryable = queryable.Where(jobPost => jobPost.PostedDate >= query.PostedDate.Value);
         }
 
-        queryable = queryable
-            .OrderBy(jobPost => jobPost.CreatedAt)
-            .ThenBy(jobPost => jobPost.Id)
-            .Skip((query.PageNumber - 1) * query.PageCount)
-            .Take(query.PageCount);
-
-        return await queryable.ToListAsync(ct);
+        return queryable;
     }
 
     private static string EscapeLikePattern(string value)

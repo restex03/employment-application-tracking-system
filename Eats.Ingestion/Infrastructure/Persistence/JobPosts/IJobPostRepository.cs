@@ -9,6 +9,7 @@ public interface IJobPostRepository
     Task UpsertManyAsync(IEnumerable<JobPost> jobPosts, CancellationToken cancellationToken = default);
     Task<JobPost> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<JobPost>> ListAsync(JobPostQuery query, CancellationToken ct = default);
+    Task<int> CountAsync(JobPostQuery query, CancellationToken ct = default);
     
     /// <summary>
     /// Gets the next batch of job posts that have no detail populated, ordered randomly.

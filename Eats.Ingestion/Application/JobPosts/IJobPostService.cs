@@ -11,6 +11,7 @@ public interface IJobPostService
     Task Update(JobPost jobPost, CancellationToken cancellationToken = default);
     Task<JobPostDto> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<JobPostDto>> ListAsync(JobPostQuery query, CancellationToken ct);
+    Task<int> CountAsync(JobPostQuery query, CancellationToken ct);
 
     public class Imp(
         IJobPostRepository jobPostRepository,
@@ -65,6 +66,11 @@ public interface IJobPostService
 
             var mapped = result.Select(MapToViewModel).ToList();
             return mapped;
+        }
+
+        public Task<int> CountAsync(JobPostQuery query, CancellationToken ct)
+        {
+            return jobPostRepository.CountAsync(query, ct);
         }
 
         private JobPostDto MapToViewModel(JobPost jobPost)

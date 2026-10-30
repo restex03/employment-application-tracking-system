@@ -1,6 +1,7 @@
 import { IJobPost } from "../../Domain/JobPosts/IJobPost";
 import { ILogger } from "../Logging/ILogger";
 import { z } from "zod";
+import { JobPostSortBy, JobPostSortDirection } from "../../Application/JobPost/IJobPostService";
 
 
 export interface JobPostQueryFilters {
@@ -9,8 +10,8 @@ export interface JobPostQueryFilters {
     title: string;
     location: string;
     postedDate?: string;
-    jobMatchScore?: number;
-    applicationStatus?: string;
+    sortBy?: JobPostSortBy;
+    sortDirection?: JobPostSortDirection;
 }
 
 export interface IJobPostGateway {
@@ -20,7 +21,7 @@ export interface IJobPostGateway {
         pageCount: number, 
         pageNumber: number, 
         queryFilters: JobPostQueryFilters
-    ): Promise<IJobPost[]>;
+    ): Promise<{ data: IJobPost[]; totalCount: number }>;
 
 }
 
@@ -52,12 +53,21 @@ export class JobPostGateway implements IJobPostGateway {
         return this.validateJobPost(await response.json());
     }
 
-    public async list(pageCount: number, pageNumber: number, queryFilters: JobPostQueryFilters): Promise<IJobPost[]> {
+    public async list(pageCount: number, pageNumber: number, queryFilters: JobPostQueryFilters): Promise<{ data: IJobPost[]; totalCount: number }> {
         const path = `/api/ingestion/jobPosts`;
         const fullURL = new URL(`${path}`, this.baseUrl);
         fullURL.searchParams.append("pageCount", pageCount.toString());
         fullURL.searchParams.append("pageNumber", pageNumber.toString());
-        for (const [name, value] of Object.entries(queryFilters)) {
+        const supportedFilters: JobPostQueryFilters = {
+            companyName: queryFilters.companyName,
+            requisitionId: queryFilters.requisitionId,
+            title: queryFilters.title,
+            location: queryFilters.location,
+            postedDate: queryFilters.postedDate,
+            sortBy: queryFilters.sortBy ?? "postedDate",
+            sortDirection: queryFilters.sortDirection ?? "desc",
+        };
+        for (const [name, value] of Object.entries(supportedFilters)) {
             if (value === undefined || value === null || (typeof value === "string" && value.trim() === "")) {
                 continue;
             }
@@ -78,8 +88,14 @@ export class JobPostGateway implements IJobPostGateway {
             throw new Error(errorMessage);
         }
 
-        const jobPosts: IJobPost[] = await response.json();
-        return jobPosts.map(jobPost => this.validateJobPost(jobPost));
+        const result: { data: IJobPost[]; totalCount: number } = await response.json();
+        if (!result || !Array.isArray(result.data) ||
+            !Number.isSafeInteger(result.totalCount) || result.totalCount < 0) {
+            const errorMessage = "Invalid job post list response: expected data array and non-negative integer totalCount.";
+            this.logger.error(errorMessage);
+            throw new Error(errorMessage);
+        }
+        return { data: result.data.map(jobPost => this.validateJobPost(jobPost)), totalCount: result.totalCount };
     }
 
     private validateJobPost(jobPost: IJobPost): IJobPost {

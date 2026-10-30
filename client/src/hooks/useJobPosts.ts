@@ -27,6 +27,8 @@ export function useJobPosts(initialParams?: PaginationParams, queryParams?: Quer
                 ["postedDate", queryParams?.postedDate ?? ""],
                 ["jobMatchScore", queryParams?.jobMatchScore ?? ""],
                 ["applicationStatus", queryParams?.applicationStatus ?? ""],
+                ["sortBy", queryParams?.sortBy ?? "postedDate"],
+                ["sortDirection", queryParams?.sortDirection ?? "desc"],
             ];
             for (const [key, value] of filterEntries) {
                 const normalizedValue = value.trim();
@@ -58,6 +60,8 @@ export function useJobPosts(initialParams?: PaginationParams, queryParams?: Quer
             queryParams?.postedDate,
             queryParams?.jobMatchScore,
             queryParams?.applicationStatus,
+            queryParams?.sortBy,
+            queryParams?.sortDirection,
         ]
     );
 

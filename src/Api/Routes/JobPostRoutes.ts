@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IRouteRegistrar } from "../Host/IRouteRegistrar";
-import { IJobPostService, JobPostQueryFilters } from "../../Application/JobPost/IJobPostService";
+import { IJobPostService, JobPostQueryFilters, jobPostSortFields } from "../../Application/JobPost/IJobPostService";
 
 interface JobPostParams {
     jobPostId: string;
@@ -19,6 +19,8 @@ export interface JobPostQuery {
     postedDate?: string;
     jobMatchScore?: number;
     applicationStatus?: string;
+    sortBy?: string;
+    sortDirection?: string;
 }
 
 export class JobPostRoutes implements IRouteRegistrar {
@@ -33,13 +35,26 @@ export class JobPostRoutes implements IRouteRegistrar {
         }>("/job-posts", {
             schema: {
                 tags: ["Job Posts"],
-                description: "List job posts. Optional postedDate is an ISO 8601 timestamp with a timezone; includes jobs posted on or after it.",
+                description: "List job posts sorted before pagination. sortBy: companyName, requisitionId, title, location, postedDate. sortDirection: asc or desc. Default: postedDate desc, unknown values last. postedDate filters on or after an ISO 8601 timestamp.",
             },
         }, async (request, reply) => {
             try {
                 this.logger.info(`[${request.method}]  ${request.url} Retrieving job posts`);
-                const pageCount = parseInt(request.query.pageCount || "10");
-                const pageNumber = parseInt(request.query.pageNumber || "1");
+                const pageCount = Number(request.query.pageCount || "10");
+                const pageNumber = Number(request.query.pageNumber || "1");
+                const sort = z.object({
+                    sortBy: z.enum(jobPostSortFields).default("postedDate"),
+                    sortDirection: z.enum(["asc", "desc"]).default("desc"),
+                }).safeParse({
+                    sortBy: request.query.sortBy,
+                    sortDirection: request.query.sortDirection,
+                });
+                if (!sort.success || !Number.isInteger(pageCount) || pageCount < 1 ||
+                    !Number.isInteger(pageNumber) || pageNumber < 1) {
+                    const errorMessage = "Invalid pagination or sort parameters. Use one supported sortBy and sortDirection asc or desc.";
+                    this.logger.warn(`[${request.method}] ${request.url} ${errorMessage}`);
+                    return reply.code(400).send({ error: errorMessage });
+                }
                 const rawJobMatchScore = request.query.jobMatchScore;
                 const jobMatchScore =
                     rawJobMatchScore !== undefined && `${rawJobMatchScore}`.trim() !== ""
@@ -59,7 +74,8 @@ export class JobPostRoutes implements IRouteRegistrar {
                     postedDate: rawPostedDate || undefined,
                     jobMatchScore: Number.isNaN(jobMatchScore) ? undefined : jobMatchScore,
                     applicationStatus: request.query.applicationStatus?.trim() || undefined,
-                } as JobPostQueryFilters;
+                    ...sort.data,
+                };
                 const result = await this.jobPostService.list(pageCount, pageNumber, queryFilters);
                 return result;
             } catch (error) {
@@ -98,11 +114,5 @@ export class JobPostRoutes implements IRouteRegistrar {
             }
         });
 
-        server.patch<{
-            Params: JobPostParams;
-            Body: { dismissed?: boolean };
-        }>("/job-posts/:jobPostId/dismissed", { schema: { tags: ["Job Posts"] } }, async (request, reply) => {
-            throw new Error("Obsolete - marked for deletion");
-        });
     }
 }

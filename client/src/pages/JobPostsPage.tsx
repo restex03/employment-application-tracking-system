@@ -4,36 +4,20 @@ import { useJobSources } from "../hooks/useJobSources";
 import { useSyncJobPosts } from "../hooks/useSyncJobPosts";
 import { useSyncJobsStatus } from "../hooks/useSyncJobsStatus";
 import { useJobAssessmentPolling } from "../hooks/useJobAssessmentPolling";
-import { IJobPostData, JobApplicationStatus } from "../types/JobPost";
+import { IJobPostData, JobApplicationStatus, JobPostSortBy } from "../types/JobPost";
 import JobPostModal from "../components/JobPostModal";
 import SyncModal from "../components/SyncModal";
 import ToolsModal from "../components/ToolsModal";
 import ToastContainer from "../components/ToastContainer";
 import { formatDate, formatLocations } from "../services/formatters";
-import {
-    type SortDirection,
-    cycleSortDirection,
-    getSortIndicator,
-    compareNumeric,
-    compareStrings,
-    compareDates,
-} from "../services/sortHelpers";
+import { getSortIndicator } from "../services/sortHelpers";
 import { postedDateSince } from "../services/postedDateFilters";
 import { getApplicationStatusColor, getScoreCategory } from "../services/statusColors";
 import "./JobPostsPage.css";
 
 const CANDIDATE_PROFILE_ID = "russell-estes";
 
-type SortableColumn =
-    | "company"
-    | "requisitionId"
-    | "title"
-    | "locations"
-    | "postedDate"
-    | "createdAt"
-    | "jobMatchScore"
-    | "applicationStatus"
-    | null;
+type SortableColumn = JobPostSortBy;
 
 interface FilterState {
     company: string;
@@ -59,6 +43,8 @@ function JobPostsPage() {
         () => filters.postedSince === "" ? "" : postedDateSince(Number(filters.postedSince)),
         [filters.postedSince]
     );
+    const [sortColumn, setSortColumn] = useState<SortableColumn>("postedDate");
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
     const {
         jobPosts,
         totalCount,
@@ -75,6 +61,8 @@ function JobPostsPage() {
         postedDate,
         jobMatchScore: filters.jobMatchScore,
         applicationStatus: filters.applicationStatus,
+        sortBy: sortColumn,
+        sortDirection,
     });
     const { jobSources, getCompanyName, loading: sourcesLoading, error: sourcesError } = useJobSources();
     const {
@@ -97,8 +85,6 @@ function JobPostsPage() {
     const [detailLoading, setDetailLoading] = useState<boolean>(false);
     const [_detailError, setDetailError] = useState<string | null>(null);
     const [isToolsModalOpen, setIsToolsModalOpen] = useState<boolean>(false);
-    const [sortColumn, setSortColumn] = useState<SortableColumn>(null);
-    const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
     const {
         getStatus: getAssessmentStatus,
         enqueue: enqueueAssessment,
@@ -113,67 +99,9 @@ function JobPostsPage() {
     // Only show the polled status when it corresponds to the currently open job post.
     const modalJobStatus = selectedJobPost ? getAssessmentStatus(selectedJobPost.id) : null;
 
-    // Sort the posts returned by the API.
-    const filteredAndSortedPosts = useMemo(() => {
-        const result = [...jobPosts];
-
-        if (sortColumn && sortDirection) {
-            result.sort((a, b) => {
-                if (sortColumn === "postedDate") {
-                    return compareDates(a.postedDate, b.postedDate, sortDirection);
-                }
-
-                if (sortColumn === "jobMatchScore") {
-                    return compareNumeric(a.requirementMatchScore ?? -1, b.requirementMatchScore ?? -1, sortDirection);
-                }
-
-                let aValue: string;
-                let bValue: string;
-
-                switch (sortColumn) {
-                    case "company":
-                        aValue = getCompanyName(a.sourceId);
-                        bValue = getCompanyName(b.sourceId);
-                        break;
-                    case "requisitionId":
-                        aValue = a.requisitionId || "";
-                        bValue = b.requisitionId || "";
-                        break;
-                    case "title":
-                        aValue = a.title;
-                        bValue = b.title;
-                        break;
-                    case "locations":
-                        aValue = formatLocations(a.locations);
-                        bValue = formatLocations(b.locations);
-                        break;
-                    case "createdAt":
-                        aValue = a.createdAt;
-                        bValue = b.createdAt;
-                        break;
-                    case "applicationStatus":
-                        aValue = a.applicationStatus ?? "";
-                        bValue = b.applicationStatus ?? "";
-                        break;
-                    default:
-                        return 0;
-                }
-
-                return compareStrings(aValue, bValue, sortDirection);
-            });
-        }
-
-        return result;
-    }, [
-        jobPosts,
-        sortColumn,
-        sortDirection,
-        getCompanyName,
-    ]);
-
     const allVisibleSelected =
-        filteredAndSortedPosts.length > 0 && filteredAndSortedPosts.every(jp => selectedJobPostIds.has(jp.id));
-    const someVisibleSelected = filteredAndSortedPosts.some(jp => selectedJobPostIds.has(jp.id));
+        jobPosts.length > 0 && jobPosts.every(jp => selectedJobPostIds.has(jp.id));
+    const someVisibleSelected = jobPosts.some(jp => selectedJobPostIds.has(jp.id));
 
     // Reflect a partial selection of the current page in the header checkbox.
     useEffect(() => {
@@ -183,7 +111,7 @@ function JobPostsPage() {
     }, [someVisibleSelected, allVisibleSelected]);
 
     const handleSelectAllVisible = (checked: boolean) => {
-        const visibleIds = filteredAndSortedPosts.map(jp => jp.id);
+        const visibleIds = jobPosts.map(jp => jp.id);
         setSelectedJobPostIds(prev => {
             const next = new Set(prev);
             if (checked) {
@@ -216,11 +144,12 @@ function JobPostsPage() {
 
     const handleSort = (column: SortableColumn) => {
         if (sortColumn === column) {
-            setSortDirection(cycleSortDirection(sortDirection));
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
         } else {
             setSortColumn(column);
             setSortDirection("asc");
         }
+        setPage(1);
     };
 
     const handleFilterChange = (column: keyof FilterState, value: string) => {
@@ -530,7 +459,7 @@ function JobPostsPage() {
                 </div>
                 <div className="pagination-info">
                     <span>
-                        Showing {filteredAndSortedPosts.length} of {totalCount} job posts
+                        Showing {jobPosts.length} of {totalCount} job posts
                     </span>
                 </div>
                 <table className="job-posts-table">
@@ -546,60 +475,45 @@ function JobPostsPage() {
                                     title="Select all on this page"
                                 />
                             </th>
-                            <th className="score-column" onClick={() => handleSort("jobMatchScore")}>
-                                <div className="sortable-header">
-                                    <span>Job Match</span>
-                                    <span className="sort-icon">{getSortIndicatorFor("jobMatchScore")}</span>
-                                </div>
-                            </th>
-                            <th onClick={() => handleSort("company")}>
+                            <th className="score-column">Job Match</th>
+                            <th className="sortable-column" onClick={() => handleSort("companyName")}>
                                 <div className="sortable-header">
                                     <span>Company</span>
-                                    <span className="sort-icon">{getSortIndicatorFor("company")}</span>
+                                    <span className="sort-icon">{getSortIndicatorFor("companyName")}</span>
                                 </div>
                             </th>
-                            <th onClick={() => handleSort("requisitionId")}>
+                            <th className="sortable-column" onClick={() => handleSort("requisitionId")}>
                                 <div className="sortable-header">
                                     <span>Requisition ID</span>
                                     <span className="sort-icon">{getSortIndicatorFor("requisitionId")}</span>
                                 </div>
                             </th>
-                            <th onClick={() => handleSort("title")}>
+                            <th className="sortable-column" onClick={() => handleSort("title")}>
                                 <div className="sortable-header">
                                     <span>Title</span>
                                     <span className="sort-icon">{getSortIndicatorFor("title")}</span>
                                 </div>
                             </th>
-                            <th onClick={() => handleSort("applicationStatus")}>
-                                <div className="sortable-header">
-                                    <span>Application Status</span>
-                                    <span className="sort-icon">{getSortIndicatorFor("applicationStatus")}</span>
-                                </div>
-                            </th>
+                            <th>Application Status</th>
                             <th>Detail Path</th>
-                            <th onClick={() => handleSort("locations")}>
+                            <th className="sortable-column" onClick={() => handleSort("location")}>
                                 <div className="sortable-header">
                                     <span>Locations</span>
-                                    <span className="sort-icon">{getSortIndicatorFor("locations")}</span>
+                                    <span className="sort-icon">{getSortIndicatorFor("location")}</span>
                                 </div>
                             </th>
-                            <th onClick={() => handleSort("postedDate")}>
+                            <th className="sortable-column" onClick={() => handleSort("postedDate")}>
                                 <div className="sortable-header">
                                     <span>Posted Date</span>
                                     <span className="sort-icon">{getSortIndicatorFor("postedDate")}</span>
                                 </div>
                             </th>
-                            <th onClick={() => handleSort("createdAt")}>
-                                <div className="sortable-header">
-                                    <span>Synced</span>
-                                    <span className="sort-icon">{getSortIndicatorFor("createdAt")}</span>
-                                </div>
-                            </th>
+                            <th>Synced</th>
                             <th>Details</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredAndSortedPosts.length === 0 ? (
+                        {jobPosts.length === 0 ? (
                             <tr>
                                 <td colSpan={12} className="no-data">
                                     {totalCount === 0 && Object.values(filters).every(value => !value)
@@ -610,7 +524,7 @@ function JobPostsPage() {
                                 </td>
                             </tr>
                         ) : (
-                            filteredAndSortedPosts.map((jobPost, index) => (
+                            jobPosts.map((jobPost, index) => (
                                 <tr key={jobPost.id} className="job-post-row">
                                     <td className="row-count">
                                         {(pagination.pageNumber - 1) * pagination.pageCount + index + 1}
@@ -647,7 +561,7 @@ function JobPostsPage() {
                                         })()}
                                     </td>
                                     <td className="detail-path">{jobPost.detailPath}</td>
-                                    <td>{formatLocations(jobPost.locations)}</td>
+                                    <td>{jobPost.location || formatLocations(jobPost.locations)}</td>
                                     <td>{formatDate(jobPost.postedDate)}</td>
                                     <td>{formatDate(jobPost.createdAt)}</td>
                                     <td>

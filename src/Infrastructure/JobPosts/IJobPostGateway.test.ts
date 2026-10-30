@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ILogger } from "../Logging/ILogger";
 import { JobPostGateway } from "./IJobPostGateway";
+import { JobPostQueryFilters } from "../../Application/JobPost/IJobPostService";
 
 describe("JobPostGateway", () => {
     const logger: ILogger = {
@@ -73,11 +74,11 @@ describe("JobPostGateway", () => {
 
     it("sends all included filters with GET and returns the JSON response", async () => {
         const result = [{ id: "post-1", postedDate: "2026-10-29T12:00:00Z" }];
-        const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(result)));
+        const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: result, totalCount: 75 })));
         vi.stubGlobal("fetch", fetchMock);
         const gateway = new JobPostGateway("https://ingestion.example.com", logger);
 
-        await expect(gateway.list(20, 0, {
+        const filters: JobPostQueryFilters = {
             companyName: "A & B",
             requisitionId: "REQ/123",
             title: "C# developer",
@@ -85,26 +86,29 @@ describe("JobPostGateway", () => {
             postedDate: "2026-10-29T15:00:00.1234567+03:00",
             jobMatchScore: 0,
             applicationStatus: "Applied",
-        })).resolves.toEqual(result);
+            sortBy: "title",
+            sortDirection: "asc",
+        };
+        await expect(gateway.list(20, 1, filters)).resolves.toEqual({ data: result, totalCount: 75 });
 
         const [url, init] = fetchMock.mock.calls[0];
         expect(url.pathname).toBe("/api/ingestion/jobPosts");
         expect(Object.fromEntries(url.searchParams)).toEqual({
             pageCount: "20",
-            pageNumber: "0",
+            pageNumber: "1",
             companyName: "A & B",
             requisitionId: "REQ/123",
             title: "C# developer",
             location: "New York",
             postedDate: "2026-10-29T15:00:00.1234567+03:00",
-            jobMatchScore: "0",
-            applicationStatus: "Applied",
+            sortBy: "title",
+            sortDirection: "asc",
         });
         expect(init).toEqual({ method: "GET", headers: { Accept: "application/json" } });
     });
 
     it("omits blank strings and undefined optional filters", async () => {
-        const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify([])));
+        const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: [], totalCount: 0 })));
         vi.stubGlobal("fetch", fetchMock);
         const gateway = new JobPostGateway("https://ingestion.example.com", logger);
 
@@ -114,12 +118,13 @@ describe("JobPostGateway", () => {
             title: "\t",
             location: "",
             postedDate: undefined,
-            applicationStatus: "",
         });
 
         expect(Object.fromEntries(fetchMock.mock.calls[0][0].searchParams)).toEqual({
             pageCount: "10",
             pageNumber: "1",
+            sortBy: "postedDate",
+            sortDirection: "desc",
         });
     });
 
@@ -130,6 +135,18 @@ describe("JobPostGateway", () => {
         const gateway = new JobPostGateway("https://ingestion.example.com", logger);
 
         expect((await gateway.getById("post-1"))?.postedDate).toBe(postedDate);
+    });
+
+    it.each([
+        null, [], {}, { data: [], totalCount: "75" }, { data: [], totalCount: -1 },
+        { data: [], totalCount: 1.5 }, { data: {}, totalCount: 0 },
+    ])("rejects an invalid list envelope %j", async result => {
+        vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(result))));
+        const gateway = new JobPostGateway("https://ingestion.example.com", logger);
+        await expect(gateway.list(10, 1, {
+            companyName: "", requisitionId: "", title: "", location: "",
+        })).rejects.toThrow("Invalid job post list response");
+        expect(logger.error).toHaveBeenCalledOnce();
     });
 
     it.each(["not-a-date", "2026-02-30T00:00:00Z", "2026-10-29T12:00:00"])(
