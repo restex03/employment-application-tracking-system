@@ -24,10 +24,9 @@ export function useJobPosts(initialParams?: PaginationParams, queryParams?: Quer
                 ["requisitionId", queryParams?.requisitionId ?? ""],
                 ["title", queryParams?.title ?? ""],
                 ["location", queryParams?.location ?? ""],
-                ["daysOld", queryParams?.daysOld ?? ""],
+                ["postedDate", queryParams?.postedDate ?? ""],
                 ["jobMatchScore", queryParams?.jobMatchScore ?? ""],
                 ["applicationStatus", queryParams?.applicationStatus ?? ""],
-                ["includeDismissed", queryParams?.includeDismissed ?? ""],
             ];
             for (const [key, value] of filterEntries) {
                 const normalizedValue = value.trim();
@@ -56,10 +55,9 @@ export function useJobPosts(initialParams?: PaginationParams, queryParams?: Quer
             queryParams?.requisitionId,
             queryParams?.title,
             queryParams?.location,
-            queryParams?.daysOld,
+            queryParams?.postedDate,
             queryParams?.jobMatchScore,
             queryParams?.applicationStatus,
-            queryParams?.includeDismissed,
         ]
     );
 

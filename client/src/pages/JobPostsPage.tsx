@@ -16,8 +16,9 @@ import {
     getSortIndicator,
     compareNumeric,
     compareStrings,
-    daysOldToSortableNumber,
+    compareDates,
 } from "../services/sortHelpers";
+import { postedDateSince } from "../services/postedDateFilters";
 import { getApplicationStatusColor, getScoreCategory } from "../services/statusColors";
 import "./JobPostsPage.css";
 
@@ -28,7 +29,7 @@ type SortableColumn =
     | "requisitionId"
     | "title"
     | "locations"
-    | "daysOld"
+    | "postedDate"
     | "createdAt"
     | "jobMatchScore"
     | "applicationStatus"
@@ -39,7 +40,7 @@ interface FilterState {
     requisitionId: string;
     title: string;
     locations: string;
-    daysOld: string;
+    postedSince: string;
     jobMatchScore: string;
     applicationStatus: string;
 }
@@ -50,10 +51,14 @@ function JobPostsPage() {
         requisitionId: "",
         title: "",
         locations: "",
-        daysOld: "",
+        postedSince: "",
         jobMatchScore: "",
         applicationStatus: "",
     });
+    const postedDate = useMemo(
+        () => filters.postedSince === "" ? "" : postedDateSince(Number(filters.postedSince)),
+        [filters.postedSince]
+    );
     const {
         jobPosts,
         totalCount,
@@ -67,7 +72,7 @@ function JobPostsPage() {
         requisitionId: filters.requisitionId,
         title: filters.title,
         location: filters.locations,
-        daysOld: filters.daysOld,
+        postedDate,
         jobMatchScore: filters.jobMatchScore,
         applicationStatus: filters.applicationStatus,
     });
@@ -110,16 +115,12 @@ function JobPostsPage() {
 
     // Sort the posts returned by the API.
     const filteredAndSortedPosts = useMemo(() => {
-        const result = jobPosts.filter(jp => !jp.dismissed);
+        const result = [...jobPosts];
 
         if (sortColumn && sortDirection) {
             result.sort((a, b) => {
-                if (sortColumn === "daysOld") {
-                    return compareNumeric(
-                        daysOldToSortableNumber(a.daysOld),
-                        daysOldToSortableNumber(b.daysOld),
-                        sortDirection
-                    );
+                if (sortColumn === "postedDate") {
+                    return compareDates(a.postedDate, b.postedDate, sortDirection);
                 }
 
                 if (sortColumn === "jobMatchScore") {
@@ -233,7 +234,7 @@ function JobPostsPage() {
             requisitionId: "",
             title: "",
             locations: "",
-            daysOld: "",
+            postedSince: "",
             jobMatchScore: "",
             applicationStatus: "",
         });
@@ -479,44 +480,18 @@ function JobPostsPage() {
                         className="filter-input"
                     />
                     <select
-                        value={filters.daysOld}
-                        onChange={e => handleFilterChange("daysOld", e.target.value)}
+                        value={filters.postedSince}
+                        onChange={e => handleFilterChange("postedSince", e.target.value)}
                         className="filter-input"
-                        aria-label="Filter Days Old"
+                        aria-label="Filter Posted Date"
                     >
-                        <option value="">Days Old: All</option>
-                        <option value="-1">Days Old: N/A</option>
-                        <option value="0">Days Old: =0</option>
-                        <option value="1">Days Old: &lt;=1</option>
-                        <option value="2">Days Old: &lt;=2</option>
-                        <option value="3">Days Old: &lt;=3</option>
-                        <option value="4">Days Old: &lt;=4</option>
-                        <option value="5">Days Old: &lt;=5</option>
-                        <option value="6">Days Old: &lt;=6</option>
-                        <option value="7">Days Old: &lt;=7</option>
-                        <option value="8">Days Old: &lt;=8</option>
-                        <option value="9">Days Old: &lt;=9</option>
-                        <option value="10">Days Old: &lt;=10</option>
-                        <option value="11">Days Old: &lt;=11</option>
-                        <option value="12">Days Old: &lt;=12</option>
-                        <option value="13">Days Old: &lt;=13</option>
-                        <option value="14">Days Old: &lt;=14</option>
-                        <option value="15">Days Old: &lt;=15</option>
-                        <option value="16">Days Old: &lt;=16</option>
-                        <option value="17">Days Old: &lt;=17</option>
-                        <option value="18">Days Old: &lt;=18</option>
-                        <option value="19">Days Old: &lt;=19</option>
-                        <option value="20">Days Old: &lt;=20</option>
-                        <option value="21">Days Old: &lt;=21</option>
-                        <option value="22">Days Old: &lt;=22</option>
-                        <option value="23">Days Old: &lt;=23</option>
-                        <option value="24">Days Old: &lt;=24</option>
-                        <option value="25">Days Old: &lt;=25</option>
-                        <option value="26">Days Old: &lt;=26</option>
-                        <option value="27">Days Old: &lt;=27</option>
-                        <option value="28">Days Old: &lt;=28</option>
-                        <option value="29">Days Old: &lt;=29</option>
-                        <option value="30">Days Old: &lt;=30</option>
+                        <option value="">Posted Date: All</option>
+                        <option value="0">Since Today</option>
+                        <option value="1">Since Yesterday</option>
+                        <option value="7">Last 7 days</option>
+                        <option value="14">Last 14 days</option>
+                        <option value="21">Last 21 days</option>
+                        <option value="30">Last 30 days</option>
                     </select>
                     <select
                         value={filters.jobMatchScore}
@@ -608,10 +583,10 @@ function JobPostsPage() {
                                     <span className="sort-icon">{getSortIndicatorFor("locations")}</span>
                                 </div>
                             </th>
-                            <th onClick={() => handleSort("daysOld")}>
+                            <th onClick={() => handleSort("postedDate")}>
                                 <div className="sortable-header">
-                                    <span>Days Old</span>
-                                    <span className="sort-icon">{getSortIndicatorFor("daysOld")}</span>
+                                    <span>Posted Date</span>
+                                    <span className="sort-icon">{getSortIndicatorFor("postedDate")}</span>
                                 </div>
                             </th>
                             <th onClick={() => handleSort("createdAt")}>
@@ -673,7 +648,7 @@ function JobPostsPage() {
                                     </td>
                                     <td className="detail-path">{jobPost.detailPath}</td>
                                     <td>{formatLocations(jobPost.locations)}</td>
-                                    <td>{jobPost.daysOld ?? "N/A"}</td>
+                                    <td>{formatDate(jobPost.postedDate)}</td>
                                     <td>{formatDate(jobPost.createdAt)}</td>
                                     <td>
                                         <button

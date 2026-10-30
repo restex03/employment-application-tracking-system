@@ -4,7 +4,7 @@ import {
     getSortIndicator,
     compareNumeric,
     compareStrings,
-    daysOldToSortableNumber,
+    compareDates,
 } from "./sortHelpers";
 
 describe("cycleSortDirection", () => {
@@ -65,15 +65,22 @@ describe("compareStrings", () => {
     });
 });
 
-describe("daysOldToSortableNumber", () => {
-    it("returns Infinity for undefined", () => {
-        expect(daysOldToSortableNumber(undefined)).toBe(Infinity);
+describe("compareDates", () => {
+    it("compares timestamps rather than ISO string order", () => {
+        expect(compareDates("2026-10-30T12:00:00+03:00", "2026-10-30T10:00:00Z", "asc")).toBeLessThan(0);
+        expect(compareDates("2026-10-30T12:00:00+03:00", "2026-10-30T10:00:00Z", "desc")).toBeGreaterThan(0);
     });
 
-    it("returns the value as-is for numbers", () => {
-        expect(daysOldToSortableNumber(0)).toBe(0);
-        expect(daysOldToSortableNumber(5)).toBe(5);
-        expect(daysOldToSortableNumber(15)).toBe(15);
-        expect(daysOldToSortableNumber(30)).toBe(30);
+    it.each(["asc", "desc"] as const)("keeps missing and invalid dates last when %s", direction => {
+        for (const missing of [undefined, null, "", "invalid"]) {
+            expect(compareDates(missing, "2026-10-30T00:00:00Z", direction)).toBeGreaterThan(0);
+            expect(compareDates("2026-10-30T00:00:00Z", missing, direction)).toBeLessThan(0);
+            expect(compareDates(missing, undefined, direction)).toBe(0);
+        }
+    });
+
+    it("returns zero for equal instants and inactive sorting", () => {
+        expect(compareDates("2026-10-30T12:00:00+03:00", "2026-10-30T09:00:00Z", "asc")).toBe(0);
+        expect(compareDates(undefined, "2026-10-30T00:00:00Z", null)).toBe(0);
     });
 });

@@ -37,11 +37,12 @@ export function compareStrings(a: string, b: string, direction: SortDirection): 
     return direction === "asc" ? cmp : -cmp;
 }
 
-/**
- * Returns a sortable number for daysOld.
- * Undefined/missing sorts last (Infinity).
- */
-export function daysOldToSortableNumber(value: number | undefined): number {
-    if (value === undefined) return Infinity;
-    return value;
+/** Compares ISO timestamps, keeping unknown dates last in either direction. */
+export function compareDates(a: string | null | undefined, b: string | null | undefined, direction: SortDirection): number {
+    if (direction === null) return 0;
+    const aTime = a ? Date.parse(a) : NaN;
+    const bTime = b ? Date.parse(b) : NaN;
+    if (Number.isNaN(aTime)) return Number.isNaN(bTime) ? 0 : 1;
+    if (Number.isNaN(bTime)) return -1;
+    return compareNumeric(aTime, bTime, direction);
 }

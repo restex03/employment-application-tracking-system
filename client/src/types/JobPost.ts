@@ -40,11 +40,10 @@ export interface IJobPostData {
     applicationStatus?: JobApplicationStatus;
     detailPath: string;
     locations?: unknown[];
-    daysOld?: number;
+    postedDate?: string | null;
     createdAt: string;
     detail?: IJobPostDetail;
     jobLink: string;
-    dismissed: boolean;
 }
 
 export interface IJobPostsResponse {
@@ -62,8 +61,7 @@ export interface QueryFilterParams {
     requisitionId?: string;
     title?: string;
     location?: string;
-    daysOld?: string;
+    postedDate?: string;
     jobMatchScore?: string;
     applicationStatus?: string;
-    includeDismissed?: string;
 }

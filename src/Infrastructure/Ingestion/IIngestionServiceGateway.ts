@@ -35,7 +35,7 @@ export class IngestionServiceGateway implements IIngestionServiceGateway {
     }
 
     public async initiateJobPostSyncTask(taskRequest: { sourceIds: string[]; searchText: string; }): Promise<string> {
-        const path = `/api/api/ingestion/queueTasks`;
+        const path = `/api/ingestion/queueTasks`;
         const body = {
             ...taskRequest,
             type: "SyncJobPosts"
