@@ -1,11 +1,10 @@
-using System.Text.RegularExpressions;
 using Eats.Ingestion.Domain.JobPosts;
 using Eats.Ingestion.Infrastructure.JobSources.Workday.Contracts;
 using Ganss.Xss;
 
 namespace Eats.Ingestion.Infrastructure.JobSources.Workday;
 
-public sealed partial class WorkdayJobDetailMapper
+public sealed class WorkdayJobDetailMapper
 {
     private readonly HtmlSanitizer sanitizer = new();
 
@@ -52,19 +51,13 @@ public sealed partial class WorkdayJobDetailMapper
 
     private static string NormalizeHtml(string html)
     {
-        return HeadingRegex().Replace(
+        return WorkdayRegexCompileTimeHelpers.HeadingRegex().Replace(
             html,
             match =>
             {
                 var attributes = match.Groups[2].Value;
-                var content = BoldTagRegex().Replace(match.Groups[3].Value, string.Empty);
+                var content = WorkdayRegexCompileTimeHelpers.BoldTagRegex().Replace(match.Groups[3].Value, string.Empty);
                 return $"<h5{attributes}>{content}</h5>";
             });
     }
-
-    [GeneratedRegex(@"<(h[1-5])(\b[^>]*)>([\s\S]*?)</\1>", RegexOptions.IgnoreCase)]
-    private static partial Regex HeadingRegex();
-
-    [GeneratedRegex(@"</?(?:b|strong)\b[^>]*>", RegexOptions.IgnoreCase)]
-    private static partial Regex BoldTagRegex();
 }

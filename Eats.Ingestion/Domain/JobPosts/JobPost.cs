@@ -15,7 +15,7 @@ public sealed class JobPost
         Uri jobLink,
         string? requisitionId = null,
         string? location = null,
-        int? daysOld = null,
+        DateTime? postedDate = null,
         JobPostDetailDiscovery? detail = null,
         string? remoteType = null)
     {
@@ -25,7 +25,7 @@ public sealed class JobPost
         Title = title;
         DetailPath = detailPath;
         Location = location;
-        DaysOld = daysOld;
+        PostedDate = postedDate;
         CreatedAt = createdAt;
         RemoteType = remoteType;
         JobLink = jobLink ?? throw new ArgumentNullException(nameof(jobLink));
@@ -41,11 +41,11 @@ public sealed class JobPost
     public string Title { get; private set; } = string.Empty;
     public string DetailPath { get; private set; } = string.Empty;
     public string? Location { get; private set; }
-    public int? DaysOld { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public JobPostDetail? Detail { get; private set; }
     public string? RemoteType { get; private set; }
     public Uri JobLink { get; private set; } = null!;
+    public DateTime? PostedDate { get; private set; }
 
     public void HydrateDetail(JobPostDetailDiscovery detail)
     {
@@ -62,14 +62,8 @@ public sealed class JobPost
             detail.FetchedAt);
         RequisitionId = detail.RequisitionId ?? RequisitionId;
         RemoteType = detail.RemoteType ?? RemoteType;
+        PostedDate = detail.PostedDate ?? PostedDate;
         // TODO: Update Location to include location details from the job post detail if available
-    }
-
-    public void UpdateDiscoveryData(string? location, int? daysOld, string? remoteType)
-    {
-        Location = location;
-        DaysOld = daysOld;
-        RemoteType = remoteType;
     }
 
 }

@@ -66,9 +66,6 @@ namespace Eats.Ingestion.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<int?>("DaysOld")
-                        .HasColumnType("integer");
-
                     b.Property<string>("DetailPath")
                         .IsRequired()
                         .HasColumnType("text");
@@ -79,6 +76,9 @@ namespace Eats.Ingestion.Migrations
 
                     b.Property<string>("Location")
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("PostedDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("RemoteType")
                         .HasColumnType("text");

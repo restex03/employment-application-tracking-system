@@ -7,7 +7,7 @@ public sealed class JobPostQuery
     public required string? RequisitionId { get; init; }
     public required string? Title { get; init; }
     public required string? Location { get; init; }
-    public required int? DaysOld { get; init; }
+    public required DateTime? PostedDate { get; init; }
     public required double? JobMatchScore { get; init; }
     public required string? ApplicationStatus { get; init; }
 }

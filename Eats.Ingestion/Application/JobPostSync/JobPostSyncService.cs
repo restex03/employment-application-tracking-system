@@ -57,7 +57,7 @@ public interface IJobPostSyncService
                 discovery.JobLink,
                 discovery.RequisitionId,
                 discovery.Location,
-                discovery.DaysOld,
+                postedDate: discovery.PostedDate,
                 remoteType: discovery.RemoteType);
         }
      }

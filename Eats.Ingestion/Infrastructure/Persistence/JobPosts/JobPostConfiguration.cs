@@ -29,7 +29,7 @@ public sealed class JobPostConfiguration : IEntityTypeConfiguration<JobPost>
                 value => new Uri(value, UriKind.Absolute))
             .HasColumnType("TEXT");
         builder.Property(x => x.Location);
-        builder.Property(x => x.DaysOld);
+        builder.Property(x => x.PostedDate);
         builder.Property(x => x.RemoteType);
         builder.Property(x => x.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")

@@ -1,4 +1,5 @@
 import { FastifyInstance } from "fastify";
+import { z } from "zod";
 
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
 import { IRouteRegistrar } from "../Host/IRouteRegistrar";
@@ -15,10 +16,9 @@ export interface JobPostQuery {
     requisitionId?: string;
     title?: string;
     location?: string;
-    daysOld?: string;
+    postedDate?: string;
     jobMatchScore?: number;
     applicationStatus?: string;
-    includeDismissed?: string;
 }
 
 export class JobPostRoutes implements IRouteRegistrar {
@@ -30,7 +30,12 @@ export class JobPostRoutes implements IRouteRegistrar {
     public register(server: FastifyInstance): void {
         server.get<{
             Querystring: JobPostQuery;
-        }>("/job-posts", { schema: { tags: ["Job Posts"] } }, async (request, reply) => {
+        }>("/job-posts", {
+            schema: {
+                tags: ["Job Posts"],
+                description: "List job posts. Optional postedDate is an ISO 8601 timestamp with a timezone; includes jobs posted on or after it.",
+            },
+        }, async (request, reply) => {
             try {
                 this.logger.info(`[${request.method}]  ${request.url} Retrieving job posts`);
                 const pageCount = parseInt(request.query.pageCount || "10");
@@ -40,18 +45,20 @@ export class JobPostRoutes implements IRouteRegistrar {
                     rawJobMatchScore !== undefined && `${rawJobMatchScore}`.trim() !== ""
                         ? Number(rawJobMatchScore)
                         : undefined;
-                const rawDaysOld = request.query.daysOld;
-                const daysOld =
-                    rawDaysOld !== undefined && `${rawDaysOld}`.trim() !== "" ? Number(rawDaysOld) : undefined;
-                const queryFilters = {
+                const rawPostedDate = request.query.postedDate?.trim();
+                if (rawPostedDate && !z.iso.datetime({ offset: true }).safeParse(rawPostedDate).success) {
+                    const errorMessage = "postedDate must be an ISO 8601 timestamp with a timezone.";
+                    this.logger.warn(`[${request.method}]  ${request.url} ${errorMessage}`);
+                    return reply.code(400).send({ error: errorMessage });
+                }
+                const queryFilters: JobPostQueryFilters = {
                     companyName: request.query.companyName?.trim() ?? "",
                     requisitionId: request.query.requisitionId?.trim() ?? "",
                     title: request.query.title?.trim() ?? "",
                     location: request.query.location?.trim() ?? "",
-                    daysOld: Number.isNaN(daysOld) ? undefined : daysOld,
+                    postedDate: rawPostedDate || undefined,
                     jobMatchScore: Number.isNaN(jobMatchScore) ? undefined : jobMatchScore,
                     applicationStatus: request.query.applicationStatus?.trim() || undefined,
-                    includeDismissed: request.query.includeDismissed === "true",
                 } as JobPostQueryFilters;
                 const result = await this.jobPostService.list(pageCount, pageNumber, queryFilters);
                 return result;

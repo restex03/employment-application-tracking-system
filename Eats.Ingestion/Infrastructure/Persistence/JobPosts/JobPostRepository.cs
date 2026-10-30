@@ -51,7 +51,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             var suffix = index.ToString(CultureInfo.InvariantCulture);
             values.Add(
                 $"(@Id{suffix}, @SourceId{suffix}, @RequisitionId{suffix}, @Title{suffix}, " +
-                $"@DetailPath{suffix}, @JobLink{suffix}, @Location{suffix}, @DaysOld{suffix}, @RemoteType{suffix}, " +
+                $"@DetailPath{suffix}, @JobLink{suffix}, @Location{suffix}, @PostedDate{suffix}, @RemoteType{suffix}, " +
                 $"@CreatedAt{suffix})");
             parameters.Add(new NpgsqlParameter($"Id{suffix}", jobPost.Id));
             parameters.Add(new NpgsqlParameter($"SourceId{suffix}", jobPost.SourceId));
@@ -60,7 +60,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             parameters.Add(new NpgsqlParameter($"DetailPath{suffix}", jobPost.DetailPath));
             parameters.Add(new NpgsqlParameter($"JobLink{suffix}", jobPost.JobLink.ToString()));
             parameters.Add(new NpgsqlParameter($"Location{suffix}", (object?)jobPost.Location ?? DBNull.Value));
-            parameters.Add(new NpgsqlParameter($"DaysOld{suffix}", (object?)jobPost.DaysOld ?? DBNull.Value));
+            parameters.Add(new NpgsqlParameter($"PostedDate{suffix}", (object?)jobPost.PostedDate ?? DBNull.Value));
             parameters.Add(new NpgsqlParameter($"RemoteType{suffix}", (object?)jobPost.RemoteType ?? DBNull.Value));
             parameters.Add(new NpgsqlParameter($"CreatedAt{suffix}", jobPost.CreatedAt));
             index++;
@@ -75,7 +75,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
                 "{nameof(JobPost.DetailPath)}",
                 "{nameof(JobPost.JobLink)}",
                 "{nameof(JobPost.Location)}",
-                "{nameof(JobPost.DaysOld)}",
+                "{nameof(JobPost.PostedDate)}",
                 "{nameof(JobPost.RemoteType)}",
                 "{nameof(JobPost.CreatedAt)}"
             )
@@ -83,7 +83,6 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             ON CONFLICT ("{nameof(JobPost.SourceId)}", "{nameof(JobPost.DetailPath)}")
             DO UPDATE SET
                 "{nameof(JobPost.Location)}" = EXCLUDED."{nameof(JobPost.Location)}",
-                "{nameof(JobPost.DaysOld)}" = EXCLUDED."{nameof(JobPost.DaysOld)}",
                 "{nameof(JobPost.RemoteType)}" = EXCLUDED."{nameof(JobPost.RemoteType)}"
             """;
 
@@ -223,9 +222,9 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
                 EF.Functions.ILike(jobPost.Location, locationPattern, "\\"));
         }
 
-        if (query.DaysOld.HasValue)
+        if (query.PostedDate.HasValue)
         {
-            queryable = queryable.Where(jobPost => jobPost.DaysOld <= query.DaysOld.Value);
+            queryable = queryable.Where(jobPost => jobPost.PostedDate >= query.PostedDate.Value);
         }
 
         queryable = queryable

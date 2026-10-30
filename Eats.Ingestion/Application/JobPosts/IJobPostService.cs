@@ -77,7 +77,7 @@ public interface IJobPostService
                 Title = jobPost.Title,
                 DetailPath = jobPost.DetailPath,
                 Location = jobPost.Location,
-                DaysOld = jobPost.DaysOld,
+                PostedDate = jobPost.PostedDate,
                 CreatedAt = jobPost.CreatedAt,
                 Detail = MapToDto(jobPost.Detail),
                 RemoteType = jobPost.RemoteType,

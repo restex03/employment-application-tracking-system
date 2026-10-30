@@ -7,6 +7,7 @@ public sealed record JobPostDetailDiscovery(
     string? RemoteType,
     string? EmploymentType = null,
     JobPostLocation[]? Locations = null,
+    DateTime? PostedDate = null,
     string? ValidThrough = null,
     string[]? ApplicantLocations = null,
     DateTime FetchedAt = default);

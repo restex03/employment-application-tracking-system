@@ -1,5 +1,6 @@
 import { IJobPost } from "../../Domain/JobPosts/IJobPost";
 import { ILogger } from "../Logging/ILogger";
+import { z } from "zod";
 
 
 export interface JobPostQueryFilters {
@@ -7,7 +8,7 @@ export interface JobPostQueryFilters {
     requisitionId: string;
     title: string;
     location: string;
-    daysOld?: number;
+    postedDate?: string;
     jobMatchScore?: number;
     applicationStatus?: string;
 }
@@ -48,7 +49,7 @@ export class JobPostGateway implements IJobPostGateway {
             throw new Error(errorMessage);
         }
 
-        return await response.json();
+        return this.validateJobPost(await response.json());
     }
 
     public async list(pageCount: number, pageNumber: number, queryFilters: JobPostQueryFilters): Promise<IJobPost[]> {
@@ -77,8 +78,22 @@ export class JobPostGateway implements IJobPostGateway {
             throw new Error(errorMessage);
         }
 
-        return await response.json();
+        const jobPosts: IJobPost[] = await response.json();
+        return jobPosts.map(jobPost => this.validateJobPost(jobPost));
     }
-    
 
+    private validateJobPost(jobPost: IJobPost): IJobPost {
+        const postedDate = jobPost.postedDate;
+        if (postedDate === undefined || postedDate === null) {
+            return jobPost;
+        }
+
+        if (!z.iso.datetime({ offset: true }).safeParse(postedDate).success) {
+            const errorMessage = `Invalid postedDate returned for job post ${jobPost.id}: ${postedDate}`;
+            this.logger.error(errorMessage);
+            throw new Error(errorMessage);
+        }
+
+        return jobPost;
+    }
 }

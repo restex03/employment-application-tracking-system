@@ -6,7 +6,8 @@ export interface JobPostQueryFilters {
     requisitionId: string;
     title: string;
     location: string;
-    daysOld?: number;
+    /** Inclusive lower bound: return jobs posted on or after this timestamp. */
+    postedDate?: string;
     jobMatchScore?: number;
     applicationStatus?: string;
 }

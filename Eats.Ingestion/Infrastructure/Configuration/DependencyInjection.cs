@@ -29,7 +29,7 @@ public static class DependencyInjection
                 tags: ["ready"]
             );
         
-
+        services.AddSingleton<IWorkdayParser, IWorkdayParser.Imp>();
         services.AddWorkdayHttpClientWithRetries();
         return services;
     }

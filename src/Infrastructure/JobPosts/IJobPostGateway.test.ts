@@ -18,7 +18,7 @@ describe("JobPostGateway", () => {
     });
 
     it("gets a job post by ID and returns its JSON response", async () => {
-        const result = { id: "post-1", title: "Developer" };
+        const result = { id: "post-1", title: "Developer", postedDate: "2026-10-29T12:00:00.1234567Z" };
         const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(result)));
         vi.stubGlobal("fetch", fetchMock);
         const gateway = new JobPostGateway("https://ingestion.example.com", logger);
@@ -26,7 +26,7 @@ describe("JobPostGateway", () => {
         await expect(gateway.getById("post-1")).resolves.toEqual(result);
 
         const [url, init] = fetchMock.mock.calls[0];
-        expect(url.href).toBe("https://ingestion.example.com/api/api/api/ingestion/jobPosts/post-1");
+        expect(url.href).toBe("https://ingestion.example.com/api/ingestion/jobPosts/post-1");
         expect(init).toEqual({ method: "GET", headers: { Accept: "application/json" } });
     });
 
@@ -72,7 +72,7 @@ describe("JobPostGateway", () => {
     });
 
     it("sends all included filters with GET and returns the JSON response", async () => {
-        const result = { data: [], totalCount: 0 };
+        const result = [{ id: "post-1", postedDate: "2026-10-29T12:00:00Z" }];
         const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(result)));
         vi.stubGlobal("fetch", fetchMock);
         const gateway = new JobPostGateway("https://ingestion.example.com", logger);
@@ -82,7 +82,7 @@ describe("JobPostGateway", () => {
             requisitionId: "REQ/123",
             title: "C# developer",
             location: "New York",
-            daysOld: 0,
+            postedDate: "2026-10-29T15:00:00.1234567+03:00",
             jobMatchScore: 0,
             applicationStatus: "Applied",
         })).resolves.toEqual(result);
@@ -96,7 +96,7 @@ describe("JobPostGateway", () => {
             requisitionId: "REQ/123",
             title: "C# developer",
             location: "New York",
-            daysOld: "0",
+            postedDate: "2026-10-29T15:00:00.1234567+03:00",
             jobMatchScore: "0",
             applicationStatus: "Applied",
         });
@@ -104,7 +104,7 @@ describe("JobPostGateway", () => {
     });
 
     it("omits blank strings and undefined optional filters", async () => {
-        const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: [], totalCount: 0 })));
+        const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify([])));
         vi.stubGlobal("fetch", fetchMock);
         const gateway = new JobPostGateway("https://ingestion.example.com", logger);
 
@@ -113,7 +113,7 @@ describe("JobPostGateway", () => {
             requisitionId: " ",
             title: "\t",
             location: "",
-            daysOld: undefined,
+            postedDate: undefined,
             applicationStatus: "",
         });
 
@@ -122,6 +122,28 @@ describe("JobPostGateway", () => {
             pageNumber: "1",
         });
     });
+
+    it.each([null, undefined])("preserves an unknown postedDate (%s)", async postedDate => {
+        vi.stubGlobal("fetch", vi.fn().mockImplementation(async () =>
+            new Response(JSON.stringify({ id: "post-1", postedDate }))
+        ));
+        const gateway = new JobPostGateway("https://ingestion.example.com", logger);
+
+        expect((await gateway.getById("post-1"))?.postedDate).toBe(postedDate);
+    });
+
+    it.each(["not-a-date", "2026-02-30T00:00:00Z", "2026-10-29T12:00:00"])(
+        "logs and rejects invalid ingestion postedDate %s",
+        async postedDate => {
+            vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+                new Response(JSON.stringify({ id: "post-1", postedDate }))
+            ));
+            const gateway = new JobPostGateway("https://ingestion.example.com", logger);
+
+            await expect(gateway.getById("post-1")).rejects.toThrow("Invalid postedDate");
+            expect(logger.error).toHaveBeenCalledOnce();
+        }
+    );
 
     it("logs and throws on HTTP failure", async () => {
         vi.stubGlobal("fetch", vi.fn().mockResolvedValue(

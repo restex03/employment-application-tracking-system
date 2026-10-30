@@ -9,5 +9,5 @@ public sealed record JobPostDiscoveryDto(
     Uri JobLink,
     string? RequisitionId,
     string? Location,
-    int? DaysOld,
+    DateTime? PostedDate, 
     string? RemoteType) : IJobScreenCriteria;
