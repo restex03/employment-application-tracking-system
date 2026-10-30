@@ -15,7 +15,7 @@ export class IngestionServiceGateway implements IIngestionServiceGateway {
     ) {}
 
     public async getQueueTaskById(taskId: string): Promise<IJobPostSyncTask> {
-        const path = `/ingestion/queueTasks/${taskId}`;
+        const path = `/api/ingestion/queueTasks/${taskId}`;
         return this.requestJson(path, {
             method: "GET",
             headers: {
@@ -25,7 +25,7 @@ export class IngestionServiceGateway implements IIngestionServiceGateway {
     }
 
     public async getActiveSyncTasks(): Promise<IJobPostSyncTask[]> {
-        const path = `/ingestion/queueTasks?active=true`;
+        const path = `/api/ingestion/queueTasks?active=true`;
         return this.requestJson(path, {
             method: "GET",
             headers: {
@@ -35,7 +35,7 @@ export class IngestionServiceGateway implements IIngestionServiceGateway {
     }
 
     public async initiateJobPostSyncTask(taskRequest: { sourceIds: string[]; searchText: string; }): Promise<string> {
-        const path = `/api/ingestion/queueTasks`;
+        const path = `/api/api/ingestion/queueTasks`;
         const body = {
             ...taskRequest,
             type: "SyncJobPosts"
