@@ -230,7 +230,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
         queryable = queryable
             .OrderBy(jobPost => jobPost.CreatedAt)
             .ThenBy(jobPost => jobPost.Id)
-            .Skip(query.PageNumber * query.PageCount)
+            .Skip((query.PageNumber - 1) * query.PageCount)
             .Take(query.PageCount);
 
         return await queryable.ToListAsync(ct);
