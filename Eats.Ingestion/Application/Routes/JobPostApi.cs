@@ -12,7 +12,7 @@ public static class JobPostApi
         return group;
     }
 
-    public static async Task<Ok<IReadOnlyList<JobPostDto>>> List(JobPostQuery queryParams, IJobPostService jobPostService, CancellationToken ct)
+    public static async Task<Ok<IReadOnlyList<JobPostDto>>> List([AsParameters] JobPostQuery queryParams, IJobPostService jobPostService, CancellationToken ct)
     {
         var result = await jobPostService.ListAsync(queryParams, ct);
         return TypedResults.Ok(result);
