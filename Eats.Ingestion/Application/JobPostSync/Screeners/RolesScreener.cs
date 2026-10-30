@@ -11,7 +11,7 @@ public class RolesScreener: IScreener
             .ToArray();
     }
 
-    private static readonly Regex[] PassList = CreatePatterns(
+    private static readonly Regex[] AllowList = CreatePatterns(
         @"\bsoftware\b",
         @"\bdeveloper\b",
         @"\bdevelopment\b",
@@ -55,7 +55,7 @@ public class RolesScreener: IScreener
         @"\btechnical staff\b",
         @"\engineer\b");
 
-    private static readonly Regex[] FailList = CreatePatterns(
+    private static readonly Regex[] RejectList = CreatePatterns(
         @"\brecruit(?:er|ing|ment)?\b",
         @"\btalent acquisition\b",
         @"\bproject manager\b",
@@ -71,11 +71,11 @@ public class RolesScreener: IScreener
 
     public bool IsSatisfiedBy(IJobScreenCriteria job)
     {
-        if (FailList.Any(pattern => pattern.IsMatch(job.Title)))
+        if (RejectList.Any(pattern => pattern.IsMatch(job.Title)))
         {
             return false;
         }
 
-        return PassList.Any(x => x.IsMatch(job.Title));
+        return AllowList.Any(x => x.IsMatch(job.Title));
     }
 }

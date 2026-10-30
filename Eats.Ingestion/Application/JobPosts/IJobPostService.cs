@@ -9,8 +9,8 @@ public interface IJobPostService
 {
     Task AddMany(IEnumerable<JobPost> jobPosts, CancellationToken cancellationToken = default);
     Task Update(JobPost jobPost, CancellationToken cancellationToken = default);
-    Task<JobPost> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<JobPostViewModel>> ListAsync(JobPostQuery query, CancellationToken ct);
+    Task<JobPostDto> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<JobPostDto>> ListAsync(JobPostQuery query, CancellationToken ct);
 
     public class Imp(
         IJobPostRepository jobPostRepository,
@@ -31,7 +31,7 @@ public interface IJobPostService
             return jobPostRepository.UpsertAsync(jobPost, cancellationToken);
         }
 
-        public async Task<JobPost> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<JobPostDto> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default)
         {
             var jobPost = await jobPostRepository.GetByIdOrThrowAsync(id, cancellationToken);
             
@@ -47,7 +47,7 @@ public interface IJobPostService
                 await jobPostRepository.UpsertAsync(jobPost, cancellationToken);
             }
 
-            return jobPost;
+            return MapToViewModel(jobPost);
 
         }
 
@@ -59,7 +59,7 @@ public interface IJobPostService
             return source ?? throw new InvalidOperationException($"Job source not found: {sourceId}");
         }
 
-        public async Task<IReadOnlyList<JobPostViewModel>> ListAsync(JobPostQuery query, CancellationToken ct)
+        public async Task<IReadOnlyList<JobPostDto>> ListAsync(JobPostQuery query, CancellationToken ct)
         {
             var result = await jobPostRepository.ListAsync(query, ct);
 
@@ -67,9 +67,9 @@ public interface IJobPostService
             return mapped;
         }
 
-        private JobPostViewModel MapToViewModel(JobPost jobPost)
+        private JobPostDto MapToViewModel(JobPost jobPost)
         {
-            return new JobPostViewModel
+            return new JobPostDto
             {
                 Id = jobPost.Id,
                 SourceId = jobPost.SourceId,
@@ -79,24 +79,24 @@ public interface IJobPostService
                 Location = jobPost.Location,
                 DaysOld = jobPost.DaysOld,
                 CreatedAt = jobPost.CreatedAt,
-                Detail = MapToViewModel(jobPost.Detail),
+                Detail = MapToDto(jobPost.Detail),
                 RemoteType = jobPost.RemoteType,
             };
         }
 
-        private static JobPostDetailViewModel? MapToViewModel(JobPostDetail? detail)
+        private static JobPostDetailDto? MapToDto(JobPostDetail? detail)
         {
             if (detail is null)
             {
                 return null;
             }
 
-            return new JobPostDetailViewModel
+            return new JobPostDetailDto
             {
                 Id = detail.Id,
                 Description = detail.Description,
                 EmploymentType = detail.EmploymentType,
-                Locations = detail.Locations?.Select(location => new JobPostLocationViewModel
+                Locations = detail.Locations?.Select(location => new JobPostLocationDto
                 {
                     StreetAddress = location.StreetAddress,
                     City = location.City,

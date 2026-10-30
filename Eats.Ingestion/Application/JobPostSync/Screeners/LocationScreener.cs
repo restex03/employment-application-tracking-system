@@ -12,7 +12,7 @@ public class LocationScreener : IScreener
             .ToArray();
     }
         
-    private static readonly Regex[] PassList = CreatePatterns(
+    private static readonly Regex[] AllowList = CreatePatterns(
         // Atlanta and surrounding metro areas
         @"\batlanta\b",
         @"\balpharetta\b",
@@ -85,6 +85,6 @@ public class LocationScreener : IScreener
             return true;
         }
         
-        return PassList.Any(x => x.IsMatch(job.Location));
+        return AllowList.Any(x => x.IsMatch(job.Location));
     }
 }

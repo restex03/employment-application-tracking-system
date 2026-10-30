@@ -10,14 +10,10 @@ namespace Eats.Ingestion.Application.JobPostSync;
 
 public interface ITaskQueueService
 {
-   
-    
-
-
-    Task<QueueTaskViewModel> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<QueueTaskDto> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<JobPostSyncQueueTask>> AddAsync(JobPostSyncTask task, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<QueueTaskViewModel>> GetAllActiveAsync(CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<QueueTaskViewModel>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<QueueTaskDto>> GetAllActiveAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<QueueTaskDto>> GetAllAsync(CancellationToken cancellationToken = default);
 
     public sealed class Imp(
         ITaskQueue taskQueue,
@@ -26,7 +22,7 @@ public interface ITaskQueueService
     : ITaskQueueService
     {
 
-        public async Task<QueueTaskViewModel> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<QueueTaskDto> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default)
         {
             logger.LogDebug($"[ITaskQueueService.Imp.GetByIdOrThrowAsync] Getting queue task by id {id}", id);
             var qt = await taskQueue.GetTaskByIdOrThrowAsync(id, cancellationToken);
@@ -34,14 +30,14 @@ public interface ITaskQueueService
             return result;
         }
 
-        public async Task<IReadOnlyList<QueueTaskViewModel>> GetAllActiveAsync(CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<QueueTaskDto>> GetAllActiveAsync(CancellationToken cancellationToken = default)
         {
             logger.LogDebug("[ITaskQueueService.Imp.GetAllActiveAsync] Getting all active queue tasks");
             var result = await taskQueue.GetAllActive(cancellationToken);
             return result.Select(MapToViewModel).ToList();
         }
 
-        public async Task<IReadOnlyList<QueueTaskViewModel>> GetAllAsync(CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<QueueTaskDto>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             logger.LogDebug("[ITaskQueueService.Imp.GetAllAsync] Getting all queue tasks");
             var result = await taskQueue.GetAllAsync(cancellationToken);
@@ -67,7 +63,7 @@ public interface ITaskQueueService
             return queueTasks;
         }
 
-        private static QueueTaskViewModel MapToViewModel(QueueTask task)
+        private static QueueTaskDto MapToViewModel(QueueTask task)
         {
             var status = task.Status switch
             {
@@ -77,7 +73,7 @@ public interface ITaskQueueService
                 QueueTaskStatusDomain.Failed => QueueTaskStatus.Failed,
                 _ => throw new InvalidOperationException($"Unknown status: {task.Status}")
             };
-            return new QueueTaskViewModel
+            return new QueueTaskDto
             {
                 Id = task.Id,
                 Status = status,

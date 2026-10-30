@@ -1,6 +1,6 @@
 namespace Eats.Ingestion.Infrastructure.JobSources.Workday;
 
-public sealed class JobLinkBuilder : IJobLinkBuilder
+public sealed class WorkdayJobLinkBuilder : IJobLinkBuilder
 {
     public Uri BuildJobLink(Uri detailBaseUrl, string detailPath)
     {

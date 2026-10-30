@@ -2,9 +2,9 @@ using Eats.Ingestion.Infrastructure.Persistence.JobSources;
 
 public interface IJobSourceService
 {
-    Task<JobSourceResponse> GetByIdOrThrow(Guid id, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<JobSourceResponse>> GetAll(CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<JobSourceResponse>> GetByCompanyName(string companyName, CancellationToken cancellationToken = default);
+    Task<JobSourceDto> GetByIdOrThrow(Guid id, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<JobSourceDto>> GetAll(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<JobSourceDto>> GetByCompanyName(string companyName, CancellationToken cancellationToken = default);
 
     // TODO: Add upsert operations
 
@@ -18,10 +18,10 @@ public interface IJobSourceService
 
         private readonly IJobSourceRepository _jobSourceRepository;
 
-        public async Task<IReadOnlyList<JobSourceResponse>> GetAll(CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<JobSourceDto>> GetAll(CancellationToken cancellationToken = default)
         {
             var result = await _jobSourceRepository.GetAllAsync(cancellationToken);
-            return result.Select(source => new JobSourceResponse
+            return result.Select(source => new JobSourceDto
             {
                 Id = source.Id,
                 CompanyName = source.CompanyName,
@@ -30,10 +30,10 @@ public interface IJobSourceService
             }).ToList();
         }
 
-        public async Task<JobSourceResponse> GetByIdOrThrow(Guid id, CancellationToken cancellationToken = default)
+        public async Task<JobSourceDto> GetByIdOrThrow(Guid id, CancellationToken cancellationToken = default)
         {
             var result = await _jobSourceRepository.GetByIdOrThrowAsync(id, cancellationToken);
-            return new JobSourceResponse
+            return new JobSourceDto
             {
                 Id = result.Id,
                 CompanyName = result.CompanyName,
@@ -42,10 +42,10 @@ public interface IJobSourceService
             };
         }
 
-        public async Task<IReadOnlyList<JobSourceResponse>> GetByCompanyName(string companyName, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<JobSourceDto>> GetByCompanyName(string companyName, CancellationToken cancellationToken = default)
         {
             var result = await _jobSourceRepository.GetByCompanyNameAsync(companyName, cancellationToken);
-            return result.Select(source => new JobSourceResponse
+            return result.Select(source => new JobSourceDto
             {
                 Id = source.Id,
                 CompanyName = source.CompanyName,
@@ -56,11 +56,11 @@ public interface IJobSourceService
     }
 }
 
-public class JobSourceResponse
+public class JobSourceDto
 {
     public required Guid Id { get; init; }
     public required string CompanyName { get; init; }
-    public required string BaseUrl { get; set; }
-    public required string BrowserBaseUrl { get; set; }
+    public required string BaseUrl { get; init; }
+    public required string BrowserBaseUrl { get; init; }
 
 }

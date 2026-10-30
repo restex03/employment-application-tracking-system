@@ -28,7 +28,7 @@ export class JobPostGateway implements IJobPostGateway {
     constructor(private readonly baseUrl: string, private readonly logger: ILogger) {
     }
     public async getById(id: string): Promise<IJobPost | undefined> {
-        const path = `/ingestion/jobPosts/${encodeURIComponent(id)}`;
+        const path = `/api/ingestion/jobPosts/${encodeURIComponent(id)}`;
         const fullUrl = new URL(`${path}`, this.baseUrl);
         const response = await fetch(fullUrl, {
             method: "GET",
@@ -52,7 +52,7 @@ export class JobPostGateway implements IJobPostGateway {
     }
 
     public async list(pageCount: number, pageNumber: number, queryFilters: JobPostQueryFilters): Promise<IJobPost[]> {
-        const path = `/ingestion/jobPosts`;
+        const path = `/api/ingestion/jobPosts`;
         const fullURL = new URL(`${path}`, this.baseUrl);
         fullURL.searchParams.append("pageCount", pageCount.toString());
         fullURL.searchParams.append("pageNumber", pageNumber.toString());

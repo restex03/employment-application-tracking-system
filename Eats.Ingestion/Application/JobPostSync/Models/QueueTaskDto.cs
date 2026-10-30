@@ -1,5 +1,5 @@
 
-public sealed class QueueTaskViewModel
+public sealed class QueueTaskDto
 {
     public required Guid Id { get; init; }
     public required QueueTaskStatus Status { get; init; }

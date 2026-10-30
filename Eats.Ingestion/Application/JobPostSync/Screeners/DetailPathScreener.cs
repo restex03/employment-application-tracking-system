@@ -14,7 +14,7 @@ public sealed class DetailPathScreener : IScreener
 
     // A known overseas location or a remote role restricted to another US state is not eligible.
     // Deliberately narrow: unknown codes remain eligible for closer inspection.
-private static readonly Regex[] FailList = CreatePatterns(
+private static readonly Regex[] AllowList = CreatePatterns(
     @"\bindia\b",
     @"\bbengaluru\b",
     @"\bbangalore\b",
@@ -69,6 +69,6 @@ private static readonly Regex[] FailList = CreatePatterns(
         var path = job.DetailPath;
         if (string.IsNullOrWhiteSpace(path)) return true; // Unresolved, not disqualified.
 
-        return !FailList.Any(x => x.IsMatch(path));
+        return !AllowList.Any(x => x.IsMatch(path));
     }
 }

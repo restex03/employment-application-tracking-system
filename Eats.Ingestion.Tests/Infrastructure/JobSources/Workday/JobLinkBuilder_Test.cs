@@ -2,7 +2,7 @@ using Eats.Ingestion.Infrastructure.JobSources.Workday;
 
 public sealed class JobLinkBuilder_Test
 {
-    private readonly IJobLinkBuilder _sut = new JobLinkBuilder();
+    private readonly IJobLinkBuilder _sut = new WorkdayJobLinkBuilder();
 
     [Theory]
     [InlineData("https://acme.example.com/careers", "jobs/123",

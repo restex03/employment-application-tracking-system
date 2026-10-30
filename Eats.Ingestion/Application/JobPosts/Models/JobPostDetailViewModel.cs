@@ -2,19 +2,19 @@ using Eats.Ingestion.Domain.JobPosts;
 
 namespace Eats.Ingestion.Application.JobPosts.Models;
 
-public sealed class JobPostDetailViewModel
+public sealed class JobPostDetailDto
 {
     public required Guid Id { get; init; }
     public required string Description { get; init; }
     public required string? EmploymentType { get; init; }
-    public required JobPostLocationViewModel[]? Locations { get; init; }
+    public required JobPostLocationDto[]? Locations { get; init; }
     public required string? ValidThrough { get; init; }
     public required string? RemoteType { get; init; }
     public required string[]? ApplicantLocations { get; init; }
     public required DateTime FetchedAt { get; init; }
 }
 
-public sealed class JobPostLocationViewModel
+public sealed class JobPostLocationDto
 {
     public string? StreetAddress { get; init; }
     public string? City { get; init; }

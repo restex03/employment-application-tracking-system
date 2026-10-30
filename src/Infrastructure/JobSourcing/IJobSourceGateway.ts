@@ -32,7 +32,7 @@ export class JobSourceGateway implements IJobSourceGateway {
     }
 
     public async getAll(): Promise<IJobSource[]> {
-        const url = new URL("/ingestion/jobSources", this.baseUrl);
+        const url = new URL("/api/ingestion/jobSources", this.baseUrl);
         const response = await fetch(url.toString(), {
             method: "GET",
             headers: {
@@ -50,7 +50,7 @@ export class JobSourceGateway implements IJobSourceGateway {
     }
 
     public async getAllByCompanyName(companyName: string): Promise<IJobSource | undefined> {
-        const url = new URL(`/ingestion/jobSources?companyName=${encodeURIComponent(companyName)}`, this.baseUrl);
+        const url = new URL(`/api/ingestion/jobSources?companyName=${encodeURIComponent(companyName)}`, this.baseUrl);
         const response = await fetch(url.toString(), {
             method: "GET",
             headers: {

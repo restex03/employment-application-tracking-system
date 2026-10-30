@@ -12,9 +12,6 @@ public sealed class JobPostScreener : IJobPostScreener
         _screeners = screeners;
     }
 
-    private readonly LocationScreener _locationScreener = new();
-    private readonly RolesScreener _roleScreener = new();
-
     public bool ScreenJobPost(IJobScreenCriteria jobPost)
     {
         return _screeners.All(x => x.IsSatisfiedBy(jobPost));

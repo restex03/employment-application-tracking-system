@@ -46,7 +46,7 @@ public interface IJobPostSyncService
         }
 
 
-        private static JobPost CreateJobPost(JobPostDiscovery discovery)
+        private static JobPost CreateJobPost(JobPostDiscoveryDto discovery)
         {
             return new JobPost(
                 Guid.NewGuid(),

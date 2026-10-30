@@ -26,7 +26,7 @@ describe("JobPostGateway", () => {
         await expect(gateway.getById("post-1")).resolves.toEqual(result);
 
         const [url, init] = fetchMock.mock.calls[0];
-        expect(url.href).toBe("https://ingestion.example.com/ingestion/jobPosts/post-1");
+        expect(url.href).toBe("https://ingestion.example.com/api/api/api/ingestion/jobPosts/post-1");
         expect(init).toEqual({ method: "GET", headers: { Accept: "application/json" } });
     });
 
@@ -38,7 +38,7 @@ describe("JobPostGateway", () => {
         await gateway.getById("post/1?#");
 
         expect(fetchMock.mock.calls[0][0].href).toBe(
-            "https://ingestion.example.com/ingestion/jobPosts/post%2F1%3F%23"
+            "https://ingestion.example.com/api/ingestion/jobPosts/post%2F1%3F%23"
         );
     });
 
@@ -52,7 +52,7 @@ describe("JobPostGateway", () => {
         await expect(gateway.getById("missing")).resolves.toBeUndefined();
         expect(fetchMock).toHaveBeenCalledOnce();
         const [url, init] = fetchMock.mock.calls[0];
-        expect(url.href).toBe("https://ingestion.example.com/ingestion/jobPosts/missing");
+        expect(url.href).toBe("https://ingestion.example.com/api/ingestion/jobPosts/missing");
         expect(init).toEqual({ method: "GET", headers: { Accept: "application/json" } });
         expect(jsonSpy).not.toHaveBeenCalled();
         expect(logger.error).toHaveBeenCalledOnce();
@@ -88,7 +88,7 @@ describe("JobPostGateway", () => {
         })).resolves.toEqual(result);
 
         const [url, init] = fetchMock.mock.calls[0];
-        expect(url.pathname).toBe("/ingestion/jobPosts");
+        expect(url.pathname).toBe("/api/ingestion/jobPosts");
         expect(Object.fromEntries(url.searchParams)).toEqual({
             pageCount: "20",
             pageNumber: "0",

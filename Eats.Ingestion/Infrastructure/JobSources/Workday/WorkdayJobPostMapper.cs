@@ -10,7 +10,7 @@ public sealed partial class WorkdayJobPostMapper(
     ILogger<WorkdayJobPostMapper> logger,
     IJobLinkBuilder jobLinkBuilder)
 {
-    public JobPostDiscovery? Map(JobSource jobSource, WorkdayJobPosting posting)
+    public JobPostDiscoveryDto? Map(JobSource jobSource, WorkdayJobPosting posting)
     {
         if (string.IsNullOrWhiteSpace(posting.Title) || string.IsNullOrWhiteSpace(posting.ExternalPath))
         {
@@ -24,7 +24,7 @@ public sealed partial class WorkdayJobPostMapper(
         var match = tail is null ? null : RequisitionIdRegex().Match(tail);
         var requisitionId = match is { Success: true } ? match.Groups[1].Value : posting.ExternalPath;
         var jobLink = jobLinkBuilder.BuildJobLink(new Uri(jobSource.BrowserBaseUrl), posting.ExternalPath);
-        return new JobPostDiscovery(
+        return new JobPostDiscoveryDto(
             jobSource.Id,
             posting.Title,
             posting.ExternalPath,
