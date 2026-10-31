@@ -42,7 +42,7 @@ public sealed class RolesScreenerTests
         Assert.False(sut.IsSatisfiedBy(new JobCriteria(title)));
     }
 
-    private sealed class JobCriteria(string title) : IJobScreenCriteria
+    private sealed class JobCriteria(string title) : IJobPostScreenCriteria
     {
         public string Location { get; } = "NO_OP";
 

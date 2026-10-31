@@ -67,7 +67,7 @@ public sealed class JobPostDetailTests
         Assert.Equal(discovery.ValidThrough, detail.ValidThrough);
         Assert.Equal(discovery.RemoteType, detail.RemoteType);
         Assert.Equal(discovery.ApplicantLocations, detail.ApplicantLocations);
-        Assert.Equal(discovery.FetchedAt, detail.FetchedAt);
+        Assert.Equal(discovery.FetchedAt, detail.IngestionDate);
         Assert.Equal(discovery.RequisitionId, jobPost.RequisitionId);
         Assert.Equal(discovery.RemoteType, jobPost.RemoteType);
     }

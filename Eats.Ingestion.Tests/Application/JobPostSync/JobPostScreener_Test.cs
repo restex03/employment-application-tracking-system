@@ -9,13 +9,13 @@ public sealed class JobPostScreenerTests
     public void ScreenJobPost_ReturnsTrueWhenAllScreenersAcceptThePost()
     {
         var criteria = new JobCriteria();
-        var sut = new JobPostScreener(
+        var sut = new JobScreenService(
         [
             new TestScreener(true),
             new TestScreener(true),
         ]);
 
-        Assert.True(sut.ScreenJobPost(criteria));
+        Assert.True(sut.IsSatisfiedBy(criteria));
     }
 
     [Fact]
@@ -25,22 +25,22 @@ public sealed class JobPostScreenerTests
         var acceptingScreener1 = new TestScreener(true);
         var rejectingScreener = new TestScreener(false);
         var acceptingScreener2 = new TestScreener(true);
-        var sut = new JobPostScreener(
+        var sut = new JobScreenService(
         [
             acceptingScreener1,
             rejectingScreener,
             acceptingScreener2,
         ]);
 
-        Assert.False(sut.ScreenJobPost(criteria));
+        Assert.False(sut.IsSatisfiedBy(criteria));
     }
 
-    private sealed class TestScreener(bool result) : IScreener
+    private sealed class TestScreener(bool result) : IJobPostScreener
     {
-        public bool IsSatisfiedBy(IJobScreenCriteria value) => result;
+        public bool IsSatisfiedBy(IJobPostScreenCriteria value) => result;
     }
 
-    private sealed class JobCriteria : IJobScreenCriteria
+    private sealed class JobCriteria : IJobPostScreenCriteria
     {
         public string Location => "NO_OP";
 

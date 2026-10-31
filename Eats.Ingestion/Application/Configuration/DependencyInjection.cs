@@ -1,5 +1,7 @@
 using Eats.Ingestion.Application.JobPostDiscovery;
 using Eats.Ingestion.Application.JobPostSync;
+using Eats.Ingestion.Application.JobPostSync.Screeners.JobDetails;
+using Eats.Ingestion.Application.JobPostSync.Screeners.JobPosts;
 using Microsoft.FeatureManagement;
 
 public static class DependencyInjection
@@ -11,10 +13,12 @@ public static class DependencyInjection
         services.AddScoped<IJobSourceService, IJobSourceService.Imp>();
         services.AddScoped<IJobPostSyncService, IJobPostSyncService.Imp>();
         services.AddScoped<IJobPostService, IJobPostService.Imp>();
-        services.AddScoped<IJobPostScreener, JobPostScreener>(sp => new JobPostScreener([
-            new DetailPathScreener(),
-            new LocationScreener(),
-            new RolesScreener(),    
+        services.AddScoped<IJobScreenService, JobScreenService>(sp => new JobScreenService([
+            new IJobPostScreener.LocationScreener(),
+            new IJobPostScreener.UriPathScreener(),
+            new IJobPostScreener.TitleScreener(),    
+        ], [
+            new IJobDetailScreener.LocationScreener()
         ]));
 
         services.AddSingleton<IJobPostDiscoveryServiceFactory, IJobPostDiscoveryServiceFactory.Imp>();

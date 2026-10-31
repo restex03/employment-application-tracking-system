@@ -16,7 +16,7 @@ public static class DiscoveryApi
         return group;
     }
 
-    public static async Task<Ok<IReadOnlyList<JobPostDiscoveryDto>>> DiscoverJobPosts(
+    public static async Task<Ok<IReadOnlyList<JobPostDiscovery.JobPostDiscovery>>> DiscoverJobPosts(
         JobPostDiscoveryRequest req, 
         IJobPostDiscoveryServiceFactory svcFactory, 
         IJobSourceRepository jobSourceRepo, 

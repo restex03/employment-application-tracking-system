@@ -10,7 +10,7 @@ public sealed partial class WorkdayJobPostMapper(
     IJobLinkBuilder jobLinkBuilder,
     IWorkdayParser workdayParser)
 {
-    public JobPostDiscoveryDto? Map(JobSource jobSource, WorkdayJobPosting posting)
+    public JobPostDiscovery? Map(JobSource jobSource, WorkdayJobPosting posting)
     {
         if (string.IsNullOrWhiteSpace(posting.Title) || string.IsNullOrWhiteSpace(posting.ExternalPath))
         {
@@ -22,7 +22,7 @@ public sealed partial class WorkdayJobPostMapper(
 
         var requisitionId = workdayParser.ParseRequisitionId(posting.ExternalPath);
         var jobLink = jobLinkBuilder.BuildJobLink(new Uri(jobSource.BrowserBaseUrl), posting.ExternalPath);
-        return new JobPostDiscoveryDto(
+        return new JobPostDiscovery(
             jobSource.Id,
             posting.Title,
             posting.ExternalPath,

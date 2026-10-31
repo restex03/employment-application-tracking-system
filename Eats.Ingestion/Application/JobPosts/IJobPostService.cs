@@ -85,7 +85,7 @@ public interface IJobPostService
                 DetailPath = jobPost.DetailPath,
                 Locations = jobPost.Locations,
                 PostedDate = jobPost.PostedDate,
-                CreatedAt = jobPost.CreatedAt,
+                CreatedAt = jobPost.IngestionDate,
                 Detail = MapToDto(jobPost.Detail),
                 RemoteType = jobPost.RemoteType,
             };
@@ -114,7 +114,7 @@ public interface IJobPostService
                 ValidThrough = detail.ValidThrough,
                 RemoteType = detail.RemoteType,
                 ApplicantLocations = detail.ApplicantLocations,
-                FetchedAt = detail.FetchedAt
+                FetchedAt = detail.IngestionDate
             };
         }
     }

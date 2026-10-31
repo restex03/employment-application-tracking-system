@@ -1,4 +1,7 @@
-namespace Eats.Ingestion.Domain.JobPosts;
+using Eats.Ingestion.Application.JobPostSync.Screeners.JobDetails;
+using Eats.Ingestion.Domain.JobPosts;
+
+
 
 public sealed record JobPostDetailDiscovery(
     string Description,
@@ -10,4 +13,4 @@ public sealed record JobPostDetailDiscovery(
     DateTime? PostedDate = null,
     string? ValidThrough = null,
     string[]? ApplicantLocations = null,
-    DateTime FetchedAt = default);
+    DateTime FetchedAt = default) : IJobDetailScreenCriteria;

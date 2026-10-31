@@ -231,7 +231,7 @@ public sealed class JobPostScreenerLocationTests
         Assert.True(sut.IsSatisfiedBy(data));
     }
 
-    private class LocationCriteria(string location) : IJobScreenCriteria
+    private class LocationCriteria(string location) : IJobPostScreenCriteria
     {
         public string Location { get; set; } = location;
 

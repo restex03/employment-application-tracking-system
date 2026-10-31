@@ -1,5 +1,6 @@
 using Eats.Ingestion.Application.JobPostDiscovery;
 using Eats.Ingestion.Application.JobPostSync;
+using Eats.Ingestion.Application.JobPostSync.Screeners.JobPosts;
 using Eats.Ingestion.Domain.JobPosts;
 using Eats.Ingestion.Infrastructure.Persistence.JobPosts;
 using Eats.Ingestion.Infrastructure.Persistence.JobSources;
@@ -12,7 +13,7 @@ public interface IJobPostSyncService
             IJobSourceRepository jobSourceRepository,
             IJobPostRepository jobPostRepository,
             IJobPostDiscoveryServiceFactory discoveryServiceFactory,
-            IJobPostScreener screener,
+            IJobScreenService screenService,
             ILogger<Imp> logger) 
         : IJobPostSyncService
      {
@@ -32,7 +33,7 @@ public interface IJobPostSyncService
             var discoveryService = discoveryServiceFactory.Create(source);
             var discoveredJobs = await discoveryService.FetchList(searchText, ct);
             var jobPosts = discoveredJobs
-                .Where(screener.ScreenJobPost)
+                .Where(screenService.IsSatisfiedBy)
                 .Select(CreateJobPost)
                 .ToArray();
 
@@ -46,7 +47,7 @@ public interface IJobPostSyncService
         }
 
 
-        private static JobPost CreateJobPost(JobPostDiscoveryDto discovery)
+        private static JobPost CreateJobPost(JobPostDiscovery discovery)
         {
             return new JobPost(
                 Guid.NewGuid(),

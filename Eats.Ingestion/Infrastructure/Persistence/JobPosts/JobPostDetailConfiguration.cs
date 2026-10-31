@@ -26,7 +26,7 @@ public sealed class JobPostDetailConfiguration : IEntityTypeConfiguration<JobPos
         var applicantLocations = builder.Property(x => x.ApplicantLocations)
             .HasConversion(JsonArrayValueConverter<string>.Converter);
         applicantLocations.Metadata.SetValueComparer(JsonArrayValueConverter<string>.Comparer);
-        builder.Property(x => x.FetchedAt)
+        builder.Property(x => x.IngestionDate)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
 

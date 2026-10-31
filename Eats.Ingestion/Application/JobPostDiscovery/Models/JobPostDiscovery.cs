@@ -1,8 +1,9 @@
 using Eats.Ingestion.Application.JobPostSync;
+using Eats.Ingestion.Application.JobPostSync.Screeners.JobPosts;
 
 namespace Eats.Ingestion.Application.JobPostDiscovery;
 
-public sealed record JobPostDiscoveryDto(
+public sealed record JobPostDiscovery(
     Guid SourceId,
     string Title,
     string DetailPath,
@@ -10,4 +11,4 @@ public sealed record JobPostDiscoveryDto(
     string? RequisitionId,
     string? Location,
     DateTime? PostedDate, 
-    string? RemoteType) : IJobScreenCriteria;
+    string? RemoteType) : IJobPostScreenCriteria;

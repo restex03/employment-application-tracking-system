@@ -13,7 +13,7 @@ public sealed class JobPost
         Guid sourceId,
         string title,
         string detailPath,
-        DateTime createdAt,
+        DateTime ingestionDate,
         Uri jobLink,
         string? requisitionId = null,
         string[]? locations = null,
@@ -28,7 +28,7 @@ public sealed class JobPost
         DetailPath = detailPath;
         Locations = locations ?? [];
         PostedDate = postedDate;
-        CreatedAt = createdAt;
+        IngestionDate = ingestionDate;
         RemoteType = remoteType;
         JobLink = jobLink ?? throw new ArgumentNullException(nameof(jobLink));
         if (detail is not null)
@@ -43,7 +43,7 @@ public sealed class JobPost
     public string Title { get; private set; } = string.Empty;
     public string DetailPath { get; private set; } = string.Empty;
     public string[] Locations { get; private set; } = [];
-    public DateTime CreatedAt { get; private set; }
+    public DateTime IngestionDate { get; private set; }
     public JobPostDetail? Detail { get; private set; }
     public string? RemoteType { get; private set; }
     public Uri JobLink { get; private set; } = null!;

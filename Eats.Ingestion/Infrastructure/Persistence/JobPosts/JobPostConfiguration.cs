@@ -33,7 +33,7 @@ public sealed class JobPostConfiguration : IEntityTypeConfiguration<JobPost>
             .IsRequired();
         builder.Property(x => x.PostedDate);
         builder.Property(x => x.RemoteType);
-        builder.Property(x => x.CreatedAt)
+        builder.Property(x => x.IngestionDate)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
 

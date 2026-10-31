@@ -4,12 +4,14 @@ using Eats.Ingestion.Infrastructure.Persistence.JobPosts;
 using Eats.Ingestion.Infrastructure.Persistence.JobSources;
 using Eats.Ingestion.Application.FeatureFlags;
 using Eats.Ingestion.Domain.JobSources;
+using Eats.Ingestion.Application.JobPostSync;
 
 namespace Eats.Ingestion.HostedServices;
 public sealed class JobDetailHydrator(
     IServiceScopeFactory scopeFactory,
     IFeatureManager featureManager,
-    ILogger<JobDetailHydrator> logger) : BackgroundService
+    ILogger<JobDetailHydrator> logger
+    ) : BackgroundService
 {
     private static readonly TimeSpan PollInterval =
         TimeSpan.FromMinutes(15);
@@ -48,6 +50,9 @@ public sealed class JobDetailHydrator(
                 var discoveryFactory = scope.ServiceProvider
                     .GetRequiredService<IJobPostDiscoveryServiceFactory>();
 
+                var jobScreenService = scope.ServiceProvider
+                    .GetRequiredService<IJobScreenService>();
+
                 var batch = await repository.GetNextRandomDryBatchAsync(
                     BatchCount, stoppingToken);
 
@@ -75,7 +80,12 @@ public sealed class JobDetailHydrator(
 
                         var detail = await discoveryService.FetchDetail(
                             jobPost.DetailPath, stoppingToken);
-
+                        
+                        if (!jobScreenService.IsSatisfiedBy(detail))
+                        {
+                            continue;
+                        }
+                            
                         jobPost.HydrateDetail(detail);
 
                         await repository.UpsertAsync(

@@ -61,14 +61,14 @@ namespace Eats.Ingestion.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
                     b.Property<string>("DetailPath")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("IngestionDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("JobLink")
                         .IsRequired()
@@ -119,7 +119,7 @@ namespace Eats.Ingestion.Migrations
                     b.Property<string>("EmploymentType")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("FetchedAt")
+                    b.Property<DateTime>("IngestionDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");

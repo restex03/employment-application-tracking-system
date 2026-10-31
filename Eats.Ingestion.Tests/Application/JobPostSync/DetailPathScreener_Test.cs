@@ -3,7 +3,7 @@ using Xunit;
 
 public sealed class DetailPathScreener_Test
 {
-    private readonly DetailPathScreener _sut = new();
+    private readonly Imp _sut = new();
 
     [Theory]
     [InlineData("/job/India/Software-Engineer_R123")]
@@ -141,7 +141,7 @@ public sealed class DetailPathScreener_Test
 
     // Replace with your concrete IJobScreenCriteria implementation
     // if the interface contains additional required members.
-    private sealed class TestJobScreenCriteria : IJobScreenCriteria
+    private sealed class TestJobScreenCriteria : IJobPostScreenCriteria
     {
         public string DetailPath { get; init; } = string.Empty;
         public string? Location { get; init; } = null;

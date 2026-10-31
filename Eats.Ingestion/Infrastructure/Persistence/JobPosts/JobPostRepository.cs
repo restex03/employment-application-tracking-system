@@ -62,7 +62,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             parameters.Add(new NpgsqlParameter($"Locations{suffix}", jobPost.Locations));
             parameters.Add(new NpgsqlParameter($"PostedDate{suffix}", (object?)jobPost.PostedDate ?? DBNull.Value));
             parameters.Add(new NpgsqlParameter($"RemoteType{suffix}", (object?)jobPost.RemoteType ?? DBNull.Value));
-            parameters.Add(new NpgsqlParameter($"CreatedAt{suffix}", jobPost.CreatedAt));
+            parameters.Add(new NpgsqlParameter($"CreatedAt{suffix}", jobPost.IngestionDate));
             index++;
         }
 
@@ -77,7 +77,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
                 "{nameof(JobPost.Locations)}",
                 "{nameof(JobPost.PostedDate)}",
                 "{nameof(JobPost.RemoteType)}",
-                "{nameof(JobPost.CreatedAt)}"
+                "{nameof(JobPost.IngestionDate)}"
             )
             VALUES {string.Join(",\n", values)}
             ON CONFLICT ("{nameof(JobPost.SourceId)}", "{nameof(JobPost.DetailPath)}")
@@ -133,7 +133,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             detailParameters.Add(new NpgsqlParameter(
                 $"ApplicantLocations{suffix}",
                 SerializeArray(detail.ApplicantLocations)));
-            detailParameters.Add(new NpgsqlParameter($"FetchedAt{suffix}", detail.FetchedAt));
+            detailParameters.Add(new NpgsqlParameter($"FetchedAt{suffix}", detail.IngestionDate));
             index++;
         }
 
@@ -163,7 +163,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
                 "{nameof(JobPostDetail.ValidThrough)}",
                 "{nameof(JobPostDetail.RemoteType)}",
                 "{nameof(JobPostDetail.ApplicantLocations)}",
-                "{nameof(JobPostDetail.FetchedAt)}"
+                "{nameof(JobPostDetail.IngestionDate)}"
             )
             VALUES {string.Join(",\n", detailValues)}
             ON CONFLICT ("{nameof(JobPostDetail.JobPostId)}")
@@ -174,7 +174,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
                 "{nameof(JobPostDetail.ValidThrough)}" = EXCLUDED."{nameof(JobPostDetail.ValidThrough)}",
                 "{nameof(JobPostDetail.RemoteType)}" = EXCLUDED."{nameof(JobPostDetail.RemoteType)}",
                 "{nameof(JobPostDetail.ApplicantLocations)}" = EXCLUDED."{nameof(JobPostDetail.ApplicantLocations)}",
-                "{nameof(JobPostDetail.FetchedAt)}" = EXCLUDED."{nameof(JobPostDetail.FetchedAt)}"
+                "{nameof(JobPostDetail.IngestionDate)}" = EXCLUDED."{nameof(JobPostDetail.IngestionDate)}"
             """;
         await dbContext.Database.ExecuteSqlRawAsync(upsertDetailsSql, detailParameters, cancellationToken);
     }

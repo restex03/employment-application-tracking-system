@@ -14,7 +14,7 @@ public sealed class JobPostDetail
         string? validThrough = null,
         string? remoteType = null,
         string[]? applicantLocations = null,
-        DateTime fetchedAt = default)
+        DateTime ingestionDate = default)
     {
         JobPostId = jobPostId;
         Description = description;
@@ -23,7 +23,7 @@ public sealed class JobPostDetail
         ValidThrough = validThrough;
         RemoteType = remoteType;
         ApplicantLocations = applicantLocations;
-        FetchedAt = fetchedAt;
+        IngestionDate = ingestionDate;
     }
 
     public Guid Id { get; private set; } = Guid.NewGuid();
@@ -34,5 +34,5 @@ public sealed class JobPostDetail
     public string? ValidThrough { get; private set; }
     public string? RemoteType { get; private set; }
     public string[]? ApplicantLocations { get; private set; }
-    public DateTime FetchedAt { get; private set; }
+    public DateTime IngestionDate { get; private set; }
 }
