@@ -241,7 +241,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             queryable = queryable.Where(jobPost => jobPost.PostedDate >= query.PostedDate.Value);
         }
 
-        return queryable;
+        return queryable.Where(x => !x.IsExcluded);
     }
 
     private static string EscapeLikePattern(string value)
@@ -259,7 +259,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
         // UpsertAsync method above uses raw SQL instead of SaveChangesAsync, so 
         // no tracking is needed here.
         var result = await dbContext.JobPosts.AsNoTracking()
-            .Where(jobPost => jobPost.Detail == null)
+            .Where(jobPost => jobPost.Detail == null && !jobPost.IsExcluded)
             .OrderBy(_ => EF.Functions.Random())
             .Take(count)
             .ToListAsync(cancellationToken);

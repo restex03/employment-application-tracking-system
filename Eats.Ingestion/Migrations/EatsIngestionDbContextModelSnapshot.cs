@@ -70,6 +70,9 @@ namespace Eats.Ingestion.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                    b.Property<bool>("IsExcluded")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("JobLink")
                         .IsRequired()
                         .HasColumnType("TEXT");

@@ -48,6 +48,7 @@ public sealed class JobPost
     public string? RemoteType { get; private set; }
     public Uri JobLink { get; private set; } = null!;
     public DateTime? PostedDate { get; private set; }
+    public bool IsExcluded { get; private set; }
 
     public void HydrateDetail(JobPostDetailDiscovery detail)
     {
@@ -93,4 +94,8 @@ public sealed class JobPost
         // TODO: Update Locations to include location details from the job post detail if available
     }
 
+    internal void Exclude()
+    {
+        IsExcluded = true;
+    }
 }

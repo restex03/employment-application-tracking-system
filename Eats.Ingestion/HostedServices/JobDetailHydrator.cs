@@ -83,10 +83,13 @@ public sealed class JobDetailHydrator(
                         
                         if (!jobScreenService.IsSatisfiedBy(detail))
                         {
-                            continue;
+                            jobPost.HydrateDetail(detail);
+                        } 
+                        else
+                        {
+                            jobPost.Exclude();
                         }
                             
-                        jobPost.HydrateDetail(detail);
 
                         await repository.UpsertAsync(
                             jobPost, stoppingToken);
