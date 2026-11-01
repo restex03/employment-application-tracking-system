@@ -17,6 +17,37 @@ import "./JobPostsPage.css";
 
 const CANDIDATE_PROFILE_ID = "russell-estes";
 
+const LOCATIONS_PREVIEW_COUNT = 3;
+
+function JobPostLocationsList({ locations }: { locations: string[] }) {
+    const [expanded, setExpanded] = useState(false);
+    const hiddenCount = locations.length - LOCATIONS_PREVIEW_COUNT;
+    const visibleLocations = expanded ? locations : locations.slice(0, LOCATIONS_PREVIEW_COUNT);
+
+    return (
+        <>
+            <ul className="job-post-locations">
+                {visibleLocations.map((location, index) => (
+                    <li key={index}>{location}</li>
+                ))}
+            </ul>
+            {hiddenCount > 0 && (
+                <button
+                    type="button"
+                    className="locations-toggle-button"
+                    aria-expanded={expanded}
+                    onClick={e => {
+                        e.stopPropagation();
+                        setExpanded(prev => !prev);
+                    }}
+                >
+                    {expanded ? "Less \u25B4" : `More (${hiddenCount}) \u25BE`}
+                </button>
+            )}
+        </>
+    );
+}
+
 type SortableColumn = JobPostSortBy;
 
 interface FilterState {
@@ -557,11 +588,7 @@ function JobPostsPage() {
                                     <td className="detail-path">{jobPost.detailPath}</td>
                                     <td>
                                         {jobPost.locations?.length ? (
-                                            <ul className="job-post-locations">
-                                                {jobPost.locations.map((location, index) => (
-                                                    <li key={index}>{location}</li>
-                                                ))}
-                                            </ul>
+                                            <JobPostLocationsList locations={jobPost.locations} />
                                         ) : "N/A"}
                                     </td>
                                     <td>{formatDate(jobPost.postedDate)}</td>
