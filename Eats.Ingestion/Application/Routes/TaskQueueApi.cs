@@ -1,4 +1,5 @@
 using Eats.Ingestion.Application.JobPostSync;
+using Eats.Ingestion.Application.TaskQueue.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Eats.Ingestion.Application.Routes;
@@ -38,11 +39,11 @@ public static class TaskQueueApi
 
     public interface ITaskQueueRequest
     {
-        public string Type { get; }
+        public QueueTaskType Type { get; }
     }
     public class JobPostSyncRequest : ITaskQueueRequest
     {
-        public required string Type { get; init; }
+        public required QueueTaskType Type { get; init; }
         public required Guid[]? SourceIds { get; init; } = [];
 
         public string? SearchText { get; init; } = "";
