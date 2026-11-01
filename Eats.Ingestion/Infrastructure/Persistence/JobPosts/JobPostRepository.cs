@@ -52,7 +52,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             values.Add(
                 $"(@Id{suffix}, @SourceId{suffix}, @RequisitionId{suffix}, @Title{suffix}, " +
                 $"@DetailPath{suffix}, @JobLink{suffix}, @Locations{suffix}, @PostedDate{suffix}, @RemoteType{suffix}, " +
-                $"@CreatedAt{suffix})");
+                $"@IngestionDate{suffix}, @IsExcluded{suffix})");
             parameters.Add(new NpgsqlParameter($"Id{suffix}", jobPost.Id));
             parameters.Add(new NpgsqlParameter($"SourceId{suffix}", jobPost.SourceId));
             parameters.Add(new NpgsqlParameter($"RequisitionId{suffix}", (object?)jobPost.RequisitionId ?? DBNull.Value));
@@ -62,7 +62,8 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             parameters.Add(new NpgsqlParameter($"Locations{suffix}", jobPost.Locations));
             parameters.Add(new NpgsqlParameter($"PostedDate{suffix}", (object?)jobPost.PostedDate ?? DBNull.Value));
             parameters.Add(new NpgsqlParameter($"RemoteType{suffix}", (object?)jobPost.RemoteType ?? DBNull.Value));
-            parameters.Add(new NpgsqlParameter($"CreatedAt{suffix}", jobPost.IngestionDate));
+            parameters.Add(new NpgsqlParameter($"IngestionDate{suffix}", jobPost.IngestionDate));
+            parameters.Add(new NpgsqlParameter($"IsExcluded{suffix}", jobPost.IsExcluded));
             index++;
         }
 
@@ -77,13 +78,15 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
                 "{nameof(JobPost.Locations)}",
                 "{nameof(JobPost.PostedDate)}",
                 "{nameof(JobPost.RemoteType)}",
-                "{nameof(JobPost.IngestionDate)}"
+                "{nameof(JobPost.IngestionDate)}",
+                "{nameof(JobPost.IsExcluded)}"
             )
             VALUES {string.Join(",\n", values)}
             ON CONFLICT ("{nameof(JobPost.SourceId)}", "{nameof(JobPost.DetailPath)}")
             DO UPDATE SET
                 "{nameof(JobPost.Locations)}" = EXCLUDED."{nameof(JobPost.Locations)}",
-                "{nameof(JobPost.RemoteType)}" = EXCLUDED."{nameof(JobPost.RemoteType)}"
+                "{nameof(JobPost.RemoteType)}" = EXCLUDED."{nameof(JobPost.RemoteType)}",
+                "{nameof(JobPost.IsExcluded)}" = EXCLUDED."{nameof(JobPost.IsExcluded)}"
             """;
 
         await dbContext.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);
@@ -120,7 +123,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             detailValues.Add(
                 $"(@DetailId{suffix}, @JobPostId{suffix}, @Description{suffix}, @EmploymentType{suffix}, " +
                 $"@Locations{suffix}, @ValidThrough{suffix}, @DetailRemoteType{suffix}, " +
-                $"@ApplicantLocations{suffix}, @FetchedAt{suffix})");
+                $"@ApplicantLocations{suffix}, @IngestionDate{suffix})");
             detailParameters.Add(new NpgsqlParameter($"DetailId{suffix}", detail.Id));
             detailParameters.Add(new NpgsqlParameter($"JobPostId{suffix}", jobPost.Id));
             detailParameters.Add(new NpgsqlParameter($"Description{suffix}", detail.Description));
@@ -133,7 +136,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             detailParameters.Add(new NpgsqlParameter(
                 $"ApplicantLocations{suffix}",
                 SerializeArray(detail.ApplicantLocations)));
-            detailParameters.Add(new NpgsqlParameter($"FetchedAt{suffix}", detail.IngestionDate));
+            detailParameters.Add(new NpgsqlParameter($"IngestionDate{suffix}", detail.IngestionDate));
             index++;
         }
 

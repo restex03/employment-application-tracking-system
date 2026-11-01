@@ -122,7 +122,7 @@ export function useJobAssessmentPolling({
                 const response = await fetch(`/api/v1/job-post-assessments/${jobPostId}/${candidateProfileId}`, {
                     method: "POST",
                 });
-
+                
                 if (!response.ok && response.status !== 202) {
                     addToast("error", "Failed to start job assessment.");
                     return;

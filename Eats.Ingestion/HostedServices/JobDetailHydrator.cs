@@ -13,9 +13,11 @@ public sealed class JobDetailHydrator(
     ILogger<JobDetailHydrator> logger
     ) : BackgroundService
 {
-    private static readonly TimeSpan PollInterval =
+    private static readonly TimeSpan CoolDownInterval =
         TimeSpan.FromMinutes(15);
 
+    private static readonly TimeSpan PollingInterval = 
+        TimeSpan.FromSeconds(15);
     private static readonly TimeSpan ThrottleInterval =
         TimeSpan.FromMilliseconds(500);
 
@@ -59,7 +61,7 @@ public sealed class JobDetailHydrator(
                 if (batch.Count == 0)
                 {
                     logger.LogDebug("No job posts require detail hydration");
-                    await ResetAndWait(PollInterval, stoppingToken);
+                    await ResetAndWait(PollingInterval, stoppingToken);
                     continue;
                 }
 
@@ -81,7 +83,7 @@ public sealed class JobDetailHydrator(
                         var detail = await discoveryService.FetchDetail(
                             jobPost.DetailPath, stoppingToken);
                         
-                        if (!jobScreenService.IsSatisfiedBy(detail))
+                        if (jobScreenService.IsSatisfiedBy(detail))
                         {
                             jobPost.HydrateDetail(detail);
                         } 
@@ -124,7 +126,7 @@ public sealed class JobDetailHydrator(
                     logger.LogWarning(
                         "All {JobPostCount} job posts in the hydration batch failed; pausing before retry",
                         batch.Count);
-                    await ResetAndWait(PollInterval, stoppingToken);
+                    await ResetAndWait(CoolDownInterval, stoppingToken);
                 }
             }
             catch (OperationCanceledException)
@@ -139,7 +141,7 @@ public sealed class JobDetailHydrator(
 
                 try
                 {
-                    await ResetAndWait(PollInterval, stoppingToken);
+                    await ResetAndWait(CoolDownInterval, stoppingToken);
                 }
                 catch (OperationCanceledException)
                     when (stoppingToken.IsCancellationRequested)

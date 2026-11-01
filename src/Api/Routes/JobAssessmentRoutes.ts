@@ -67,7 +67,7 @@ export class JobAssessmentRoutes implements IRouteRegistrar {
                 const result = await this.jobAssessmentService.getLatestAssessmentOrThrow(
                     jobPostId,
                     candidateProfileId
-                );
+                ); 
 
                 return reply.code(200).send(result);
             } catch (error) {

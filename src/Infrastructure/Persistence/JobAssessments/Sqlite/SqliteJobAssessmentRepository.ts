@@ -88,9 +88,6 @@ export class SqliteJobAssessmentRepository implements IJobAssessmentRepository {
     public async getLatestAssessmentOrThrow(jobPostId: string, candidateProfileId: string): Promise<IJobAssessment> {
         const result = await this.getLatestAssessment(jobPostId, candidateProfileId);
         if (!result) {
-            this.logger.error(
-                `[JobAssessmentRepository.getLatestAssessmentOrThrow] Assessment with ID ${jobPostId} / ${candidateProfileId} does not exist.`
-            );
             throw new NotFoundError(
                 `[JobAssessmentRepository.getLatestAssessmentOrThrow] Assessment with ID ${jobPostId} / ${candidateProfileId} does not exist.`,
                 "jobPostId / candidateProfileId"

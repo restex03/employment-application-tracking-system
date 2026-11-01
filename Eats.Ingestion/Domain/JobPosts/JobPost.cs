@@ -74,6 +74,7 @@ public sealed class JobPost
             var combined = currentLocations
                 .Concat(cities)
                 .Concat(countries)
+                .Distinct()
                 .OrderBy(x => x)
                 .ToArray();
             Locations = combined;
@@ -94,7 +95,7 @@ public sealed class JobPost
         // TODO: Update Locations to include location details from the job post detail if available
     }
 
-    internal void Exclude()
+    public void Exclude()
     {
         IsExcluded = true;
     }
