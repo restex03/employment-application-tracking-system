@@ -1,9 +1,10 @@
 
+using Eats.Ingestion.Application.JobPostSync.Screeners.JobPosts;
 using Xunit;
 
 public sealed class DetailPathScreener_Test
 {
-    private readonly Imp _sut = new();
+    private readonly IJobPostScreener.UriPathScreener _sut = new();
 
     [Theory]
     [InlineData("/job/India/Software-Engineer_R123")]
@@ -132,7 +133,7 @@ public sealed class DetailPathScreener_Test
 
     private bool Screen(string? detailPath)
     {
-        return _sut.IsSatisfiedBy(
+        return _sut.ScreenJobPost(
             new TestJobScreenCriteria
             {
                 DetailPath = detailPath!

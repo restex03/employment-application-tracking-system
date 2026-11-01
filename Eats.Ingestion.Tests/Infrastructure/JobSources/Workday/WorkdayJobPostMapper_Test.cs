@@ -45,6 +45,9 @@ public sealed class WorkdayJobPostMapper_Test
         _workdayParser
             .Setup(parser => parser.ParseRequisitionId(posting.ExternalPath))
             .Returns("R-123");
+        _workdayParser
+            .Setup(parser => parser.ParseLocations(posting.LocationsText))
+            .Returns("Atlanta, GA");
         var result = _sut.Map(source, posting);
 
         Assert.NotNull(result);
@@ -52,11 +55,12 @@ public sealed class WorkdayJobPostMapper_Test
         Assert.Equal(posting.Title, result.Title);
         Assert.Equal(posting.ExternalPath, result.DetailPath);
         Assert.Equal("R-123", result.RequisitionId);
-        Assert.Equal(posting.LocationsText, result.Location);
+        Assert.Equal("Atlanta, GA", result.Location);
         Assert.Equal(postedDate, result.PostedDate);
         Assert.Equal(posting.RemoteType, result.RemoteType);
         _workdayParser.Verify(parser => parser.ParseRequisitionId(posting.ExternalPath), Times.Once);
         _workdayParser.Verify(parser => parser.MapToPostedDate(posting.PostedOn), Times.Once);
+        _workdayParser.Verify(parser => parser.ParseLocations(posting.LocationsText), Times.Once);
         Assert.Same(jobLink, result.JobLink);
         _jobLinkBuilder.Verify(
             builder => builder.BuildJobLink(new Uri(source.BrowserBaseUrl), posting.ExternalPath),

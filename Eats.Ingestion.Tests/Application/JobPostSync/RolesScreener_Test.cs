@@ -1,4 +1,5 @@
 using Eats.Ingestion.Application.JobPostDiscovery;
+using Eats.Ingestion.Application.JobPostSync.Screeners.JobPosts;
 
 namespace Eats.Ingestion.Tests.Application.JobPostSync;
 
@@ -14,9 +15,9 @@ public sealed class RolesScreenerTests
     [InlineData("Platform Engineer")]
     public void RolePassList_AllowsTechnicalTitles(string title)
     {
-        var sut = new RolesScreener();
+        var sut = new IJobPostScreener.TitleScreener();
 
-        Assert.True(sut.IsSatisfiedBy(new JobCriteria(title)));
+        Assert.True(sut.ScreenJobPost(new JobCriteria(title)));
     }
 
     [Theory]
@@ -25,9 +26,9 @@ public sealed class RolesScreenerTests
     [InlineData("Recruiter")]
     public void RolePassList_RejectsUnmatchedTitles(string title)
     {
-        var sut = new RolesScreener();
+        var sut = new IJobPostScreener.TitleScreener();
 
-        Assert.False(sut.IsSatisfiedBy(new JobCriteria(title)));
+        Assert.False(sut.ScreenJobPost(new JobCriteria(title)));
     }
 
     [Theory]
@@ -37,9 +38,9 @@ public sealed class RolesScreenerTests
     [InlineData("Vice President of Engineering")]
     public void RoleFailList_RejectsTitlesEvenWhenTheyMatchPassList(string title)
     {
-        var sut = new RolesScreener();
+        var sut = new IJobPostScreener.TitleScreener();
 
-        Assert.False(sut.IsSatisfiedBy(new JobCriteria(title)));
+        Assert.False(sut.ScreenJobPost(new JobCriteria(title)));
     }
 
     private sealed class JobCriteria(string title) : IJobPostScreenCriteria

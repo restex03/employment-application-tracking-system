@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using AngleSharp.Svg.Dom;
 using Eats.Ingestion.Application.JobPostSync;
+using Eats.Ingestion.Application.JobPostSync.Screeners.JobPosts;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
 using Xunit;
 
@@ -192,8 +193,8 @@ public sealed class JobPostScreenerLocationTests
     public void LocationPassList_AllowsEligibleOrAmbiguousCsvLocation(string location)
     {
         var data = new LocationCriteria(location);
-        var sut = new LocationScreener();
-        Assert.True(sut.IsSatisfiedBy(data), $"Expected location to pass: {location}");
+        var sut = new IJobPostScreener.LocationScreener();
+        Assert.True(sut.ScreenJobPost(data), $"Expected location to pass: {location}");
     }
         
 
@@ -202,8 +203,8 @@ public sealed class JobPostScreenerLocationTests
     public void LocationPassList_RejectsOutOfAreaCsvLocation(string location)
     {
         var data = new LocationCriteria(location);
-        var sut = new LocationScreener();
-        Assert.False(sut.IsSatisfiedBy(data), $"Expected location to fail: {location}");
+        var sut = new IJobPostScreener.LocationScreener();
+        Assert.False(sut.ScreenJobPost(data), $"Expected location to fail: {location}");
     }
         
 
@@ -216,8 +217,8 @@ public sealed class JobPostScreenerLocationTests
     public void LocationPassList_AllowsUnresolvedLocationCounts(string location)
     {
         var data = new LocationCriteria(location);
-        var sut = new LocationScreener();
-        Assert.True(sut.IsSatisfiedBy(data));
+        var sut = new IJobPostScreener.LocationScreener();
+        Assert.True(sut.ScreenJobPost(data));
     }
         
 
@@ -227,8 +228,8 @@ public sealed class JobPostScreenerLocationTests
     [InlineData("Alpharetta, GA / Bengaluru, India")]
     public void LocationPassList_AllowsMultipleLocationsWhenOneIsEligible(string location) {
         var data = new LocationCriteria(location);
-        var sut = new LocationScreener();
-        Assert.True(sut.IsSatisfiedBy(data));
+        var sut = new IJobPostScreener.LocationScreener();
+        Assert.True(sut.ScreenJobPost(data));
     }
 
     private class LocationCriteria(string location) : IJobPostScreenCriteria
