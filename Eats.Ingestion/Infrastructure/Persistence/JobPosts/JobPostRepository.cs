@@ -84,7 +84,6 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             VALUES {string.Join(",\n", values)}
             ON CONFLICT ("{nameof(JobPost.SourceId)}", "{nameof(JobPost.DetailPath)}")
             DO UPDATE SET
-                "{nameof(JobPost.Locations)}" = EXCLUDED."{nameof(JobPost.Locations)}",
                 "{nameof(JobPost.RemoteType)}" = EXCLUDED."{nameof(JobPost.RemoteType)}",
                 "{nameof(JobPost.IsExcluded)}" = EXCLUDED."{nameof(JobPost.IsExcluded)}"
             """;
