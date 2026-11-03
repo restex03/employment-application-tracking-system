@@ -42,8 +42,8 @@ export class SqliteJobQueries implements IJobPostQueries {
 
         this.getJobApplicationsStatement = `
             SELECT
-                job_post_id,
-                status AS application_status
+                job_post_id as jobPostId,
+                status AS applicationStatus
             FROM job_applications
             WHERE job_post_id IN (SELECT value FROM json_each(@job_post_ids))
                 AND (
