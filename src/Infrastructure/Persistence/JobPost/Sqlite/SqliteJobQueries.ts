@@ -11,6 +11,11 @@ export interface IAssessmentHydration {
 }
 
 
+interface IJobApplicationRow {
+    job_post_id: string;
+    status: string | null;
+}
+
 interface IJobAssessmentRow {
     id: string;
     candidate_profile_id: string;
@@ -42,8 +47,8 @@ export class SqliteJobQueries implements IJobPostQueries {
 
         this.getJobApplicationsStatement = `
             SELECT
-                job_post_id as jobPostId,
-                status AS applicationStatus
+                job_post_id,
+                status
             FROM job_applications
             WHERE job_post_id IN (SELECT value FROM json_each(@job_post_ids))
                 AND (
@@ -81,8 +86,11 @@ export class SqliteJobQueries implements IJobPostQueries {
     public async getJobApplications(jobPostIds: string[], applicationStatus: string | undefined): Promise<IApplicationHydration[]> {
         const result = this.connection
             .prepare(this.getJobApplicationsStatement)
-            .all({ job_post_ids: JSON.stringify(jobPostIds), applicationStatus: applicationStatus }) as IApplicationHydration[];
-        return result;
+            .all({ job_post_ids: JSON.stringify(jobPostIds), applicationStatus: applicationStatus }) as IJobApplicationRow[];
+        return result.map(x => ({
+            jobPostId: x.job_post_id,
+            applicationStatus: x.status
+        }));
     }
     public async getJobAssessments(jobPostIds: string[], jobMatchScore: number | undefined): Promise<IAssessmentHydration[]> {
 
