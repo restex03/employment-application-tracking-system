@@ -86,6 +86,7 @@ public sealed class JobDetailHydrator(
                         if (jobScreenService.IsSatisfiedBy(detail))
                         {
                             jobPost.HydrateDetail(detail);
+                            jobPost.UpdateLocations(detail.Locations);
                         } 
                         else
                         {
@@ -93,7 +94,7 @@ public sealed class JobDetailHydrator(
                         }
                             
 
-                        await repository.UpsertAsync(
+                        await repository.PersistHydrationAsync(
                             jobPost, stoppingToken);
                     }
                     catch (OperationCanceledException)

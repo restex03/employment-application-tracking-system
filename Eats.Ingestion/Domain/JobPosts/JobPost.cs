@@ -48,37 +48,14 @@ public sealed class JobPost
     public string? RemoteType { get; private set; }
     public Uri JobLink { get; private set; } = null!;
     public DateTime? PostedDate { get; private set; }
-    public bool IsExcluded { get; private set; }
+    public bool ExcludeFromPublication { get; private set; }
+
+    public bool ReadyForPublication { get; private set;}
 
     public void HydrateDetail(JobPostDetailDiscovery detail)
     {
         ArgumentNullException.ThrowIfNull(detail);
 
-        if (detail.Locations is not null)
-        {
-            var cities = detail.Locations
-                .Select(x => x.City)
-                .OfType<string>()
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Distinct()
-                .ToArray();
-
-            var countries = detail.Locations
-                .Select(x => x.Country)
-                .OfType<string>()
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Distinct()
-                .ToArray();
-
-            var currentLocations = Locations ?? [];
-            var combined = currentLocations
-                .Concat(cities)
-                .Concat(countries)
-                .Distinct()
-                .OrderBy(x => x)
-                .ToArray();
-            Locations = combined;
-        }
 
         Detail = new JobPostDetail(
             Id,
@@ -95,8 +72,51 @@ public sealed class JobPost
         // TODO: Update Locations to include location details from the job post detail if available
     }
 
+    public void UpdateLocations(JobPostLocation[]? locations)
+    {
+        if (locations is null || locations.Length == 0)
+        {
+            return;
+        }
+
+        var cities = locations
+            .Select(x => x.City)
+            .OfType<string>()
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct()
+            .ToArray();
+
+        var countries = locations
+            .Select(x => x.Country)
+            .OfType<string>()
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct()
+            .ToArray();
+
+            var currentLocations = Locations ?? [];
+            var combined = currentLocations
+                .Concat(cities)
+                .Concat(countries)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToArray();
+        Locations = combined;
+
+    }
+
     public void Exclude()
     {
-        IsExcluded = true;
+        ReadyForPublication = false;
+        ExcludeFromPublication = true;
+    }
+
+    public void Publish()
+    {
+        if (ExcludeFromPublication) 
+        {
+            throw new InvalidOperationException("Cannot mark a job post as ready for publication if it is excluded.");
+        }
+
+        ReadyForPublication = true;
     }
 }

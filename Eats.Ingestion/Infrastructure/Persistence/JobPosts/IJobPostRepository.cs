@@ -5,7 +5,22 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobPosts;
 
 public interface IJobPostRepository
 {
+    /// <summary>
+    /// Upserts a job post into the repository. If the job post already exists, some (but not all) fields are updated; otherwise, it will be inserted.
+    /// </summary>
+    /// <param name="jobPost"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     Task UpsertAsync(JobPost jobPost, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates an existing detached job post and inserts its newly hydrated detail, if present.
+    /// Detaches both entities after saving, including when saving fails.
+    /// </summary>
+    /// <param name="jobPost"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task PersistHydrationAsync(JobPost jobPost, CancellationToken cancellationToken = default);
     Task UpsertManyAsync(IEnumerable<JobPost> jobPosts, CancellationToken cancellationToken = default);
     Task<JobPost> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<JobPost>> ListAsync(JobPostQuery query, CancellationToken ct = default);

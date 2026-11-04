@@ -65,13 +65,13 @@ namespace Eats.Ingestion.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("ExcludeFromPublication")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime>("IngestionDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<bool>("IsExcluded")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("JobLink")
                         .IsRequired()
@@ -83,6 +83,9 @@ namespace Eats.Ingestion.Migrations
 
                     b.Property<DateTime?>("PostedDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("ReadyForPublication")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("RemoteType")
                         .HasColumnType("text");

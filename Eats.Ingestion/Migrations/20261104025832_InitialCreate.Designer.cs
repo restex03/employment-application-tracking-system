@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Eats.Ingestion.Migrations
 {
     [DbContext(typeof(EatsIngestionDbContext))]
-    [Migration("20261021220541_InitialCreate")]
+    [Migration("20261104025832_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -31,6 +31,9 @@ namespace Eats.Ingestion.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -42,9 +45,8 @@ namespace Eats.Ingestion.Migrations
                     b.Property<string>("SearchText")
                         .HasColumnType("text");
 
-                    b.PrimitiveCollection<Guid[]>("SourceIds")
-                        .IsRequired()
-                        .HasColumnType("uuid[]");
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -62,25 +64,31 @@ namespace Eats.Ingestion.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<int?>("DaysOld")
-                        .HasColumnType("integer");
-
                     b.Property<string>("DetailPath")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<bool>("Dismissed")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
+                    b.Property<bool>("ExcludeFromPublication")
+                        .HasColumnType("boolean");
 
-                    b.Property<string>("Location")
-                        .HasColumnType("text");
+                    b.Property<DateTime>("IngestionDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("JobLink")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.PrimitiveCollection<string[]>("Locations")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.Property<DateTime?>("PostedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("ReadyForPublication")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("RemoteType")
                         .HasColumnType("text");
@@ -120,7 +128,7 @@ namespace Eats.Ingestion.Migrations
                     b.Property<string>("EmploymentType")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("FetchedAt")
+                    b.Property<DateTime>("IngestionDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
@@ -188,13 +196,11 @@ namespace Eats.Ingestion.Migrations
 
             modelBuilder.Entity("Eats.Ingestion.Domain.JobPosts.JobPostDetail", b =>
                 {
-                    b.HasOne("Eats.Ingestion.Domain.JobPosts.JobPost", "JobPost")
+                    b.HasOne("Eats.Ingestion.Domain.JobPosts.JobPost", null)
                         .WithOne("Detail")
                         .HasForeignKey("Eats.Ingestion.Domain.JobPosts.JobPostDetail", "JobPostId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("JobPost");
                 });
 
             modelBuilder.Entity("Eats.Ingestion.Domain.JobPosts.JobPost", b =>

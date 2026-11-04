@@ -9,6 +9,35 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobPosts;
 
 public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPostRepository
 {
+    public async Task PersistHydrationAsync(JobPost jobPost, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(jobPost);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var postEntry = dbContext.Entry(jobPost);
+        var detailEntry = jobPost.Detail is null ? null : dbContext.Entry(jobPost.Detail);
+
+        try
+        {
+            postEntry.State = EntityState.Modified;
+            if (detailEntry is not null)
+            {
+                detailEntry.State = EntityState.Added;
+            }
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        finally
+        {
+            if (detailEntry is not null)
+            {
+                detailEntry.State = EntityState.Detached;
+            }
+
+            postEntry.State = EntityState.Detached;
+        }
+    }
+
     public async Task UpsertAsync(JobPost jobPost, CancellationToken cancellationToken = default)
     {
         await UpsertBatchAsync([jobPost], cancellationToken);
@@ -52,7 +81,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             values.Add(
                 $"(@Id{suffix}, @SourceId{suffix}, @RequisitionId{suffix}, @Title{suffix}, " +
                 $"@DetailPath{suffix}, @JobLink{suffix}, @Locations{suffix}, @PostedDate{suffix}, @RemoteType{suffix}, " +
-                $"@IngestionDate{suffix}, @IsExcluded{suffix})");
+                $"@IngestionDate{suffix}, @ExcludeFromPublication{suffix}, @ReadyForPublication{suffix})");
             parameters.Add(new NpgsqlParameter($"Id{suffix}", jobPost.Id));
             parameters.Add(new NpgsqlParameter($"SourceId{suffix}", jobPost.SourceId));
             parameters.Add(new NpgsqlParameter($"RequisitionId{suffix}", (object?)jobPost.RequisitionId ?? DBNull.Value));
@@ -63,7 +92,8 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             parameters.Add(new NpgsqlParameter($"PostedDate{suffix}", (object?)jobPost.PostedDate ?? DBNull.Value));
             parameters.Add(new NpgsqlParameter($"RemoteType{suffix}", (object?)jobPost.RemoteType ?? DBNull.Value));
             parameters.Add(new NpgsqlParameter($"IngestionDate{suffix}", jobPost.IngestionDate));
-            parameters.Add(new NpgsqlParameter($"IsExcluded{suffix}", jobPost.IsExcluded));
+            parameters.Add(new NpgsqlParameter($"ExcludeFromPublication{suffix}", jobPost.ExcludeFromPublication));
+            parameters.Add(new NpgsqlParameter($"ReadyForPublication{suffix}", jobPost.ReadyForPublication));
             index++;
         }
 
@@ -79,13 +109,13 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
                 "{nameof(JobPost.PostedDate)}",
                 "{nameof(JobPost.RemoteType)}",
                 "{nameof(JobPost.IngestionDate)}",
-                "{nameof(JobPost.IsExcluded)}"
+                "{nameof(JobPost.ExcludeFromPublication)}",
+                "{nameof(JobPost.ReadyForPublication)}"
             )
             VALUES {string.Join(",\n", values)}
             ON CONFLICT ("{nameof(JobPost.SourceId)}", "{nameof(JobPost.DetailPath)}")
             DO UPDATE SET
-                "{nameof(JobPost.RemoteType)}" = EXCLUDED."{nameof(JobPost.RemoteType)}",
-                "{nameof(JobPost.IsExcluded)}" = EXCLUDED."{nameof(JobPost.IsExcluded)}"
+                "{nameof(JobPost.RemoteType)}" = EXCLUDED."{nameof(JobPost.RemoteType)}"
             """;
 
         await dbContext.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);
@@ -243,7 +273,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             queryable = queryable.Where(jobPost => jobPost.PostedDate >= query.PostedDate.Value);
         }
 
-        return queryable.Where(x => !x.IsExcluded);
+        return queryable.Where(x => !x.ExcludeFromPublication);
     }
 
     private static string EscapeLikePattern(string value)
@@ -257,11 +287,9 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
 
     public async Task<IReadOnlyList<JobPost>> GetNextRandomDryBatchAsync(int count, CancellationToken cancellationToken = default)
     {
-        // Note: No tracking is used here to avoid loading unnecessary entity state.
-        // UpsertAsync method above uses raw SQL instead of SaveChangesAsync, so 
-        // no tracking is needed here.
+        // PersistHydrationAsync attaches each post only while saving it.
         var result = await dbContext.JobPosts.AsNoTracking()
-            .Where(jobPost => jobPost.Detail == null && !jobPost.IsExcluded)
+            .Where(jobPost => jobPost.Detail == null && !jobPost.ExcludeFromPublication)
             .OrderBy(_ => EF.Functions.Random())
             .Take(count)
             .ToListAsync(cancellationToken);
