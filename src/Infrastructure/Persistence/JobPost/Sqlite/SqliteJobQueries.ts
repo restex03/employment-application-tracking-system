@@ -1,29 +1,19 @@
 import { and, eq, gte, inArray, isNotNull, isNull, sql } from "drizzle-orm";
-import { BetterSQLite3Database, drizzle } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
 import { IJobPostResponse } from "../../../../Application/JobPost/IJobPostResponse";
 import { JobPostQueryFilters } from "../../../../Application/JobPost/IJobPostService";
 import { ILogger } from "../../../Logging/ILogger";
-import { jobApplications } from "../../JobApplications/Drizzle/jobApplicationsSchema";
-import { jobAssessments } from "../../JobAssessments/Drizzle/jobAssessmentsSchema";
+import type { AppDatabase } from "../../SqliteDatabaseProvider";
 import { createJobPostFilters, createJobPostOrderBy } from "../Drizzle/jobPostQueryExpressions";
-import { jobPosts } from "../Drizzle/jobPostsSchema";
+import { jobApplications, jobAssessments, jobPosts } from "../../Drizzle/schema";
 import { IApplicationHydration, IAssessmentHydration, IJobPostQueries } from "../IJobPostQueries";
-
-const schema = { jobApplications, jobAssessments, jobPosts };
-type JobQueriesDatabase = BetterSQLite3Database<typeof schema>;
 
 const matchScore = sql<number | null>`json_extract(${jobAssessments.jobMatchScore}, '$.score')`;
 
 export class SqliteJobQueries implements IJobPostQueries {
-    private readonly database: JobQueriesDatabase;
-
     constructor(
-        connection: Database.Database,
+        private readonly database: AppDatabase,
         private readonly logger: ILogger
-    ) {
-        this.database = drizzle(connection, { schema, casing: "snake_case" });
-    }
+    ) {}
 
     public async getJobPostsForClient(
         pageCount: number,

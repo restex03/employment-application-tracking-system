@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { JobApplicationStatus } from "../../../Domain/JobApplications/IJobApplication";
 import { ILogger } from "../../Logging/ILogger";
-import { SqliteDatabaseConnection } from "../JobPost/Sqlite/SqliteDatabaseConnection";
+import { SqliteDatabaseProvider } from "../SqliteDatabaseProvider";
 import { JobApplicationRepository } from "./JobApplicationRepository";
 
 describe("JobApplicationRepository with a fresh database", () => {
@@ -12,12 +12,12 @@ describe("JobApplicationRepository with a fresh database", () => {
         warn: vi.fn(),
         error: vi.fn(),
     };
-    let connection: SqliteDatabaseConnection;
+    let connection: SqliteDatabaseProvider;
     let repository: JobApplicationRepository;
 
     beforeEach(() => {
-        connection = new SqliteDatabaseConnection(":memory:");
-        repository = new JobApplicationRepository(connection.db, logger);
+        connection = new SqliteDatabaseProvider(":memory:");
+        repository = new JobApplicationRepository(connection.database, logger);
     });
 
     afterEach(() => {
@@ -36,14 +36,14 @@ describe("JobApplicationRepository with a fresh database", () => {
             attachments: [],
             createdAt: expect.any(String),
         });
-        expect(connection.db.prepare("SELECT notes FROM job_applications").get()).toEqual({ notes: "" });
+        expect(connection.client.prepare("SELECT notes FROM job_applications").get()).toEqual({ notes: "" });
     });
 
     it("persists status and notes across all repository reads", async () => {
         await repository.add({ id: "application-1", jobId: "post-1", status: JobApplicationStatus.Applied });
         await repository.UpdateStatus("application-1", JobApplicationStatus.Interview, "Recruiter's call\nNext week");
 
-        const reloadedRepository = new JobApplicationRepository(connection.db, logger);
+        const reloadedRepository = new JobApplicationRepository(connection.database, logger);
         const application = await reloadedRepository.getByIdOrThrow("application-1");
         expect(application.status).toBe(JobApplicationStatus.Interview);
         expect(application.notes).toBe("Recruiter's call\nNext week");

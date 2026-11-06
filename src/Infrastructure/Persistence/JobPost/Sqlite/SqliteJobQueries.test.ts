@@ -3,18 +3,18 @@ import { IJobPost } from "../../../../Domain/JobPosts/IJobPost";
 import { JobPostQueryFilters } from "../../../JobPosts/IJobPostGateway";
 import { ILogger } from "../../../Logging/ILogger";
 import { JobPostRepository } from "../JobPostRepository";
-import { SqliteDatabaseConnection } from "./SqliteDatabaseConnection";
+import { SqliteDatabaseProvider } from "../../SqliteDatabaseProvider";
 import { SqliteJobQueries } from "./SqliteJobQueries";
 
 describe("SqliteJobQueries", () => {
-    let connection: SqliteDatabaseConnection;
+    let connection: SqliteDatabaseProvider;
     let queries: SqliteJobQueries;
     let jobPosts: JobPostRepository;
 
     beforeEach(() => {
-        connection = new SqliteDatabaseConnection(":memory:");
-        queries = new SqliteJobQueries(connection.db, createLogger());
-        jobPosts = new JobPostRepository(connection.db);
+        connection = new SqliteDatabaseProvider(":memory:");
+        queries = new SqliteJobQueries(connection.database, createLogger());
+        jobPosts = new JobPostRepository(connection.database);
     });
 
     afterEach(() => {
@@ -72,11 +72,11 @@ describe("SqliteJobQueries", () => {
     });
 
     function addCandidate(id: string): void {
-        connection.db.prepare("INSERT INTO candidate_profiles (id, total_years_experience) VALUES (?, 0)").run(id);
+        connection.client.prepare("INSERT INTO candidate_profiles (id, total_years_experience) VALUES (?, 0)").run(id);
     }
 
     function addApplication(id: string, jobPostId: string, status: string, createdAt: string): void {
-        connection.db
+        connection.client
             .prepare("INSERT INTO job_applications (id, job_post_id, status, created_at) VALUES (?, ?, ?, ?)")
             .run(id, jobPostId, status, createdAt);
     }
@@ -88,7 +88,7 @@ describe("SqliteJobQueries", () => {
         createdAt: string,
         score: number
     ): void {
-        connection.db
+        connection.client
             .prepare(
                 `INSERT INTO job_assessments (
                     id, candidate_profile_id, job_post_id, created_at, status, review_status, job_match_score_json

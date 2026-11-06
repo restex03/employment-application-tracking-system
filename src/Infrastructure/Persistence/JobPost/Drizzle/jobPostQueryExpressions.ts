@@ -1,6 +1,6 @@
 import { asc, desc, gt, gte, sql, type SQL } from "drizzle-orm";
 import { JobPostQueryFilters } from "../../../../Application/JobPost/IJobPostService";
-import { jobPosts } from "./jobPostsSchema";
+import { jobPosts } from "../../Drizzle/schema";
 
 export function createJobPostFilters(queryFilters: JobPostQueryFilters): SQL[] {
     const filters: SQL[] = [];

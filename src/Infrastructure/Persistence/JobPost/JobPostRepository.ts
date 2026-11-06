@@ -1,34 +1,26 @@
-import { and, asc, count, desc, eq, sql } from "drizzle-orm";
-import { drizzle, BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
+import { and, asc, count, desc, eq, getTableColumns, sql } from "drizzle-orm";
+import type { SQLiteTable, SQLiteUpdateSetSource } from "drizzle-orm/sqlite-core";
 import { IJobPost } from "../../../Domain/JobPosts/IJobPost";
 import { JobPostQueryFilters } from "../../JobPosts/IJobPostGateway";
 import { IJobPostRepository } from "./IJobPostRepository";
+import type { AppDatabase } from "../SqliteDatabaseProvider";
 import { createJobPostFilters, createJobPostOrderBy } from "./Drizzle/jobPostQueryExpressions";
-import { jobPosts } from "./Drizzle/jobPostsSchema";
+import { jobPosts } from "../Drizzle/schema";
 
-const schema = { jobPosts };
-type JobPostsDatabase = BetterSQLite3Database<typeof schema>;
-const upsertSet = {
-    sourceId: sql.raw('excluded."sourceId"'),
-    companyName: sql.raw('excluded."companyName"'),
-    requisitionId: sql.raw('excluded."requisitionId"'),
-    title: sql.raw('excluded."title"'),
-    detailPath: sql.raw('excluded."detailPath"'),
-    jobLink: sql.raw('excluded."jobLink"'),
-    locations: sql.raw('excluded."locations"'),
-    postedDate: sql.raw('excluded."postedDate"'),
-    importedDate: sql.raw('excluded."importedDate"'),
-    detail: sql.raw('excluded."detail"'),
-    remoteType: sql.raw('excluded."remoteType"'),
-};
+function createUpsertSet<TTable extends SQLiteTable>(table: TTable): SQLiteUpdateSetSource<TTable> {
+    const set = Object.fromEntries(
+        Object.entries(getTableColumns(table)).map(([key, column]) => [
+            key,
+            sql`${sql.identifier("excluded")}.${sql.identifier(column.name)}`,
+        ])
+    );
+    return set as SQLiteUpdateSetSource<TTable>;
+}
+
+const upsertSet = createUpsertSet(jobPosts);
 
 export class JobPostRepository implements IJobPostRepository {
-    private readonly database: JobPostsDatabase;
-
-    constructor(connection: Database.Database) {
-        this.database = drizzle(connection, { schema });
-    }
+    constructor(private readonly database: AppDatabase) {}
 
     async getById(id: string): Promise<IJobPost | undefined> {
         const [jobPost] = await this.database.select().from(jobPosts).where(eq(jobPosts.id, id)).limit(1);

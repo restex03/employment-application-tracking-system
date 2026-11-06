@@ -3,7 +3,7 @@ import path from "node:path";
 import { NestLoggerAdapter } from "./Logging/NestLoggerAdapter";
 import { ILogger } from "./Logging/ILogger";
 import { LogLevel } from "./Logging/LogLevel";
-import { SqliteDatabaseConnection } from "./Persistence/JobPost/Sqlite/SqliteDatabaseConnection";
+import { SqliteDatabaseProvider } from "./Persistence/SqliteDatabaseProvider";
 import { SqliteJobCandidateProfileRepository } from "./Persistence/JobCandidateProfiles/Sqlite/SqliteJobCandidateProfileRepository";
 import { IJobCandidateProfileRepository } from "./Persistence/JobCandidateProfiles/IJobCandidateProfileRepository";
 import { SqliteJobAssessmentRepository } from "./Persistence/JobAssessments/Sqlite/SqliteJobAssessmentRepository";
@@ -43,27 +43,27 @@ function getRequiredEnvironmentVariable(name: string): string {
             useFactory: (): string => new URL(getRequiredEnvironmentVariable("INGESTION_SVC_BASE_URL")).toString(),
         },
         {
-            provide: SqliteDatabaseConnection,
-            useFactory: (): SqliteDatabaseConnection =>
-                new SqliteDatabaseConnection(getRequiredEnvironmentVariable("DB_PATH")),
+            provide: SqliteDatabaseProvider,
+            useFactory: (): SqliteDatabaseProvider =>
+                new SqliteDatabaseProvider(getRequiredEnvironmentVariable("DB_PATH")),
         },
         {
             provide: TOKENS.candidateProfileRepository,
-            inject: [SqliteDatabaseConnection, TOKENS.logger],
-            useFactory: (database: SqliteDatabaseConnection, logger: ILogger): IJobCandidateProfileRepository =>
-                new SqliteJobCandidateProfileRepository(database.db, logger),
+            inject: [SqliteDatabaseProvider, TOKENS.logger],
+            useFactory: (database: SqliteDatabaseProvider, logger: ILogger): IJobCandidateProfileRepository =>
+                new SqliteJobCandidateProfileRepository(database.client, logger),
         },
         {
             provide: TOKENS.jobAssessmentRepository,
-            inject: [SqliteDatabaseConnection, TOKENS.logger],
-            useFactory: (database: SqliteDatabaseConnection, logger: ILogger): IJobAssessmentRepository =>
-                new SqliteJobAssessmentRepository(database.db, logger),
+            inject: [SqliteDatabaseProvider, TOKENS.logger],
+            useFactory: (database: SqliteDatabaseProvider, logger: ILogger): IJobAssessmentRepository =>
+                new SqliteJobAssessmentRepository(database.database, logger),
         },
         {
             provide: TOKENS.jobApplicationRepository,
-            inject: [SqliteDatabaseConnection, TOKENS.logger],
-            useFactory: (database: SqliteDatabaseConnection, logger: ILogger): IJobApplicationRepository =>
-                new JobApplicationRepository(database.db, logger),
+            inject: [SqliteDatabaseProvider, TOKENS.logger],
+            useFactory: (database: SqliteDatabaseProvider, logger: ILogger): IJobApplicationRepository =>
+                new JobApplicationRepository(database.database, logger),
         },
         {
             provide: TOKENS.fileSystemRepository,
@@ -73,21 +73,21 @@ function getRequiredEnvironmentVariable(name: string): string {
         },
         {
             provide: TOKENS.jobPostQueries,
-            inject: [SqliteDatabaseConnection, TOKENS.logger],
-            useFactory: (database: SqliteDatabaseConnection, logger: ILogger): IJobPostQueries =>
-                new SqliteJobQueries(database.db, logger),
+            inject: [SqliteDatabaseProvider, TOKENS.logger],
+            useFactory: (database: SqliteDatabaseProvider, logger: ILogger): IJobPostQueries =>
+                new SqliteJobQueries(database.database, logger),
         },
         {
             provide: TOKENS.jobPostRepository,
-            inject: [SqliteDatabaseConnection],
-            useFactory: (database: SqliteDatabaseConnection): IJobPostRepository =>
-                new JobPostRepository(database.db),
+            inject: [SqliteDatabaseProvider],
+            useFactory: (database: SqliteDatabaseProvider): IJobPostRepository =>
+                new JobPostRepository(database.database),
         },
         {
             provide: TOKENS.jobAssessmentQueue,
-            inject: [SqliteDatabaseConnection, TOKENS.logger],
-            useFactory: (database: SqliteDatabaseConnection, logger: ILogger): IJobAssessmentQueue =>
-                new SqliteJobAssessmentQueueRepository(database.db, logger),
+            inject: [SqliteDatabaseProvider, TOKENS.logger],
+            useFactory: (database: SqliteDatabaseProvider, logger: ILogger): IJobAssessmentQueue =>
+                new SqliteJobAssessmentQueueRepository(database.client, logger),
         },
         {
             provide: TOKENS.jobPostGateway,
@@ -118,7 +118,7 @@ function getRequiredEnvironmentVariable(name: string): string {
         TOKENS.jobPostGateway,
         TOKENS.ingestionGateway,
         TOKENS.jobSourceGateway,
-        SqliteDatabaseConnection,
+        SqliteDatabaseProvider,
     ],
 })
 export class InfrastructureModule {}

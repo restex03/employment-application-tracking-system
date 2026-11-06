@@ -2,19 +2,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { JobAssessment } from "../../../../Domain/JobAssessment/IJobAssessment";
 import { IJobMatchScore } from "../../../../Domain/JobAssessment/Scoring/IJobMatchScore";
 import { ILogger } from "../../../Logging/ILogger";
-import { SqliteDatabaseConnection } from "../../JobPost/Sqlite/SqliteDatabaseConnection";
+import { SqliteDatabaseProvider } from "../../SqliteDatabaseProvider";
 import { SqliteJobAssessmentRepository } from "./SqliteJobAssessmentRepository";
 
 describe("SqliteJobAssessmentRepository", () => {
-    let connection: SqliteDatabaseConnection;
+    let connection: SqliteDatabaseProvider;
     let repository: SqliteJobAssessmentRepository;
 
     beforeEach(() => {
-        connection = new SqliteDatabaseConnection(":memory:");
-        connection.db
+        connection = new SqliteDatabaseProvider(":memory:");
+        connection.client
             .prepare("INSERT INTO candidate_profiles (id, total_years_experience) VALUES (?, 0)")
             .run("candidate-1");
-        repository = new SqliteJobAssessmentRepository(connection.db, createLogger());
+        repository = new SqliteJobAssessmentRepository(connection.database, createLogger());
     });
 
     afterEach(() => {

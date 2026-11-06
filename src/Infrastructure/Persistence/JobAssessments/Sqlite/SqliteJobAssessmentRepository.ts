@@ -1,6 +1,4 @@
 import { and, desc, eq } from "drizzle-orm";
-import { drizzle, BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
 
 import {
     IJobAssessment,
@@ -11,20 +9,14 @@ import {
 import { NotFoundError } from "../../../../Application/Common/Errors/NotFoundError";
 import { IJobAssessmentRepository } from "../IJobAssessmentRepository";
 import { ILogger } from "../../../Logging/ILogger";
-import { jobAssessments } from "../Drizzle/jobAssessmentsSchema";
-
-const schema = { jobAssessments };
-type JobAssessmentsDatabase = BetterSQLite3Database<typeof schema>;
+import { jobAssessments } from "../../Drizzle/schema";
+import type { AppDatabase } from "../../SqliteDatabaseProvider";
 
 export class SqliteJobAssessmentRepository implements IJobAssessmentRepository {
-    private readonly database: JobAssessmentsDatabase;
-
     constructor(
-        connection: Database.Database,
+        private readonly database: AppDatabase,
         private readonly logger: ILogger
-    ) {
-        this.database = drizzle(connection, { schema, casing: "snake_case" });
-    }
+    ) {}
     public async getLatestAssessment(
         jobPostId: string,
         candidateProfileId: string

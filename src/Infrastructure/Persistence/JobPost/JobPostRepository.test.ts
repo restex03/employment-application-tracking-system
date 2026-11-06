@@ -1,16 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { IJobPost } from "../../../Domain/JobPosts/IJobPost";
 import { JobPostQueryFilters } from "../../JobPosts/IJobPostGateway";
-import { SqliteDatabaseConnection } from "./Sqlite/SqliteDatabaseConnection";
+import { SqliteDatabaseProvider } from "../SqliteDatabaseProvider";
 import { JobPostRepository } from "./JobPostRepository";
 
 describe("JobPostRepository", () => {
-    let connection: SqliteDatabaseConnection;
+    let connection: SqliteDatabaseProvider;
     let repository: JobPostRepository;
 
     beforeEach(() => {
-        connection = new SqliteDatabaseConnection(":memory:");
-        repository = new JobPostRepository(connection.db);
+        connection = new SqliteDatabaseProvider(":memory:");
+        repository = new JobPostRepository(connection.database);
     });
 
     afterEach(() => {
@@ -34,7 +34,7 @@ describe("JobPostRepository", () => {
         await repository.upsert(updated);
 
         await expect(repository.getById(jobPost.id)).resolves.toEqual(updated);
-        const [{ count }] = connection.db.prepare('SELECT COUNT(*) AS count FROM "JobPosts"').all() as {
+        const [{ count }] = connection.client.prepare('SELECT COUNT(*) AS count FROM "JobPosts"').all() as {
             count: number;
         }[];
         expect(count).toBe(1);
@@ -50,7 +50,7 @@ describe("JobPostRepository", () => {
 
         await expect(repository.getById(first.id)).resolves.toEqual(updatedFirst);
         await expect(repository.getById(second.id)).resolves.toEqual(second);
-        const [{ count }] = connection.db.prepare('SELECT COUNT(*) AS count FROM "JobPosts"').all() as {
+        const [{ count }] = connection.client.prepare('SELECT COUNT(*) AS count FROM "JobPosts"').all() as {
             count: number;
         }[];
         expect(count).toBe(2);
@@ -69,14 +69,14 @@ describe("JobPostRepository", () => {
     });
 
     it("uses an empty JSON array as the locations column default", () => {
-        connection.db
+        connection.client
             .prepare(
                 `INSERT INTO "JobPosts" ("id", "sourceId", "companyName", "title", "detailPath", "jobLink", "importedDate", "detail")
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
             )
             .run("post-1", "source-1", "Acme", "Engineer", "/jobs/1", "https://example.com/jobs/1", Date.now(), "{}");
 
-        const row = connection.db.prepare('SELECT "locations" FROM "JobPosts" WHERE "id" = ?').get("post-1") as {
+        const row = connection.client.prepare('SELECT "locations" FROM "JobPosts" WHERE "id" = ?').get("post-1") as {
             locations: string;
         };
         expect(JSON.parse(row.locations)).toEqual([]);

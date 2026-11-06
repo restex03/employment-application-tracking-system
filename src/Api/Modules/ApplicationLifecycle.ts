@@ -3,7 +3,7 @@ import { IJobAssessmentQueueWorkerService } from "../../Application/JobAssessmen
 import { IJobPostSyncWorkerService } from "../../Application/JobPost/IJobPostSyncWorkerService";
 import { IJobCandidateProfileService } from "../../Application/JobCandidateProfiles/IJobCandidateProfileService";
 import { ILogger } from "../../Infrastructure/Logging/ILogger";
-import { SqliteDatabaseConnection } from "../../Infrastructure/Persistence/JobPost/Sqlite/SqliteDatabaseConnection";
+import { SqliteDatabaseProvider } from "../../Infrastructure/Persistence/SqliteDatabaseProvider";
 import { TOKENS } from "../../DependencyInjection/tokens";
 
 @Injectable()
@@ -18,8 +18,8 @@ export class ApplicationLifecycle implements OnApplicationBootstrap, OnApplicati
         private readonly jobPostSyncWorker: IJobPostSyncWorkerService,
         @Inject(TOKENS.candidateProfileService)
         private readonly candidateProfiles: IJobCandidateProfileService,
-        @Inject(SqliteDatabaseConnection)
-        private readonly database: SqliteDatabaseConnection,
+        @Inject(SqliteDatabaseProvider)
+        private readonly database: SqliteDatabaseProvider,
         @Inject(TOKENS.logger)
         private readonly logger: ILogger
     ) {}
