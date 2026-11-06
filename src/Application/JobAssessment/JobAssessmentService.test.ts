@@ -58,7 +58,6 @@ describe("JobAssessmentService", () => {
         };
 
         logger = {
-            table: vi.fn(),
             trace: vi.fn(),
             debug: vi.fn(),
             info: vi.fn(),

@@ -9,7 +9,7 @@ import sanitizeHtml from "sanitize-html";
 import { IJobPostDetail } from "../../../Domain/JobPosts/IJobPostDetail";
 import { ILlmInferenceProvider } from "../../../Infrastructure/Inference/ILlmInferenceProvider";
 import { ILogger } from "../../../Infrastructure/Logging/ILogger";
-import { ConsoleLogger } from "../../../Infrastructure/Logging/Console/ConsoleLogger";
+import { NestLoggerAdapter } from "../../../Infrastructure/Logging/NestLoggerAdapter";
 import { IJobRequirement } from "./IJobRequirement";
 import { JobRequirementsExtractionService } from "./JobRequirementsExtractionService";
 import {
@@ -146,7 +146,7 @@ async function initialize(): Promise<ILlmInferenceProvider> {
 
 const llm = runRegressionTests ? await initialize() : ({} as ILlmInferenceProvider);
 
-const logger = new ConsoleLogger(LogLevel.Debug) as ILogger;
+const logger: ILogger = new NestLoggerAdapter(LogLevel.Debug);
 
 const extractionService = new JobRequirementsExtractionService(llm, logger);
 

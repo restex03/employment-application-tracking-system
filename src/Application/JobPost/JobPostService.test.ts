@@ -28,7 +28,7 @@ describe("JobPostService postedDate responses", () => {
                 getJobApplications: vi.fn().mockResolvedValue([]),
             };
             const logger: ILogger = {
-                table: vi.fn(), trace: vi.fn(), debug: vi.fn(),
+                trace: vi.fn(), debug: vi.fn(),
                 info: vi.fn(), warn: vi.fn(), error: vi.fn(),
             };
             const service = new JobPostService(gateway, queries, logger);

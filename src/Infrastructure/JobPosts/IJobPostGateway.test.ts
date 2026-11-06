@@ -5,7 +5,6 @@ import { JobPostQueryFilters } from "../../Application/JobPost/IJobPostService";
 
 describe("JobPostGateway", () => {
     const logger: ILogger = {
-        table: vi.fn(),
         trace: vi.fn(),
         debug: vi.fn(),
         info: vi.fn(),

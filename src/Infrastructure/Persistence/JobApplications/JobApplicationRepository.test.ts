@@ -6,7 +6,6 @@ import { JobApplicationRepository } from "./JobApplicationRepository";
 
 describe("JobApplicationRepository with a fresh database", () => {
     const logger: ILogger = {
-        table: vi.fn(),
         trace: vi.fn(),
         debug: vi.fn(),
         info: vi.fn(),

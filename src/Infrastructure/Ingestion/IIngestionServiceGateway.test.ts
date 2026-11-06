@@ -4,7 +4,6 @@ import { IngestionServiceGateway } from "./IIngestionServiceGateway";
 
 describe("IngestionServiceGateway", () => {
     const logger: ILogger = {
-        table: vi.fn(),
         trace: vi.fn(),
         debug: vi.fn(),
         info: vi.fn(),

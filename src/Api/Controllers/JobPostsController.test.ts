@@ -12,7 +12,6 @@ const service: IJobPostService = {
     getById: vi.fn(),
 };
 const logger: ILogger = {
-    table: vi.fn(),
     trace: vi.fn(),
     debug: vi.fn(),
     info: vi.fn(),

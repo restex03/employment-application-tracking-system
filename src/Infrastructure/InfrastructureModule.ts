@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 import path from "node:path";
-import { ConsoleLogger } from "./Logging/Console/ConsoleLogger";
+import { NestLoggerAdapter } from "./Logging/NestLoggerAdapter";
 import { ILogger } from "./Logging/ILogger";
 import { LogLevel } from "./Logging/LogLevel";
 import { SqliteDatabaseConnection } from "./Persistence/JobPost/Sqlite/SqliteDatabaseConnection";
@@ -34,7 +34,7 @@ function getRequiredEnvironmentVariable(name: string): string {
     providers: [
         {
             provide: TOKENS.logger,
-            useFactory: (): ILogger => new ConsoleLogger(LogLevel.Info),
+            useFactory: (): ILogger => new NestLoggerAdapter(LogLevel.Info),
         },
         {
             provide: TOKENS.ingestionBaseUrl,
