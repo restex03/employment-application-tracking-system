@@ -10,7 +10,7 @@ export interface IJobPost {
     jobLink: string;
     locations: string[];
     postedDate?: string | null;
-    createdAt: Date;
+    importedDate: Date;
     detail: IJobPostDetail;
     remoteType?: string;
 }

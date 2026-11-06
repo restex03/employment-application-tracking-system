@@ -1,3 +1,5 @@
+import { desc, eq } from "drizzle-orm";
+import { drizzle, BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import { IJobApplicationRepository } from "./IJobApplicationRepository";
 import { ILogger } from "../../Logging/ILogger";
@@ -8,80 +10,44 @@ import {
     JobApplicationStatus,
 } from "../../../Domain/JobApplications/IJobApplication";
 import { NotFoundError } from "../../../Application/Common/Errors/NotFoundError";
+import { jobApplications } from "./Drizzle/jobApplicationsSchema";
 
-interface JobApplicationRow {
-    id: string;
-    job_post_id: string;
-    status: string;
-    notes: string | null;
-    created_at: string;
-    attachments: string | null;
-}
+const schema = { jobApplications };
+type JobApplicationsDatabase = BetterSQLite3Database<typeof schema>;
 
 export class JobApplicationRepository implements IJobApplicationRepository {
-    private readonly insertStatement: Database.Statement;
-    private readonly getAllStatement: Database.Statement;
-    private readonly getByIdStatement: Database.Statement;
-    private readonly getByJobIdStatement: Database.Statement;
-    private readonly updateStatusStatement: Database.Statement;
-    private readonly updateAttachmentsStatement: Database.Statement;
+    private readonly database: JobApplicationsDatabase;
 
     constructor(
-        private readonly connection: Database.Database,
+        connection: Database.Database,
         private readonly logger: ILogger
     ) {
-        this.insertStatement = connection.prepare(`
-            INSERT INTO job_applications (id, job_post_id, status)
-            VALUES (@id, @jobId, @status)
-        `);
-
-        this.getAllStatement = connection.prepare(`
-            SELECT * FROM job_applications ORDER BY created_at DESC
-        `);
-
-        this.getByIdStatement = connection.prepare(`
-            SELECT * FROM job_applications WHERE id = @id
-        `);
-
-        this.getByJobIdStatement = connection.prepare(`
-            SELECT * FROM job_applications WHERE job_post_id = @jobId LIMIT 1
-        `);
-
-        this.updateStatusStatement = connection.prepare(`
-            UPDATE job_applications SET status = @status, notes = @notes WHERE id = @id
-        `);
-
-        this.updateAttachmentsStatement = connection.prepare(`
-            UPDATE job_applications SET attachments = @attachments WHERE id = @id
-        `);
+        this.database = drizzle(connection, { schema });
     }
+
     public async UpdateStatus(id: string, status: JobApplicationStatus, notes: string): Promise<void> {
         this.logger.debug(
             `[JobApplicationRepository.UpdateStatus] Updating job application status for ID: ${id} to ${status}`
         );
-        this.updateStatusStatement.run({
-            id,
-            status: status.toString(),
-            notes,
-        });
+        await this.database.update(jobApplications).set({ status, notes }).where(eq(jobApplications.id, id));
     }
 
     public async add(application: ICreateJobApplication): Promise<void> {
         this.logger.debug(`[JobApplicationRepository.add] Adding job application: ${application.id}`);
-        this.insertStatement.run({
+        await this.database.insert(jobApplications).values({
             id: application.id,
-            jobId: application.jobId,
-            status: application.status.toString(),
+            jobPostId: application.jobId,
+            status: application.status,
         });
     }
 
     public async getAll(): Promise<IJobApplication[]> {
-        const rows = this.getAllStatement.all() as JobApplicationRow[];
+        const rows = await this.database.select().from(jobApplications).orderBy(desc(jobApplications.createdAt));
         return rows.map(row => this.mapRow(row));
     }
 
     public async getByIdOrThrow(id: string): Promise<IJobApplication> {
-        const row = this.getByIdStatement.get({ id }) as JobApplicationRow | undefined;
+        const [row] = await this.database.select().from(jobApplications).where(eq(jobApplications.id, id)).limit(1);
 
         if (!row) {
             this.logger.error(`[JobApplicationRepository.getByIdOrThrow] Job application not found: ${id}`);
@@ -95,7 +61,12 @@ export class JobApplicationRepository implements IJobApplicationRepository {
     }
 
     public async getByJobId(jobId: string): Promise<IJobApplication | null> {
-        const row = this.getByJobIdStatement.get({ jobId }) as JobApplicationRow | undefined;
+        const [row] = await this.database
+            .select()
+            .from(jobApplications)
+            .where(eq(jobApplications.jobPostId, jobId))
+            .orderBy(desc(jobApplications.createdAt), desc(jobApplications.id))
+            .limit(1);
 
         if (!row) {
             return null;
@@ -111,28 +82,23 @@ export class JobApplicationRepository implements IJobApplicationRepository {
         this.logger.debug(
             `[JobApplicationRepository.addAttachment] Adding attachment ${attachment.id} to application ${applicationId}`
         );
-        this.updateAttachmentsStatement.run({
-            id: applicationId,
-            attachments: JSON.stringify(attachments),
-        });
+        await this.database.update(jobApplications).set({ attachments }).where(eq(jobApplications.id, applicationId));
 
         return { ...existing, attachments };
     }
 
-    private mapRow(row: JobApplicationRow): IJobApplication {
-        const raw = row.attachments ? (JSON.parse(row.attachments) as IJobApplicationAttachment[]) : [];
-        const attachments = raw.map(item => ({
+    private mapRow(row: typeof jobApplications.$inferSelect): IJobApplication {
+        const attachments = row.attachments.map(item => ({
             id: item.id,
             fileName: item.fileName,
             dateAdded: item.dateAdded ?? "",
         }));
         return {
             id: row.id,
-            jobId: row.job_post_id,
-            // row.status already stores the enum's string value (e.g. "APPLIED"), not its key.
-            status: row.status as JobApplicationStatus,
-            notes: row.notes ?? "",
-            createdAt: row.created_at,
+            jobId: row.jobPostId,
+            status: row.status,
+            notes: row.notes,
+            createdAt: row.createdAt,
             attachments,
         };
     }

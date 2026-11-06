@@ -15,7 +15,7 @@ export const jobPosts = sqliteTable("JobPosts", {
         .notNull()
         .default(sql`'[]'`),
     postedDate: text("postedDate"),
-    createdAt: integer("createdAt", { mode: "timestamp_ms" }).notNull(),
+    importedDate: integer("importedDate", { mode: "timestamp_ms" }).notNull(),
     detail: text("detail", { mode: "json" }).$type<IJobPostDetail>().notNull(),
     remoteType: text("remoteType"),
 });

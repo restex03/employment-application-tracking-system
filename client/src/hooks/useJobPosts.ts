@@ -45,7 +45,10 @@ export function useJobPosts(initialParams?: PaginationParams, queryParams?: Quer
             const responseData: IJobPostsResponse = await response.json();
             const posts = responseData.data.map((post: IJobPostData) => ({
                 ...post,
-                createdAt: typeof post.createdAt === "string" ? post.createdAt : new Date(post.createdAt).toISOString(),
+                importedDate:
+                    typeof post.importedDate === "string"
+                        ? post.importedDate
+                        : new Date(post.importedDate).toISOString(),
             }));
 
             return { posts, totalCount: responseData.totalCount || 0 };

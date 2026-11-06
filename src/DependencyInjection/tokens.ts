@@ -25,4 +25,5 @@ export const TOKENS = {
     jobAssessmentQueueWorkerService: Symbol("IJobAssessmentQueueWorkerService"),
     jobApplicationService: Symbol("IJobApplicationService"),
     jobPostService: Symbol("IJobPostService"),
+    jobPostSyncWorkerService: Symbol("IJobPostSyncWorkerService"),
 } as const;

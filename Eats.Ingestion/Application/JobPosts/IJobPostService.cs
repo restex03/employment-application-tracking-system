@@ -12,6 +12,7 @@ public interface IJobPostService
     Task<JobPostDto> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<JobPostDto>> ListAsync(JobPostQuery query, CancellationToken ct);
     Task<int> CountAsync(JobPostQuery query, CancellationToken ct);
+    Task<IReadOnlyList<JobPostDto>> GetFromDateAsync(JobPostSyncQuery query, CancellationToken ct);
 
     public class Imp(
         IJobPostRepository jobPostRepository,
@@ -35,12 +36,12 @@ public interface IJobPostService
         public async Task<JobPostDto> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default)
         {
             var jobPost = await jobPostRepository.GetByIdOrThrowAsync(id, cancellationToken);
+            var source = await GetSource(jobPost.SourceId, cancellationToken);
             
             // Hydrate JobPostDetail if null upon JobPost fetch
             if (jobPost.Detail is null)
             {
                 logger.LogDebug("Syncing details for job post {JobPostId}", jobPost.Id);
-                var source = await GetSource(jobPost.SourceId, cancellationToken);
                 var discoveryService = discoveryServiceFactory.Create(source);
                 var detail = await discoveryService.FetchDetail(jobPost.DetailPath, cancellationToken);
 
@@ -48,7 +49,7 @@ public interface IJobPostService
                 await jobPostRepository.UpsertAsync(jobPost, cancellationToken);
             }
 
-            return MapToViewModel(jobPost);
+            return MapToViewModel(jobPost, source.CompanyName);
 
         }
 
@@ -63,9 +64,7 @@ public interface IJobPostService
         public async Task<IReadOnlyList<JobPostDto>> ListAsync(JobPostQuery query, CancellationToken ct)
         {
             var result = await jobPostRepository.ListAsync(query, ct);
-
-            var mapped = result.Select(MapToViewModel).ToList();
-            return mapped;
+            return await MapToViewModels(result, ct);
         }
 
         public Task<int> CountAsync(JobPostQuery query, CancellationToken ct)
@@ -73,19 +72,45 @@ public interface IJobPostService
             return jobPostRepository.CountAsync(query, ct);
         }
 
-        private JobPostDto MapToViewModel(JobPost jobPost)
+        private async Task<IReadOnlyList<JobPostDto>> MapToViewModels(
+            IReadOnlyList<JobPost> jobPosts,
+            CancellationToken cancellationToken)
+        {
+            if (jobPosts.Count == 0)
+            {
+                return [];
+            }
+
+            var sources = await jobSourceRepository.GetRangeAsync(
+                jobPosts.Select(jobPost => jobPost.SourceId).Distinct().ToArray(),
+                cancellationToken);
+            var companyNamesBySourceId = sources.ToDictionary(source => source.Id, source => source.CompanyName);
+
+            return jobPosts.Select(jobPost =>
+            {
+                if (!companyNamesBySourceId.TryGetValue(jobPost.SourceId, out var companyName))
+                {
+                    throw new InvalidOperationException($"Job source '{jobPost.SourceId}' was not found.");
+                }
+
+                return MapToViewModel(jobPost, companyName);
+            }).ToArray();
+        }
+
+        private JobPostDto MapToViewModel(JobPost jobPost, string companyName)
         {
             return new JobPostDto
             {
                 Id = jobPost.Id,
                 SourceId = jobPost.SourceId,
+                CompanyName = companyName,
                 RequisitionId = jobPost.RequisitionId,
                 Title = jobPost.Title,
                 JobLink = jobPost.JobLink.AbsoluteUri,
                 DetailPath = jobPost.DetailPath,
                 Locations = jobPost.Locations,
                 PostedDate = jobPost.PostedDate,
-                CreatedAt = jobPost.IngestionDate,
+                PublishedDate = (DateTime)jobPost.PublishedDate!,
                 Detail = MapToDto(jobPost.Detail),
                 RemoteType = jobPost.RemoteType,
             };
@@ -116,6 +141,12 @@ public interface IJobPostService
                 ApplicantLocations = detail.ApplicantLocations,
                 FetchedAt = detail.IngestionDate
             };
+        }
+
+        public async Task<IReadOnlyList<JobPostDto>> GetFromDateAsync(JobPostSyncQuery query, CancellationToken ct)
+        {
+            var result = await jobPostRepository.ListAsync(query, ct);
+            return await MapToViewModels(result, ct);
         }
     }
 }

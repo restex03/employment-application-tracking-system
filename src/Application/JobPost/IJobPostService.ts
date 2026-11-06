@@ -1,7 +1,7 @@
 import { IJobPostResponse } from "./IJobPostResponse";
 
 export const jobPostSortFields = ["companyName", "requisitionId", "title", "postedDate"] as const;
-export type JobPostSortBy = typeof jobPostSortFields[number];
+export type JobPostSortBy = (typeof jobPostSortFields)[number];
 export type JobPostSortDirection = "asc" | "desc";
 
 export interface JobPostQueryFilters {
@@ -17,11 +17,13 @@ export interface JobPostQueryFilters {
     sortDirection?: JobPostSortDirection;
 }
 export interface IJobPostService {
-     list(
-            pageCount: number,
-            pageNumber: number,
-            queryFilters: JobPostQueryFilters
-        ): Promise<{ data: IJobPostResponse[]; totalCount: number }>;
-    
+    importJobPosts(fromDate: string): Promise<void>;
+
+    list(
+        pageCount: number,
+        pageNumber: number,
+        queryFilters: JobPostQueryFilters
+    ): Promise<{ data: IJobPostResponse[]; totalCount: number }>;
+
     getById(id: string): Promise<IJobPostResponse | undefined>;
 }

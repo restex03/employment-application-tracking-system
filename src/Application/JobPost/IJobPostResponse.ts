@@ -31,7 +31,7 @@ export interface IJobPostResponse {
     jobLink: string;
     locations?: string[] | null;
     postedDate?: string | null;
-    createdAt: Date;
+    importedDate: Date;
     detail?: IJobPostDetailResponse;
     applicationStatus?: string;
     requirementMatchScore?: number;

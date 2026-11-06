@@ -1,3 +1,5 @@
+import { and, desc, eq } from "drizzle-orm";
+import { drizzle, BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 
 import {
@@ -5,59 +7,23 @@ import {
     JobAssessment,
     JobAssessmentProps,
     JobAssessmentReviewStatus,
-    JobAssessmentStatus,
 } from "../../../../Domain/JobAssessment/IJobAssessment";
 import { NotFoundError } from "../../../../Application/Common/Errors/NotFoundError";
 import { IJobAssessmentRepository } from "../IJobAssessmentRepository";
 import { ILogger } from "../../../Logging/ILogger";
+import { jobAssessments } from "../Drizzle/jobAssessmentsSchema";
 
-interface JobAssessmentRow {
-    id: string;
-    candidate_profile_id: string;
-    job_post_id: string;
-    created_at: string;
-    status: string;
-    review_status: string;
-    screen_result_json: string | null;
-    requirements_json: string | null;
-    requirement_matches_json: string | null;
-    job_match_score_json: string | null;
-}
+const schema = { jobAssessments };
+type JobAssessmentsDatabase = BetterSQLite3Database<typeof schema>;
 
 export class SqliteJobAssessmentRepository implements IJobAssessmentRepository {
-    private readonly insertAssessmentStatement: Database.Statement;
-    private readonly getAssessmentByIdStatement: Database.Statement;
-    private readonly getLatestAssessmentForJobPostAndCandidateProfileStatement: Database.Statement;
-    private readonly updateReviewStatusStatement: Database.Statement;
+    private readonly database: JobAssessmentsDatabase;
 
     constructor(
-        private readonly connection: Database.Database,
+        connection: Database.Database,
         private readonly logger: ILogger
     ) {
-        this.insertAssessmentStatement = this.connection.prepare(`
-            INSERT INTO job_assessments (
-                id, candidate_profile_id, job_post_id, created_at, status, review_status,
-                screen_result_json, requirements_json, requirement_matches_json, job_match_score_json
-            ) VALUES (
-                @id, @candidateProfileId, @jobPostId, @createdAt, @status, @reviewStatus,
-                @screenResultJson, @requirementsJson, @requirementMatchesJson, @jobMatchScoreJson
-            )
-        `);
-
-        this.getAssessmentByIdStatement = this.connection.prepare(`
-            SELECT * FROM job_assessments WHERE id = @id LIMIT 1
-        `);
-
-        this.getLatestAssessmentForJobPostAndCandidateProfileStatement = this.connection.prepare(`
-            SELECT * FROM job_assessments 
-            WHERE job_post_id = @jobPostId AND candidate_profile_id = @candidateProfileId 
-            ORDER BY created_at DESC
-            LIMIT 1
-        `);
-
-        this.updateReviewStatusStatement = this.connection.prepare(`
-            UPDATE job_assessments SET review_status = @reviewStatus WHERE id = @id
-        `);
+        this.database = drizzle(connection, { schema });
     }
     public async getLatestAssessment(
         jobPostId: string,
@@ -66,10 +32,14 @@ export class SqliteJobAssessmentRepository implements IJobAssessmentRepository {
         this.logger.info(
             `[JobAssessmentRepository.getLatestAssessment] Fetching assessment for job post ${jobPostId} / candidate ${candidateProfileId}`
         );
-        const row = this.getLatestAssessmentForJobPostAndCandidateProfileStatement.get({
-            jobPostId,
-            candidateProfileId,
-        }) as JobAssessmentRow | undefined;
+        const [row] = await this.database
+            .select()
+            .from(jobAssessments)
+            .where(
+                and(eq(jobAssessments.jobPostId, jobPostId), eq(jobAssessments.candidateProfileId, candidateProfileId))
+            )
+            .orderBy(desc(jobAssessments.createdAt), desc(jobAssessments.id))
+            .limit(1);
 
         if (!row) {
             this.logger.debug(
@@ -99,7 +69,7 @@ export class SqliteJobAssessmentRepository implements IJobAssessmentRepository {
     public async getById(id: string): Promise<IJobAssessment | undefined> {
         this.logger.debug(`[JobAssessmentRepository.getById] Getting assessment by ID: ${id}`);
 
-        const row = this.getAssessmentByIdStatement.get({ id }) as JobAssessmentRow | undefined;
+        const [row] = await this.database.select().from(jobAssessments).where(eq(jobAssessments.id, id)).limit(1);
 
         if (!row) {
             this.logger.debug(`[JobAssessmentRepository.getById] Assessment not found: ${id}`);
@@ -126,21 +96,18 @@ export class SqliteJobAssessmentRepository implements IJobAssessmentRepository {
     public async storeAssessment(result: IJobAssessment): Promise<IJobAssessment> {
         this.logger.debug(`[JobAssessmentRepository.storeAssessment] Storing assessment: ${result.id}`);
 
-        const params = {
+        await this.database.insert(jobAssessments).values({
             id: result.id,
             candidateProfileId: result.candidateProfileId,
             jobPostId: result.jobPostId,
             createdAt: result.createdAt.toISOString(),
             status: result.status,
             reviewStatus: result.reviewStatus,
-            screenResultJson: result.screenResult ? JSON.stringify(result.screenResult) : null,
-            requirementsJson: result.requirements.length > 0 ? JSON.stringify(result.requirements) : null,
-            requirementMatchesJson:
-                result.requirementMatches.length > 0 ? JSON.stringify(result.requirementMatches) : null,
-            jobMatchScoreJson: result.jobMatchScore ? JSON.stringify(result.jobMatchScore) : null,
-        };
-
-        this.insertAssessmentStatement.run(params);
+            screenResult: result.screenResult ?? null,
+            requirements: result.requirements.length > 0 ? [...result.requirements] : null,
+            requirementMatches: result.requirementMatches.length > 0 ? [...result.requirementMatches] : null,
+            jobMatchScore: result.jobMatchScore ?? null,
+        });
 
         this.logger.info(`[JobAssessmentRepository.storeAssessment] Stored assessment: ${result.id}`);
         return result;
@@ -148,25 +115,22 @@ export class SqliteJobAssessmentRepository implements IJobAssessmentRepository {
 
     public async updateReviewStatus(id: string, reviewStatus: JobAssessmentReviewStatus): Promise<void> {
         this.logger.debug(`[JobAssessmentRepository.updateReviewStatus] Updating review status for assessment: ${id}`);
-        this.updateReviewStatusStatement.run({
-            id,
-            reviewStatus,
-        });
+        await this.database.update(jobAssessments).set({ reviewStatus }).where(eq(jobAssessments.id, id));
         this.logger.info(`[JobAssessmentRepository.updateReviewStatus] Updated review status for assessment: ${id}`);
     }
 
-    private mapRowToAssessment(row: JobAssessmentRow): IJobAssessment {
+    private mapRowToAssessment(row: typeof jobAssessments.$inferSelect): IJobAssessment {
         const props: JobAssessmentProps = {
             id: row.id,
-            candidateProfileId: row.candidate_profile_id,
-            jobPostId: row.job_post_id,
-            createdAt: new Date(row.created_at),
-            status: row.status as JobAssessmentStatus,
-            reviewStatus: row.review_status as JobAssessmentReviewStatus,
-            screenResult: row.screen_result_json ? JSON.parse(row.screen_result_json) : undefined,
-            requirements: row.requirements_json ? JSON.parse(row.requirements_json) : [],
-            requirementMatches: row.requirement_matches_json ? JSON.parse(row.requirement_matches_json) : [],
-            jobMatchScore: row.job_match_score_json ? JSON.parse(row.job_match_score_json) : undefined,
+            candidateProfileId: row.candidateProfileId,
+            jobPostId: row.jobPostId,
+            createdAt: new Date(row.createdAt),
+            status: row.status,
+            reviewStatus: row.reviewStatus,
+            screenResult: row.screenResult ?? undefined,
+            requirements: row.requirements ?? [],
+            requirementMatches: row.requirementMatches ?? [],
+            jobMatchScore: row.jobMatchScore ?? undefined,
         };
 
         return new JobAssessment(props);

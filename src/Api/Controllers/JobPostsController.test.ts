@@ -10,6 +10,7 @@ import { JobPostsController } from "./JobPostsController";
 const service: IJobPostService = {
     list: vi.fn().mockResolvedValue({ data: [], totalCount: 0 }),
     getById: vi.fn(),
+    importJobPosts: vi.fn(),
 };
 const logger: ILogger = {
     trace: vi.fn(),

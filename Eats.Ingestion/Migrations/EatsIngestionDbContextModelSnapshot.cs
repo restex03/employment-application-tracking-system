@@ -84,8 +84,8 @@ namespace Eats.Ingestion.Migrations
                     b.Property<DateTime?>("PostedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<bool>("ReadyForPublication")
-                        .HasColumnType("boolean");
+                    b.Property<DateTime?>("PublishedDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("RemoteType")
                         .HasColumnType("text");

@@ -55,7 +55,7 @@ export class SqliteDatabaseConnection {
                 "jobLink" TEXT NOT NULL,
                 "locations" TEXT NOT NULL DEFAULT '[]' CHECK (json_valid("locations")),
                 "postedDate" TEXT,
-                "createdAt" INTEGER NOT NULL,
+                "importedDate" INTEGER NOT NULL,
                 "detail" TEXT NOT NULL CHECK (json_valid("detail")),
                 "remoteType" TEXT
             );

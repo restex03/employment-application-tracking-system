@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ILogger } from "../Logging/ILogger";
-import { JobPostGateway } from "./IJobPostGateway";
+import { JobPostDto, JobPostGateway } from "./IJobPostGateway";
 import { JobPostQueryFilters } from "../../Application/JobPost/IJobPostService";
 
 describe("JobPostGateway", () => {
@@ -18,12 +18,25 @@ describe("JobPostGateway", () => {
     });
 
     it("gets a job post by ID and returns its JSON response", async () => {
-        const result = { id: "post-1", title: "Developer", postedDate: "2026-10-29T12:00:00.1234567Z" };
-        const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(result)));
+        const dto = makeJobPostDto({ postedDate: "2026-10-29T12:00:00.1234567Z" });
+        const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(dto)));
         vi.stubGlobal("fetch", fetchMock);
         const gateway = new JobPostGateway("https://ingestion.example.com", logger);
 
-        await expect(gateway.getById("post-1")).resolves.toEqual(result);
+        const jobPost = await gateway.getById("post-1");
+
+        expect(jobPost).toMatchObject({
+            id: "post-1",
+            companyName: "Example Company",
+            importedDate: new Date("2026-10-30T00:00:00Z"),
+            postedDate: "2026-10-29T12:00:00.1234567Z",
+            detail: {
+                id: "detail-1",
+                title: "Developer",
+                description: "Job description",
+                requisitionId: "REQ-1",
+            },
+        });
 
         const [url, init] = fetchMock.mock.calls[0];
         expect(url.href).toBe("https://ingestion.example.com/api/ingestion/jobPosts/post-1");
@@ -31,7 +44,7 @@ describe("JobPostGateway", () => {
     });
 
     it("encodes the job post ID as a path segment", async () => {
-        const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ id: "post/1?#" })));
+        const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(makeJobPostDto({ id: "post/1?#" }))));
         vi.stubGlobal("fetch", fetchMock);
         const gateway = new JobPostGateway("https://ingestion.example.com", logger);
 
@@ -60,9 +73,14 @@ describe("JobPostGateway", () => {
     });
 
     it("logs and throws when fetching a job post returns HTTP 500", async () => {
-        vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
-            new Response("failure details", { status: 500, statusText: "Internal Server Error" })
-        ));
+        vi.stubGlobal(
+            "fetch",
+            vi
+                .fn()
+                .mockResolvedValue(
+                    new Response("failure details", { status: 500, statusText: "Internal Server Error" })
+                )
+        );
         const gateway = new JobPostGateway("https://ingestion.example.com", logger);
 
         await expect(gateway.getById("post-1")).rejects.toThrow(
@@ -72,8 +90,8 @@ describe("JobPostGateway", () => {
     });
 
     it("sends all included filters with GET and returns the JSON response", async () => {
-        const result = [{ id: "post-1", postedDate: "2026-10-29T12:00:00Z" }];
-        const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: result, totalCount: 75 })));
+        const dto = makeJobPostDto({ postedDate: "2026-10-29T12:00:00Z" });
+        const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: [dto], totalCount: 75 })));
         vi.stubGlobal("fetch", fetchMock);
         const gateway = new JobPostGateway("https://ingestion.example.com", logger);
 
@@ -88,7 +106,11 @@ describe("JobPostGateway", () => {
             sortBy: "title",
             sortDirection: "asc",
         };
-        await expect(gateway.list(20, 1, filters)).resolves.toEqual({ data: result, totalCount: 75 });
+        const result = await gateway.list(20, 1, filters);
+        expect(result).toMatchObject({
+            data: [{ id: dto.id, importedDate: new Date(dto.publishedDate) }],
+            totalCount: 75,
+        });
 
         const [url, init] = fetchMock.mock.calls[0];
         expect(url.pathname).toBe("/api/ingestion/jobPosts");
@@ -127,23 +149,83 @@ describe("JobPostGateway", () => {
         });
     });
 
+    it("fetches all posts from a date in batches of 200", async () => {
+        const firstBatch = Array.from({ length: 200 }, (_, index) => makeJobPostDto({ id: `post-${index + 1}` }));
+        const lastBatch = [makeJobPostDto({ id: "post-201" })];
+        const fetchMock = vi
+            .fn()
+            .mockResolvedValueOnce(new Response(JSON.stringify({ data: firstBatch, totalCount: 200 })))
+            .mockResolvedValueOnce(new Response(JSON.stringify({ data: lastBatch, totalCount: 1 })));
+        vi.stubGlobal("fetch", fetchMock);
+        const gateway = new JobPostGateway("https://ingestion.example.com", logger);
+
+        const result = await gateway.listFromDate("2026-10-29T12:00:00Z");
+
+        expect(result.data.map(jobPost => jobPost.id)).toEqual([...firstBatch, ...lastBatch].map(post => post.id));
+        expect(result.totalCount).toBe(201);
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+        for (const [index, [url, init]] of fetchMock.mock.calls.entries()) {
+            expect(url.pathname).toBe("/api/ingestion/jobPosts/from-date");
+            expect(Object.fromEntries(url.searchParams)).toEqual({
+                fromDate: "2026-10-29T12:00:00Z",
+                pageCount: "200",
+                pageNumber: String(index + 1),
+            });
+            expect(init).toEqual({ method: "GET", headers: { Accept: "application/json" } });
+        }
+    });
+
+    it("logs and throws when fetching posts from a date returns HTTP failure", async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi
+                .fn()
+                .mockResolvedValue(
+                    new Response("failure details", { status: 500, statusText: "Internal Server Error" })
+                )
+        );
+        const gateway = new JobPostGateway("https://ingestion.example.com", logger);
+
+        await expect(gateway.listFromDate("2026-10-29T12:00:00Z")).rejects.toThrow(
+            "Failed to fetch job posts from date: HTTP 500 Internal Server Error. failure details"
+        );
+        expect(logger.error).toHaveBeenCalledOnce();
+    });
+
+    it.each([
+        null,
+        [],
+        {},
+        { data: [], totalCount: "1" },
+        { data: [], totalCount: -1 },
+        { data: [], totalCount: 1.5 },
+        { data: {}, totalCount: 0 },
+    ])("rejects an invalid from-date list envelope %j", async result => {
+        vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(result))));
+        const gateway = new JobPostGateway("https://ingestion.example.com", logger);
+
+        await expect(gateway.listFromDate("2026-10-29T12:00:00Z")).rejects.toThrow("Invalid job post list response");
+        expect(logger.error).toHaveBeenCalledOnce();
+    });
+
     it.each([null, undefined])("preserves an unknown postedDate (%s)", async postedDate => {
-        vi.stubGlobal("fetch", vi.fn().mockImplementation(async () =>
-            new Response(JSON.stringify({ id: "post-1", postedDate }))
-        ));
+        vi.stubGlobal(
+            "fetch",
+            vi.fn().mockImplementation(async () => new Response(JSON.stringify(makeJobPostDto({ postedDate }))))
+        );
         const gateway = new JobPostGateway("https://ingestion.example.com", logger);
 
         expect((await gateway.getById("post-1"))?.postedDate).toBe(postedDate);
     });
 
-    it.each([
-        { locations: ["Atlanta, GA", "Boston, MA"] }, { locations: [] },
-        { locations: null }, { locations: undefined },
-    ])(
+    it.each([{ locations: ["Atlanta, GA", "Boston, MA"] }, { locations: [] }])(
         "preserves locations $locations without a singular location property",
         async ({ locations }) => {
-            const post = { id: "post-1", locations };
-            vi.stubGlobal("fetch", vi.fn().mockImplementation(async () => new Response(JSON.stringify(post))));
+            const post = makeJobPostDto({ locations });
+            vi.stubGlobal(
+                "fetch",
+                vi.fn().mockImplementation(async () => new Response(JSON.stringify(post)))
+            );
             const gateway = new JobPostGateway("https://ingestion.example.com", logger);
             const result = await gateway.getById("post-1");
             expect(result?.locations).toEqual(locations);
@@ -152,34 +234,47 @@ describe("JobPostGateway", () => {
     );
 
     it.each([
-        { locations: "Atlanta" }, { locations: [123] }, { locations: [{ city: "Atlanta" }] },
+        { locations: "Atlanta" },
+        { locations: [123] },
+        { locations: [{ city: "Atlanta" }] },
+        { locations: null },
     ])("rejects malformed locations $locations", async ({ locations }) => {
-        vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
-            new Response(JSON.stringify({ id: "post-1", locations }))
-        ));
+        const dto = { ...makeJobPostDto(), locations };
+        vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(dto))));
         const gateway = new JobPostGateway("https://ingestion.example.com", logger);
         await expect(gateway.getById("post-1")).rejects.toThrow("Invalid locations");
         expect(logger.error).toHaveBeenCalledOnce();
     });
 
     it.each([
-        null, [], {}, { data: [], totalCount: "75" }, { data: [], totalCount: -1 },
-        { data: [], totalCount: 1.5 }, { data: {}, totalCount: 0 },
+        null,
+        [],
+        {},
+        { data: [], totalCount: "75" },
+        { data: [], totalCount: -1 },
+        { data: [], totalCount: 1.5 },
+        { data: {}, totalCount: 0 },
     ])("rejects an invalid list envelope %j", async result => {
         vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(result))));
         const gateway = new JobPostGateway("https://ingestion.example.com", logger);
-        await expect(gateway.list(10, 1, {
-            companyName: "", requisitionId: "", title: "", location: "",
-        })).rejects.toThrow("Invalid job post list response");
+        await expect(
+            gateway.list(10, 1, {
+                companyName: "",
+                requisitionId: "",
+                title: "",
+                location: "",
+            })
+        ).rejects.toThrow("Invalid job post list response");
         expect(logger.error).toHaveBeenCalledOnce();
     });
 
     it.each(["not-a-date", "2026-02-30T00:00:00Z", "2026-10-29T12:00:00"])(
         "logs and rejects invalid ingestion postedDate %s",
         async postedDate => {
-            vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
-                new Response(JSON.stringify({ id: "post-1", postedDate }))
-            ));
+            vi.stubGlobal(
+                "fetch",
+                vi.fn().mockResolvedValue(new Response(JSON.stringify(makeJobPostDto({ postedDate }))))
+            );
             const gateway = new JobPostGateway("https://ingestion.example.com", logger);
 
             await expect(gateway.getById("post-1")).rejects.toThrow("Invalid postedDate");
@@ -187,18 +282,63 @@ describe("JobPostGateway", () => {
         }
     );
 
-    it("logs and throws on HTTP failure", async () => {
-        vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
-            new Response("failure details", { status: 500, statusText: "Internal Server Error" })
-        ));
+    it("rejects job posts without detail because IJobPost requires it", async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn().mockResolvedValue(new Response(JSON.stringify(makeJobPostDto({ detail: null }))))
+        );
         const gateway = new JobPostGateway("https://ingestion.example.com", logger);
 
-        await expect(gateway.list(20, 0, {
-            companyName: "",
-            requisitionId: "",
-            title: "",
-            location: "",
-        })).rejects.toThrow("HTTP 500 Internal Server Error. failure details");
+        await expect(gateway.getById("post-1")).rejects.toThrow("expected detail to be present");
         expect(logger.error).toHaveBeenCalledOnce();
     });
+
+    it("logs and throws on HTTP failure", async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi
+                .fn()
+                .mockResolvedValue(
+                    new Response("failure details", { status: 500, statusText: "Internal Server Error" })
+                )
+        );
+        const gateway = new JobPostGateway("https://ingestion.example.com", logger);
+
+        await expect(
+            gateway.list(20, 0, {
+                companyName: "",
+                requisitionId: "",
+                title: "",
+                location: "",
+            })
+        ).rejects.toThrow("HTTP 500 Internal Server Error. failure details");
+        expect(logger.error).toHaveBeenCalledOnce();
+    });
+
+    function makeJobPostDto(overrides: Partial<JobPostDto> = {}): JobPostDto {
+        return {
+            id: "post-1",
+            sourceId: "source-1",
+            companyName: "Example Company",
+            requisitionId: "REQ-1",
+            title: "Developer",
+            jobLink: "https://example.com/jobs/post-1",
+            detailPath: "/jobs/post-1",
+            locations: ["New York, NY"],
+            publishedDate: "2026-10-30T00:00:00Z",
+            detail: {
+                id: "detail-1",
+                description: "Job description",
+                employmentType: "Full-time",
+                locations: null,
+                validThrough: null,
+                remoteType: null,
+                applicantLocations: null,
+                fetchedAt: "2026-10-30T00:00:00Z",
+            },
+            remoteType: null,
+            postedDate: null,
+            ...overrides,
+        };
+    }
 });

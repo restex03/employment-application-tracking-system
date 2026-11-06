@@ -4,6 +4,8 @@ import { JobPostQueryFilters } from "../../JobPosts/IJobPostGateway";
 export interface IJobPostRepository {
     getById(id: string): Promise<IJobPost | undefined>;
 
+    getLatestJob(): Promise<IJobPost | undefined>;
+
     list(
         pageCount: number,
         pageNumber: number,
@@ -11,4 +13,6 @@ export interface IJobPostRepository {
     ): Promise<{ data: IJobPost[]; totalCount: number }>;
 
     upsert(jobPost: IJobPost): Promise<void>;
+
+    upsertMany(jobPosts: IJobPost[]): Promise<void>;
 }

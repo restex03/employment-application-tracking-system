@@ -9,6 +9,9 @@ public static class JobPostApi
         group.MapGet("/{id}", GetById);
         group.MapGet("/", List)
             .WithDescription("Returns { data, totalCount }, with the matching count before pagination. sortBy: companyName, requisitionId, title, postedDate. sortDirection: asc or desc. Default: postedDate desc. Unknown values last, ID tie-breaker.");
+        group.MapGet("/from-date", ListFromDate)
+            .WithDescription("Returns { data, totalCount } for job posts from the specified date (includes the specified date).");
+            
 
         return group;
     }
@@ -31,5 +34,14 @@ public static class JobPostApi
     {
         var result = await jobPostService.GetByIdOrThrowAsync(id, ct);
         return TypedResults.Ok(result);
+    }
+
+
+    public static async Task<Ok<JobPostListResponse>> ListFromDate([AsParameters] JobPostSyncQuery query, IJobPostService jobPostService, CancellationToken ct)
+    {
+        var result = await jobPostService.GetFromDateAsync(query, ct);
+        var count = result.Count;
+        var response = new JobPostListResponse(result, count);
+        return TypedResults.Ok(response);
     }
 }

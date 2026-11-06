@@ -81,7 +81,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             values.Add(
                 $"(@Id{suffix}, @SourceId{suffix}, @RequisitionId{suffix}, @Title{suffix}, " +
                 $"@DetailPath{suffix}, @JobLink{suffix}, @Locations{suffix}, @PostedDate{suffix}, @RemoteType{suffix}, " +
-                $"@IngestionDate{suffix}, @ExcludeFromPublication{suffix}, @ReadyForPublication{suffix})");
+                $"@IngestionDate{suffix}, @ExcludeFromPublication{suffix}, @PublishedDate{suffix})");
             parameters.Add(new NpgsqlParameter($"Id{suffix}", jobPost.Id));
             parameters.Add(new NpgsqlParameter($"SourceId{suffix}", jobPost.SourceId));
             parameters.Add(new NpgsqlParameter($"RequisitionId{suffix}", (object?)jobPost.RequisitionId ?? DBNull.Value));
@@ -93,7 +93,9 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             parameters.Add(new NpgsqlParameter($"RemoteType{suffix}", (object?)jobPost.RemoteType ?? DBNull.Value));
             parameters.Add(new NpgsqlParameter($"IngestionDate{suffix}", jobPost.IngestionDate));
             parameters.Add(new NpgsqlParameter($"ExcludeFromPublication{suffix}", jobPost.ExcludeFromPublication));
-            parameters.Add(new NpgsqlParameter($"ReadyForPublication{suffix}", jobPost.ReadyForPublication));
+            parameters.Add(new NpgsqlParameter(
+                $"PublishedDate{suffix}",
+                (object?)jobPost.PublishedDate ?? DBNull.Value));
             index++;
         }
 
@@ -110,7 +112,7 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
                 "{nameof(JobPost.RemoteType)}",
                 "{nameof(JobPost.IngestionDate)}",
                 "{nameof(JobPost.ExcludeFromPublication)}",
-                "{nameof(JobPost.ReadyForPublication)}"
+                "{nameof(JobPost.PublishedDate)}"
             )
             VALUES {string.Join(",\n", values)}
             ON CONFLICT ("{nameof(JobPost.SourceId)}", "{nameof(JobPost.DetailPath)}")
@@ -295,5 +297,24 @@ public sealed class JobPostRepository(EatsIngestionDbContext dbContext) : IJobPo
             .ToListAsync(cancellationToken);
 
         return result;
+    }
+
+    public async Task<IReadOnlyList<JobPost>> ListAsync(JobPostSyncQuery query, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+        if (query.PageCount < 1 || query.PageNumber < 1)
+        {
+            throw new ArgumentException("PageCount and PageNumber must be greater than zero.", nameof(query));
+        }
+
+        return await dbContext.JobPosts
+            .AsNoTracking()
+            .Include(jobPost => jobPost.Detail)
+            .Where(jobPost => jobPost.PublishedDate.HasValue && jobPost.PublishedDate >= query.FromDate)
+            .OrderBy(jobPost => jobPost.PublishedDate)
+            .ThenBy(jobPost => jobPost.Id)
+            .Skip((query.PageNumber - 1) * query.PageCount)
+            .Take(query.PageCount)
+            .ToListAsync(ct);
     }
 }

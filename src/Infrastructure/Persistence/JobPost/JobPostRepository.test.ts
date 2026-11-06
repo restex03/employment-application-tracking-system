@@ -40,10 +40,38 @@ describe("JobPostRepository", () => {
         expect(count).toBe(1);
     });
 
+    it("upserts multiple job posts", async () => {
+        const first = makeJobPost({ id: "post-1" });
+        const second = makeJobPost({ id: "post-2", title: "Platform Engineer" });
+        const updatedFirst = { ...first, title: "Staff Engineer" };
+
+        await repository.upsertMany([first, second]);
+        await repository.upsertMany([updatedFirst]);
+
+        await expect(repository.getById(first.id)).resolves.toEqual(updatedFirst);
+        await expect(repository.getById(second.id)).resolves.toEqual(second);
+        const [{ count }] = connection.db.prepare('SELECT COUNT(*) AS count FROM "JobPosts"').all() as {
+            count: number;
+        }[];
+        expect(count).toBe(2);
+    });
+
+    it("gets the post with the latest imported date", async () => {
+        const older = makeJobPost({ id: "post-old", importedDate: new Date("2026-10-29T00:00:00Z") });
+        const newer = makeJobPost({ id: "post-new", importedDate: new Date("2026-10-30T00:00:00Z") });
+        await repository.upsertMany([older, newer]);
+
+        await expect(repository.getLatestJob()).resolves.toEqual(newer);
+    });
+
+    it("returns undefined when there are no job posts", async () => {
+        await expect(repository.getLatestJob()).resolves.toBeUndefined();
+    });
+
     it("uses an empty JSON array as the locations column default", () => {
         connection.db
             .prepare(
-                `INSERT INTO "JobPosts" ("id", "sourceId", "companyName", "title", "detailPath", "jobLink", "createdAt", "detail")
+                `INSERT INTO "JobPosts" ("id", "sourceId", "companyName", "title", "detailPath", "jobLink", "importedDate", "detail")
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
             )
             .run("post-1", "source-1", "Acme", "Engineer", "/jobs/1", "https://example.com/jobs/1", Date.now(), "{}");
@@ -132,7 +160,7 @@ function makeJobPost(overrides: Partial<IJobPost> = {}): IJobPost {
         jobLink: "https://example.com/jobs/post-1",
         locations: [],
         postedDate: "2026-10-29T12:00:00Z",
-        createdAt: new Date("2026-10-30T00:00:00Z"),
+        importedDate: new Date("2026-10-30T00:00:00Z"),
         detail: { title: "Software Engineer", description: "Job description" },
         remoteType: "remote",
         ...overrides,

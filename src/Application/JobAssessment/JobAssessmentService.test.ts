@@ -31,7 +31,7 @@ describe("JobAssessmentService", () => {
         detail: {} as any,
         jobLink: "https://acme.example.com/job-1",
         locations: [],
-        createdAt: new Date("2026-01-01"),
+        importedDate: new Date("2026-01-01"),
     } satisfies IJobPost;
 
     const requirementMatch: IJobRequirementMatch = {
@@ -48,6 +48,7 @@ describe("JobAssessmentService", () => {
         jobPostGateway = {
             getById: vi.fn().mockResolvedValue(jobPost),
             list: vi.fn(),
+            listFromDate: vi.fn(),
         };
 
         jobAssessmentRepo = {

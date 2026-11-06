@@ -79,7 +79,7 @@ If your backend is running on a different port, update the `vite.config.ts` file
 
 ## Features
 
-- **Job Posts Table**: Displays all job posts with requisitionId, title, detailPath, locations, postedDate, and createdAt
+- **Job Posts Table**: Displays all job posts with requisitionId, title, detailPath, locations, postedDate, and importedDate
 - **Modal Details**: Click any row to view detailed job post information in a modal
 - **Responsive Design**: Works on mobile and desktop devices
 - **Loading States**: Shows loading spinner while fetching data

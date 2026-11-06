@@ -50,7 +50,7 @@ public sealed class JobPost
     public DateTime? PostedDate { get; private set; }
     public bool ExcludeFromPublication { get; private set; }
 
-    public bool ReadyForPublication { get; private set;}
+    public DateTime? PublishedDate { get; private set; }
 
     public void HydrateDetail(JobPostDetailDiscovery detail)
     {
@@ -106,7 +106,7 @@ public sealed class JobPost
 
     public void Exclude()
     {
-        ReadyForPublication = false;
+        PublishedDate = null;
         ExcludeFromPublication = true;
     }
 
@@ -117,6 +117,6 @@ public sealed class JobPost
             throw new InvalidOperationException("Cannot mark a job post as ready for publication if it is excluded.");
         }
 
-        ReadyForPublication = true;
+        PublishedDate = DateTime.UtcNow;
     }
 }

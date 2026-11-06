@@ -41,7 +41,7 @@ export interface IJobPostData {
     detailPath: string;
     locations?: string[] | null;
     postedDate?: string | null;
-    createdAt: string;
+    importedDate: string;
     detail?: IJobPostDetail;
     jobLink: string;
 }

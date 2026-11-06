@@ -87,6 +87,7 @@ public sealed class JobDetailHydrator(
                         {
                             jobPost.HydrateDetail(detail);
                             jobPost.UpdateLocations(detail.Locations);
+                            jobPost.Publish();
                         } 
                         else
                         {
