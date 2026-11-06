@@ -73,7 +73,7 @@ From the repository root:
 
    Open `http://localhost:3001`. The frontend proxies API requests to port 3000. You can run the API and frontend together with `npm run dev:full` once the ingestion service is running.
 
-The API health check is at `http://localhost:3000/health`; interactive API docs are at `http://localhost:3000/docs`.
+The API health check is at `http://localhost:3000/health`.
 
 ## Using EATS
 

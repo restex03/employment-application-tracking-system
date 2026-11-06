@@ -1,41 +1,31 @@
+import "reflect-metadata";
 import "dotenv/config";
-import { buildDependencies } from "./Application/DependencyInjection/buildDependencies";
-import { LogLevel } from "./Infrastructure/Logging/LogLevel";
-import { HttpServer } from "./Api/Host/HttpServer";
-import { IJobCandidateProfileService } from "./Application/JobCandidateProfiles/IJobCandidateProfileService";
+import { NestFactory } from "@nestjs/core";
+import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
+import { RequestMethod, StandardSchemaValidationPipe } from "@nestjs/common";
+import { ApplicationModule } from "./Api/Modules/ApplicationModule";
 
-const dependencies = buildDependencies(LogLevel.Info);
+const port = process.env.API_PORT ? Number.parseInt(process.env.API_PORT, 10) : 3000;
+if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error(`Invalid API_PORT value: ${process.env.API_PORT}`);
+}
 
-await loadDefaultJobCandidateProfilesIfEmpty(dependencies.jobCandidateProfileService);
-const server = new HttpServer(dependencies);
-const port = process.env.API_PORT ? parseInt(process.env.API_PORT) : 3000;
-const jobAssessmentQueueWorkerSvc = dependencies.jobAssessmentQueueWorkerService;
+const app = await NestFactory.create<NestFastifyApplication>(ApplicationModule, new FastifyAdapter({ logger: false }));
+app.setGlobalPrefix("api/v1", {
+    exclude: [{ path: "health", method: RequestMethod.ALL }],
+});
+app.useGlobalPipes(new StandardSchemaValidationPipe());
 
+app.getHttpAdapter()
+    .getInstance()
+    .addContentTypeParser("application/octet-stream", { parseAs: "buffer" }, (_request, payload, done) =>
+        done(null, payload)
+    );
 
-const shutdown = async () => {
-    await jobAssessmentQueueWorkerSvc.stop();
-    await server.stop();
-    dependencies.sqliteConnection.close();
-
-    process.exit(0);
-};
-
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
-
-await server.start(port);
-jobAssessmentQueueWorkerSvc.start({ freqMs: 1000 });
-
+app.enableShutdownHooks();
+await app.listen(port, "0.0.0.0");
 
 console.log(`API server started at http://localhost:${port}`);
 console.log(`Health check: http://localhost:${port}/health`);
 console.log(`API base URL: http://localhost:${port}/api/v1`);
-console.log(server.printRoutes());
-
-
-async function loadDefaultJobCandidateProfilesIfEmpty(candidateProfileSvc: IJobCandidateProfileService): Promise<void> {
-    const existingProfiles = await candidateProfileSvc.getCandidateProfiles();
-    if (existingProfiles.length === 0) {
-        candidateProfileSvc.seedCandidateProfilesWithDefault();
-    }
-}
+console.log(app.getHttpAdapter().getInstance().printRoutes({ commonPrefix: false }));
