@@ -7,6 +7,7 @@ export const TOKENS = {
     jobApplicationRepository: Symbol("IJobApplicationRepository"),
     fileSystemRepository: Symbol("IFileSystemRepository"),
     jobPostQueries: Symbol("IJobPostQueries"),
+    jobPostRepository: Symbol("IJobPostRepository"),
     jobAssessmentQueue: Symbol("IJobAssessmentQueue"),
     jobPostGateway: Symbol("IJobPostGateway"),
     jobSourceGateway: Symbol("IJobSourceGateway"),

@@ -12,9 +12,11 @@ describe("JobPostService postedDate responses", () => {
             const post: IJobPost = {
                 id: "post-1",
                 sourceId: "source-1",
+                companyName: "Example Company",
                 title: "Developer",
                 detailPath: "/jobs/post-1",
                 jobLink: "https://example.com/jobs/post-1",
+                locations: [],
                 createdAt: new Date("2026-10-30T00:00:00Z"),
                 postedDate,
                 detail: { title: "Developer", description: "" },

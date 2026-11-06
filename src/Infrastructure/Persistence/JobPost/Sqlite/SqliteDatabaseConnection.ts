@@ -36,10 +36,30 @@ export class SqliteDatabaseConnection {
     }
 
     private createSchema(): void {
+        this.createJobPostsTable();
         this.createCandidateProfilesTable();
         this.createJobAssessmentsTable();
         this.createJobAssessmentJobQueueTable();
         this.createJobApplicationsTable();
+    }
+
+    private createJobPostsTable(): void {
+        this.db.exec(`
+            CREATE TABLE IF NOT EXISTS "JobPosts" (
+                "id" TEXT PRIMARY KEY NOT NULL,
+                "sourceId" TEXT NOT NULL,
+                "companyName" TEXT NOT NULL,
+                "requisitionId" TEXT,
+                "title" TEXT NOT NULL,
+                "detailPath" TEXT NOT NULL,
+                "jobLink" TEXT NOT NULL,
+                "locations" TEXT NOT NULL DEFAULT '[]' CHECK (json_valid("locations")),
+                "postedDate" TEXT,
+                "createdAt" INTEGER NOT NULL,
+                "detail" TEXT NOT NULL CHECK (json_valid("detail")),
+                "remoteType" TEXT
+            );
+        `);
     }
 
     private createJobApplicationsTable(): void {

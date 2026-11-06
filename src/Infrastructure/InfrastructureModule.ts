@@ -14,6 +14,8 @@ import { FileSystemRepository } from "./Persistence/FileSystem/FileSystemReposit
 import { IFileSystemRepository } from "./Persistence/FileSystem/IFileSystemRepository";
 import { SqliteJobQueries } from "./Persistence/JobPost/Sqlite/SqliteJobQueries";
 import { IJobPostQueries } from "./Persistence/JobPost/IJobPostQueries";
+import { IJobPostRepository } from "./Persistence/JobPost/IJobPostRepository";
+import { JobPostRepository } from "./Persistence/JobPost/JobPostRepository";
 import { SqliteJobAssessmentQueueRepository } from "./Persistence/Queues/JobAssessmentQueue/Sqlite/SqliteJobAssessmentQueueRepository";
 import { IJobAssessmentQueue } from "./Persistence/Queues/JobAssessmentQueue/IJobAssessmentQueue";
 import { JobPostGateway, IJobPostGateway } from "./JobPosts/IJobPostGateway";
@@ -76,6 +78,12 @@ function getRequiredEnvironmentVariable(name: string): string {
                 new SqliteJobQueries(database.db, logger),
         },
         {
+            provide: TOKENS.jobPostRepository,
+            inject: [SqliteDatabaseConnection],
+            useFactory: (database: SqliteDatabaseConnection): IJobPostRepository =>
+                new JobPostRepository(database.db),
+        },
+        {
             provide: TOKENS.jobAssessmentQueue,
             inject: [SqliteDatabaseConnection, TOKENS.logger],
             useFactory: (database: SqliteDatabaseConnection, logger: ILogger): IJobAssessmentQueue =>
@@ -105,6 +113,7 @@ function getRequiredEnvironmentVariable(name: string): string {
         TOKENS.jobApplicationRepository,
         TOKENS.fileSystemRepository,
         TOKENS.jobPostQueries,
+        TOKENS.jobPostRepository,
         TOKENS.jobAssessmentQueue,
         TOKENS.jobPostGateway,
         TOKENS.ingestionGateway,

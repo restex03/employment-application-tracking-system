@@ -25,10 +25,12 @@ describe("JobAssessmentService", () => {
     const jobPost = {
         id: "job-1",
         sourceId: "source-1",
+        companyName: "Example Company",
         title: "Senior Software Engineer",
         detailPath: "/job-1",
         detail: {} as any,
         jobLink: "https://acme.example.com/job-1",
+        locations: [],
         createdAt: new Date("2026-01-01"),
     } satisfies IJobPost;
 
@@ -137,6 +139,7 @@ describe("JobAssessmentService", () => {
             expect(candidateProfileRepo.getCandidateProfileByIdOrThrow).not.toHaveBeenCalled();
             expect(pipeline.run).not.toHaveBeenCalled();
             expect(jobAssessmentRepo.storeAssessment).not.toHaveBeenCalled();
+
         });
 
         it("marks the assessment incomplete when the job post is rejected during screening", async () => {
@@ -167,7 +170,6 @@ describe("JobAssessmentService", () => {
             );
 
             expect(jobAssessmentRepo.storeAssessment).not.toHaveBeenCalled();
-
         });
 
         it("does not throw when the pipeline succeeds with no requirement matches", async () => {
