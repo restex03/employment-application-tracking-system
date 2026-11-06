@@ -22,7 +22,7 @@ export class SqliteJobQueries implements IJobPostQueries {
         connection: Database.Database,
         private readonly logger: ILogger
     ) {
-        this.database = drizzle(connection, { schema });
+        this.database = drizzle(connection, { schema, casing: "snake_case" });
     }
 
     public async getJobPostsForClient(

@@ -23,7 +23,7 @@ export class SqliteJobAssessmentRepository implements IJobAssessmentRepository {
         connection: Database.Database,
         private readonly logger: ILogger
     ) {
-        this.database = drizzle(connection, { schema });
+        this.database = drizzle(connection, { schema, casing: "snake_case" });
     }
     public async getLatestAssessment(
         jobPostId: string,

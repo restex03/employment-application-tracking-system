@@ -5,15 +5,15 @@ import { IJobApplicationAttachment, JobApplicationStatus } from "../../../../Dom
 export const jobApplications = sqliteTable(
     "job_applications",
     {
-        id: text("id").primaryKey().notNull(),
-        jobPostId: text("job_post_id").notNull(),
-        status: text("status").$type<JobApplicationStatus>().notNull(),
-        notes: text("notes").notNull().default(""),
-        attachments: text("attachments", { mode: "json" })
+        id: text().primaryKey().notNull(),
+        jobPostId: text().notNull(),
+        status: text().$type<JobApplicationStatus>().notNull(),
+        notes: text().notNull().default(""),
+        attachments: text({ mode: "json" })
             .$type<IJobApplicationAttachment[]>()
             .notNull()
             .default(sql`'[]'`),
-        createdAt: text("created_at")
+        createdAt: text()
             .notNull()
             .default(sql`CURRENT_TIMESTAMP`),
     },

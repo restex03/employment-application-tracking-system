@@ -12,12 +12,12 @@ import { IJobScreenResult } from "../../../../Application/JobAssessment/Screenin
 export const jobAssessments = sqliteTable(
     "job_assessments",
     {
-        id: text("id").primaryKey().notNull(),
-        candidateProfileId: text("candidate_profile_id").notNull(),
-        jobPostId: text("job_post_id").notNull(),
-        createdAt: text("created_at").notNull(),
-        status: text("status").$type<JobAssessmentStatus>().notNull(),
-        reviewStatus: text("review_status").$type<JobAssessmentReviewStatus>().notNull(),
+        id: text().primaryKey().notNull(),
+        candidateProfileId: text().notNull(),
+        jobPostId: text().notNull(),
+        createdAt: text().notNull(),
+        status: text().$type<JobAssessmentStatus>().notNull(),
+        reviewStatus: text().$type<JobAssessmentReviewStatus>().notNull(),
         screenResult: text("screen_result_json", { mode: "json" }).$type<IJobScreenResult>(),
         requirements: text("requirements_json", { mode: "json" }).$type<IJobRequirement[]>(),
         requirementMatches: text("requirement_matches_json", { mode: "json" }).$type<IJobRequirementMatch[]>(),

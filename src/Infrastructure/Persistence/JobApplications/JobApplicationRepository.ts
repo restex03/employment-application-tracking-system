@@ -22,7 +22,7 @@ export class JobApplicationRepository implements IJobApplicationRepository {
         connection: Database.Database,
         private readonly logger: ILogger
     ) {
-        this.database = drizzle(connection, { schema });
+        this.database = drizzle(connection, { schema, casing: "snake_case" });
     }
 
     public async UpdateStatus(id: string, status: JobApplicationStatus, notes: string): Promise<void> {
