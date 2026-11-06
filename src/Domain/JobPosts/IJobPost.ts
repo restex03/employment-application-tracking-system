@@ -12,6 +12,4 @@ export interface IJobPost {
     createdAt: Date;
     detail: IJobPostDetail;
     remoteType?: string;
-
-    hydrateDetail(detail: IJobPostDetail): void;
 }

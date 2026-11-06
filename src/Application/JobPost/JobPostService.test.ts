@@ -18,7 +18,6 @@ describe("JobPostService postedDate responses", () => {
                 createdAt: new Date("2026-10-30T00:00:00Z"),
                 postedDate,
                 detail: { title: "Developer", description: "" },
-                hydrateDetail: vi.fn(),
             };
             const gateway: IJobPostGateway = {
                 list: vi.fn().mockResolvedValue({ data: [post], totalCount: 42 }),

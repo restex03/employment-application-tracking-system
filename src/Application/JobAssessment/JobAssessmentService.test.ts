@@ -30,7 +30,6 @@ describe("JobAssessmentService", () => {
         detail: {} as any,
         jobLink: "https://acme.example.com/job-1",
         createdAt: new Date("2026-01-01"),
-        hydrateDetail: vi.fn(),
     } satisfies IJobPost;
 
     const requirementMatch: IJobRequirementMatch = {

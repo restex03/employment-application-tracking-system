@@ -1,5 +1,4 @@
 import Database from "better-sqlite3";
-import { Kysely, sql, SqliteDialect } from "kysely";
 import { IJobPostQueries } from "../IJobPostQueries";
 import { ILogger } from "../../../Logging/ILogger";
 import { IJobMatchScore } from "../../../../Domain/JobAssessment/Scoring/IJobMatchScore";
@@ -38,6 +37,8 @@ export class SqliteJobQueries implements IJobPostQueries {
     private readonly getJobAssessmentsStatement: string;
     private readonly getJobApplicationsStatement: string;
 
+    private readonly getAllJobAssessmentsStatement: string;
+    private readonly getAllJobApplicationsStatement: string;
 
 
     constructor(
@@ -81,7 +82,19 @@ export class SqliteJobQueries implements IJobPostQueries {
         `;
 
 
-       
+        this.getAllJobAssessmentsStatement = `
+            SELECT
+                job_post_id,
+                job_match_score_json
+            FROM job_assessments
+        `;
+
+        this.getAllJobApplicationsStatement = `
+            SELECT
+                job_post_id,
+                status
+            FROM job_applications
+        `;
     }
     public async getJobApplications(jobPostIds: string[], applicationStatus: string | undefined): Promise<IApplicationHydration[]> {
         const result = this.connection
