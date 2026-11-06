@@ -34,7 +34,7 @@ function getRequiredEnvironmentVariable(name: string): string {
     providers: [
         {
             provide: TOKENS.logger,
-            useFactory: (): ILogger => new NestLoggerAdapter(LogLevel.Info),
+            useFactory: (): ILogger => new NestLoggerAdapter(LogLevel.Log),
         },
         {
             provide: TOKENS.ingestionBaseUrl,

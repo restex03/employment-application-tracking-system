@@ -8,13 +8,17 @@ describe("NestLoggerAdapter", () => {
         vi.restoreAllMocks();
     });
 
+    it("uses Nest log level names and ordering", () => {
+        expect(Object.values(LogLevel)).toEqual(["verbose", "debug", "log", "warn", "error", "fatal"]);
+    });
+
     it("maps ILogger methods to the corresponding Nest logger methods", () => {
         const verbose = vi.spyOn(Logger.prototype, "verbose").mockImplementation(() => {});
         const debug = vi.spyOn(Logger.prototype, "debug").mockImplementation(() => {});
         const log = vi.spyOn(Logger.prototype, "log").mockImplementation(() => {});
         const warn = vi.spyOn(Logger.prototype, "warn").mockImplementation(() => {});
         const error = vi.spyOn(Logger.prototype, "error").mockImplementation(() => {});
-        const logger = new NestLoggerAdapter(LogLevel.Trace);
+        const logger = new NestLoggerAdapter(LogLevel.Verbose);
         const context = { requestId: "request-1" };
 
         logger.trace("trace", context);
