@@ -8,7 +8,7 @@ namespace Eats.Ingestion.Infrastructure.Logging;
 /// Human-friendly, single-line console output. OTLP still receives the original structured
 /// log event, including the complete exception and all its properties.
 /// </summary>
-public sealed class SingleLineConsoleFormatter : ITextFormatter
+public sealed class SingleLineConsoleFormatter(bool includeExceptionDetails = false) : ITextFormatter
 {
     public void Format(LogEvent logEvent, TextWriter output)
     {
@@ -50,7 +50,7 @@ public sealed class SingleLineConsoleFormatter : ITextFormatter
             output.Write(" | ");
             output.Write(exception.GetType().Name);
             output.Write(": ");
-            WriteSingleLine(output, exception.Message);
+            WriteSingleLine(output, includeExceptionDetails ? exception.ToString() : exception.Message);
         }
 
         output.WriteLine();
