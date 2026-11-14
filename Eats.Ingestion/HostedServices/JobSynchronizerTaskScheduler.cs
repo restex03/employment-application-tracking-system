@@ -117,23 +117,30 @@ public sealed class JobSynchronizerTaskScheduler(
         DateTimeOffset nowUtc, TimeOnly scheduleTime, TimeZoneInfo timeZone)
     {
         var localNow = TimeZoneInfo.ConvertTime(nowUtc, timeZone);
-        var nextLocal = localNow.Date.Add(scheduleTime.ToTimeSpan());
+        var candidateDate = localNow.Date;
 
-        if (nextLocal <= localNow.DateTime)
+        while (true)
         {
-            nextLocal = nextLocal.AddDays(1);
-        }
+            var candidateLocal = candidateDate.Add(scheduleTime.ToTimeSpan());
 
-        // Some local wall-clock times are skipped during the spring DST transition.
-        // On those days, run at the earliest valid time after the skipped interval.
-        while (timeZone.IsInvalidTime(nextLocal))
-        {
-            nextLocal = nextLocal.AddMinutes(1);
-        }
+            // A spring-forward gap has no corresponding UTC instant.
+            // Run at the earliest valid minute after the gap on that day.
+            while (timeZone.IsInvalidTime(candidateLocal))
+            {
+                candidateLocal = candidateLocal.AddMinutes(1);
+            }
 
-        // An ambiguous fall-back wall-clock time resolves to standard time, so
-        // only one run is scheduled for the local calendar day.
-        return TimeZoneInfo.ConvertTimeToUtc(nextLocal, timeZone);
+            // Ambiguous fall-back times resolve to standard time (the later
+            // occurrence). Compare actual UTC instants, not local wall-clock
+            // values, so the second occurrence is not accidentally skipped.
+            var candidateUtc = TimeZoneInfo.ConvertTimeToUtc(candidateLocal, timeZone);
+            if (candidateUtc > nowUtc.UtcDateTime)
+            {
+                return candidateUtc;
+            }
+
+            candidateDate = candidateDate.AddDays(1);
+        }
     }
 
 }
