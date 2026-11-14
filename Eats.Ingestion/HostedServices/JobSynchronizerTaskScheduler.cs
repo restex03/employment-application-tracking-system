@@ -44,15 +44,17 @@ public sealed class JobSynchronizerTaskScheduler(
                 var sourceRepository = scope.ServiceProvider.GetRequiredService<IJobSourceRepository>();
                 var queue = scope.ServiceProvider.GetRequiredService<ITaskQueue>();
                 var sources = await sourceRepository.GetAllAsync(stoppingToken);
+                var syncBatchId = Guid.NewGuid();
                 foreach (var source in sources)
                 {
                     await queue.Enqueue(
+                        syncBatchId: syncBatchId,
                         source.Id,
                         SearchText,
                         stoppingToken);
                 }
                 
-                logger.LogInformation("Enqueued daily JobPost sync for {SourceCount} sources", sources.Count);
+                logger.LogInformation("Enqueued daily JobPost sync for {SourceCount} sources in batch {SyncBatchId}", sources.Count, syncBatchId);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {

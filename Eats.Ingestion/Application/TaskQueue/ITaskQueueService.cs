@@ -11,7 +11,7 @@ namespace Eats.Ingestion.Application.JobPostSync;
 public interface ITaskQueueService
 {
     Task<QueueTaskDto> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<JobPostSyncQueueTask>> AddAsync(JobPostSyncTask task, CancellationToken cancellationToken = default);
+    Task<Guid> AddAsync(JobPostSyncTask task, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<QueueTaskDto>> GetAllActiveAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<QueueTaskDto>> GetAllAsync(CancellationToken cancellationToken = default);
 
@@ -44,23 +44,22 @@ public interface ITaskQueueService
             return result.Select(MapToViewModel).ToList();
         }
 
-        public async Task<IReadOnlyList<JobPostSyncQueueTask>> AddAsync(JobPostSyncTask task, CancellationToken cancellationToken = default)
+        public async Task<Guid> AddAsync(JobPostSyncTask task, CancellationToken cancellationToken = default)
         {
             logger.LogDebug("[ITaskQueueService.Imp.AddAsync] Adding a new queue task with search text {SearchText} and source ids {SourceIds}", task.SearchText, task.SourceIds);
-            var queueTasks = new List<JobPostSyncQueueTask>(); 
+            var syncBatchId = Guid.NewGuid();
             var sourceIds = task.SourceIds.Any()
             ?  task.SourceIds
             : (await sourceRepository.GetAllAsync(cancellationToken)).Select(s => s.Id);
             foreach (var sourceId in sourceIds)
             {
                 var jobId = await taskQueue.Enqueue(
+                    syncBatchId: syncBatchId,
                     sourceId,
                     task.SearchText,
                     cancellationToken);
-
-                queueTasks.Add(new JobPostSyncQueueTask { SourceId = sourceId, JobId = jobId });
             }
-            return queueTasks;
+            return syncBatchId;
         }
 
         private static QueueTaskDto MapToViewModel(QueueTask task)

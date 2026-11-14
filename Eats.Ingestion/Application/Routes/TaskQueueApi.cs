@@ -14,7 +14,7 @@ public static class TaskQueueApi
         return group;
     }
 
-    public static async Task<Ok<IReadOnlyList<JobPostSyncQueueTask>>> Add(JobPostSyncRequest req, ITaskQueueService service, CancellationToken ct)
+    public static async Task<Ok<Guid>> Add(JobPostSyncRequest req, ITaskQueueService service, CancellationToken ct)
     {
         var jobIds = await service.AddAsync(new JobPostSyncTask
         {

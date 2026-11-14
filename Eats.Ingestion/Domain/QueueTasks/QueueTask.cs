@@ -12,14 +12,16 @@ public enum QueueTaskStatusDomain
 
 public sealed class QueueTask
 {
-    public QueueTask(Guid sourceId, string? searchText, QueueTaskStatusDomain status, DateTime createdAt)
+    public QueueTask(Guid syncBatchId, Guid sourceId, string? searchText, QueueTaskStatusDomain status, DateTime createdAt)
     {
         SourceId = sourceId;
         SearchText = searchText;
         Status = status;
         CreatedAt = createdAt;
+        SyncBatchId = syncBatchId;
     }
     public Guid Id { get; private set; } = Guid.NewGuid();
+    public Guid SyncBatchId { get; private set; }
     public Guid SourceId { get; private set; }
     public string? SearchText { get; private set; }
     public QueueTaskStatusDomain Status { get; private set; }

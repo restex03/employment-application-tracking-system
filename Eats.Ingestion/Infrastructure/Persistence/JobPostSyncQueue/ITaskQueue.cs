@@ -10,6 +10,7 @@ namespace Eats.Ingestion.Infrastructure.Persistence.JobPostSyncQueue;
 public interface ITaskQueue
 {
     Task<Guid> Enqueue(
+        Guid syncBatchId,
         Guid sourceId,
         string? searchText,
         CancellationToken cancellationToken = default);
@@ -24,6 +25,7 @@ public interface ITaskQueue
     public sealed class Imp(EatsIngestionDbContext dbContext) : ITaskQueue
 {
     public async Task<Guid> Enqueue(
+        Guid syncBatchId,
         Guid sourceId,
         string? searchText,
         CancellationToken cancellationToken = default)
@@ -33,6 +35,7 @@ public interface ITaskQueue
             throw new InvalidOperationException("SourceId cannot be empty.");
         }
         var job = new QueueTask(
+            syncBatchId,
             sourceId,
             searchText,
             QueueTaskStatusDomain.Queued,

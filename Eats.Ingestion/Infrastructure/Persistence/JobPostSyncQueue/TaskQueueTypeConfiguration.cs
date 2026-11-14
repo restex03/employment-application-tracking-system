@@ -16,6 +16,8 @@ public sealed class TaskQueueTypeConfiguration : IEntityTypeConfiguration<QueueT
         builder.Property(x => x.SourceId)
             .IsRequired();
         builder.Property(x => x.SearchText);
+        builder.Property(x => x.SyncBatchId)
+            .IsRequired();
         builder.Property(x => x.Status)
             .HasConversion<int>()
             .IsRequired();
@@ -25,5 +27,7 @@ public sealed class TaskQueueTypeConfiguration : IEntityTypeConfiguration<QueueT
             .IsRequired();
         builder.HasIndex(x => new { x.Status, x.CreatedAt })
             .HasDatabaseName($"IX_{tableName}_Status_CreatedAt");
+        builder.HasIndex(x => x.SyncBatchId)
+            .HasDatabaseName($"IX_{tableName}_SyncBatchId");
     }
 }
