@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.FeatureManagement;
 using Eats.Ingestion.Infrastructure.Persistence.JobPostSyncQueue;
 using Eats.Ingestion.Application.FeatureFlags;
@@ -26,8 +27,8 @@ public sealed class JobSynchronizer(
         {
             try
             {
-                await using var scope = scopeFactory.CreateAsyncScope();
-                var queue = scope.ServiceProvider.GetRequiredService<ITaskQueue>();
+                await using var serviceScope = scopeFactory.CreateAsyncScope();
+                var queue = serviceScope.ServiceProvider.GetRequiredService<ITaskQueue>();
                 var queueTask = await queue.ClaimNext(stoppingToken);
                 if (queueTask is null)
                 {
@@ -35,13 +36,29 @@ public sealed class JobSynchronizer(
                     continue;
                 }
 
+                var runId = Guid.NewGuid();
+                using var scope = logger.BeginScope(
+                    new Dictionary<string, object>
+                    {
+                        ["SyncBatchId"] = queueTask.SyncBatchId,
+                        ["QueueTaskId"] = queueTask.Id,
+                        ["RunId"] = runId,
+                        ["JobSourceId"] = queueTask.SourceId,
+                        ["Pipeline"] = "JobSynchronizer"
+                    });
+
                 logger.LogDebug("Processing JobPost synchronization task {Id}", queueTask.Id);
-                var syncService = scope.ServiceProvider.GetRequiredService<IJobPostSyncService>();
+                var syncService = serviceScope.ServiceProvider.GetRequiredService<IJobPostSyncService>();
+                var stopwatch = Stopwatch.StartNew();
                 try
                 {
                     await syncService.SyncJobPostsOrThrowAsync(queueTask.SourceId, queueTask.SearchText, stoppingToken);
                     await queue.Complete(queueTask.Id, stoppingToken);
-                    
+                    stopwatch.Stop();
+                    logger.LogInformation(
+                        "JobPost synchronization task {Id} completed in {DurationMs}ms",
+                        queueTask.Id,
+                        stopwatch.ElapsedMilliseconds);
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
@@ -49,7 +66,12 @@ public sealed class JobSynchronizer(
                 }
                 catch (Exception exception)
                 {
-                    logger.LogError(exception, "JobPost synchronization task {Id} failed", queueTask.Id);
+                    stopwatch.Stop();
+                    logger.LogError(
+                        exception,
+                        "JobPost synchronization task {Id} failed after {DurationMs}ms",
+                        queueTask.Id,
+                        stopwatch.ElapsedMilliseconds);
                     await queue.Fail(queueTask.Id, exception.Message, stoppingToken);
                 }
             }
