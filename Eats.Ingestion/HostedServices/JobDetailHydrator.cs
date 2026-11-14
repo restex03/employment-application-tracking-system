@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.FeatureManagement;
 using Eats.Ingestion.Application.JobPostDiscovery;
 using Eats.Ingestion.Infrastructure.Persistence.JobPosts;
@@ -65,6 +66,14 @@ public sealed class JobDetailHydrator(
                     continue;
                 }
 
+                // This batch is independent of the source-sync queue, so it has no SyncBatchId.
+                using var batchLogScope = logger.BeginScope(new Dictionary<string, object>
+                {
+                    ["RunId"] = Guid.NewGuid(),
+                    ["Pipeline"] = nameof(JobDetailHydrator)
+                });
+
+                var stopwatch = Stopwatch.StartNew();
                 logger.LogInformation(
                     "Hydrating a batch of {JobPostCount} job posts",
                     batch.Count);
@@ -73,6 +82,12 @@ public sealed class JobDetailHydrator(
 
                 foreach (var jobPost in batch)
                 {
+                    using var jobLogScope = logger.BeginScope(new Dictionary<string, object>
+                    {
+                        ["JobPostId"] = jobPost.Id,
+                        ["JobSourceId"] = jobPost.SourceId
+                    });
+
                     try
                     {
                         var source = await GetJobSource(jobPost.SourceId, sourceRepository);
@@ -117,10 +132,12 @@ public sealed class JobDetailHydrator(
                         ThrottleInterval, stoppingToken);
                 }
 
+                stopwatch.Stop();
                 logger.LogInformation(
-                    "Completed job-post detail hydration batch: {SucceededCount} succeeded, {FailedCount} failed",
+                    "Completed job-post detail hydration batch: {SucceededCount} succeeded, {FailedCount} failed in {DurationMs}ms",
                     batch.Count - failedCount,
-                    failedCount);
+                    failedCount,
+                    stopwatch.ElapsedMilliseconds);
 
                 // Cooldown period in case the entire batch fails
                 if (failedCount == batch.Count)
