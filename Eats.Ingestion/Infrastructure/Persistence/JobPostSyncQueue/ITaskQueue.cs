@@ -21,6 +21,8 @@ public interface ITaskQueue
     Task<QueueTask> GetTaskByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<QueueTask>> GetAllActive(CancellationToken cancellationToken = default);
     Task<IEnumerable<QueueTask>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<QueueTask>> GetByBatchIdAsync(Guid syncBatchId, CancellationToken cancellationToken = default);
+    Task<QueueBatchSummary?> GetBatchSummaryAsync(Guid syncBatchId, CancellationToken cancellationToken = default);
 
     public sealed class Imp(EatsIngestionDbContext dbContext) : ITaskQueue
 {
@@ -116,6 +118,31 @@ public interface ITaskQueue
         }
     }
 
+        public async Task<IReadOnlyList<QueueTask>> GetByBatchIdAsync(
+            Guid syncBatchId, CancellationToken cancellationToken = default)
+        {
+            return await dbContext.QueueTasks.AsNoTracking()
+                .Where(task => task.SyncBatchId == syncBatchId)
+                .OrderBy(task => task.CreatedAt).ThenBy(task => task.Id)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<QueueBatchSummary?> GetBatchSummaryAsync(
+            Guid syncBatchId, CancellationToken cancellationToken = default)
+        {
+            return await dbContext.QueueTasks.AsNoTracking()
+                .Where(task => task.SyncBatchId == syncBatchId)
+                .GroupBy(task => task.SyncBatchId)
+                .Select(group => new QueueBatchSummary(
+                    group.Key,
+                    group.Count(),
+                    group.Count(task => task.Status == QueueTaskStatusDomain.Queued),
+                    group.Count(task => task.Status == QueueTaskStatusDomain.InProgress),
+                    group.Count(task => task.Status == QueueTaskStatusDomain.Completed),
+                    group.Count(task => task.Status == QueueTaskStatusDomain.Failed)))
+                .SingleOrDefaultAsync(cancellationToken);
+        }
+
         public async Task<QueueTask> GetTaskByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default)
         {
             var result = await dbContext.QueueTasks
@@ -143,3 +170,11 @@ public interface ITaskQueue
     }
 
 }
+
+public sealed record QueueBatchSummary(
+    Guid SyncBatchId,
+    int TotalCount,
+    int QueuedCount,
+    int InProgressCount,
+    int CompletedCount,
+    int FailedCount);
