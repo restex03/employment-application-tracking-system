@@ -35,7 +35,8 @@ builder.Services.AddSerilog((services, logger) =>
 
     logger
         .Enrich.FromLogContext()
-        .WriteTo.Console(new SingleLineConsoleFormatter());
+        .WriteTo.Console(new SingleLineConsoleFormatter(
+            builder.Configuration.GetValue<bool>("Serilog:Console:IncludeExceptionDetails")));
 
     var endpoint = builder.Configuration["Telemetry:OtlpEndpoint"];
     if (!string.IsNullOrWhiteSpace(endpoint))
