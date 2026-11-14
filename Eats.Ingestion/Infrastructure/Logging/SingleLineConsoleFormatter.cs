@@ -48,9 +48,16 @@ public sealed class SingleLineConsoleFormatter(bool includeExceptionDetails = fa
         if (logEvent.Exception is { } exception)
         {
             output.Write(" | ");
-            output.Write(exception.GetType().Name);
-            output.Write(": ");
-            WriteSingleLine(output, includeExceptionDetails ? exception.ToString() : exception.Message);
+            if (includeExceptionDetails)
+            {
+                WriteSingleLine(output, exception.ToString());
+            }
+            else
+            {
+                output.Write(exception.GetType().Name);
+                output.Write(": ");
+                WriteSingleLine(output, exception.Message);
+            }
         }
 
         output.WriteLine();
