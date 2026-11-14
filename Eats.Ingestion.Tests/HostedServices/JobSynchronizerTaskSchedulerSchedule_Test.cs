@@ -42,6 +42,17 @@ public sealed class JobSynchronizerTaskSchedulerSchedule_Test
     }
 
     [Fact]
+    public void NextRun_DoesNotSkipSecondFallBackOccurrenceAfterFirst()
+    {
+        // 01:45 EDT occurs before 01:30 EST in absolute time.
+        var now = new DateTimeOffset(2026, 11, 1, 5, 45, 0, TimeSpan.Zero);
+        var next = JobSynchronizerTaskScheduler.GetNextRunUtc(
+            now, new TimeOnly(1, 30), Eastern);
+
+        Assert.Equal(new DateTime(2026, 11, 1, 6, 30, 0, DateTimeKind.Utc), next);
+    }
+
+    [Fact]
     public void NextRun_UsesStandardTimeForAmbiguousFallBackLocalTime()
     {
         // 01:30 occurs twice on 2026-11-01; schedule only the standard-time occurrence.
