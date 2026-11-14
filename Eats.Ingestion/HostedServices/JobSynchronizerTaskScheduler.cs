@@ -10,6 +10,7 @@ namespace Eats.Ingestion.HostedServices;
 public sealed class JobSynchronizerTaskScheduler(
     IServiceScopeFactory scopeFactory,
     IFeatureManager featureManager,
+    IConfiguration configuration,
     ILogger<JobSynchronizerTaskScheduler> logger) : BackgroundService
 {
     private const int RunHour = 5;
@@ -28,7 +29,7 @@ public sealed class JobSynchronizerTaskScheduler(
         logger.LogInformation("Feature enabled: {Feature}", FeatureConstants.JobSynchronizer);
 
         // The schedule is Eastern by default, regardless of the Docker host timezone.
-        var timeZoneId = Environment.GetEnvironmentVariable("EATS_SCHEDULE_TIMEZONE")
+        var timeZoneId = configuration["Ingestion:ScheduleTimeZone"]
             ?? "America/New_York";
         var timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
 
