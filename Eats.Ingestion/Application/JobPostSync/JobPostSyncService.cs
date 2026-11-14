@@ -37,7 +37,7 @@ public interface IJobPostSyncService
                     ["JobSource"] = source.CompanyName
                 });
 
-            logger.LogInformation("Syncing job posts from source {CompanyName}", source.CompanyName);
+            logger.LogInformation("Syncing job posts from source {JobSource}", source.CompanyName);
             var stopwatch = Stopwatch.StartNew();
             var discoveryService = discoveryServiceFactory.Create(source);
             var discoveredJobs = await discoveryService.FetchList(searchText, ct);
@@ -50,7 +50,7 @@ public interface IJobPostSyncService
             stopwatch.Stop();
 
             logger.LogInformation(
-                "Synchronized job posts from {CompanyName}: fetched {FetchedCount}, accepted {AcceptedCount} in {DurationMs}ms",
+                "Synchronized job posts from {JobSource}: fetched {FetchedCount}, accepted {AcceptedCount} in {DurationMs}ms",
                 source.CompanyName,
                 discoveredJobs.Count,
                 jobPosts.Length,

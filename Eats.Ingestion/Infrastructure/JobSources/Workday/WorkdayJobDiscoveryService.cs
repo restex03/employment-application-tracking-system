@@ -36,7 +36,7 @@ public sealed class WorkdayJobDiscoveryService(
             }
 
             logger.LogTrace(
-                "Fetched {Count} Workday job postings for {Company} at offset {Offset}",
+                "Fetched {Count} Workday job postings for {JobSource} at offset {Offset}",
                 response.JobPostings.Count,
                 jobSource.CompanyName,
                 offset);

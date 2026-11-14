@@ -18,11 +18,11 @@ public sealed class JobSynchronizer(
         var isEnabled = await featureManager.IsEnabledAsync(FeatureConstants.JobSynchronizer);
         if (!isEnabled)
         {
-            logger.LogInformation("Feature disabled: JobSynchronizer");
+            logger.LogInformation("Feature disabled: {Feature}", FeatureConstants.JobSynchronizer);
             return;
         }
 
-        logger.LogInformation("Feature enabled: JobSynchronizer");
+        logger.LogInformation("Feature enabled: {Feature}", FeatureConstants.JobSynchronizer);
         while (!stoppingToken.IsCancellationRequested)
         {
             try

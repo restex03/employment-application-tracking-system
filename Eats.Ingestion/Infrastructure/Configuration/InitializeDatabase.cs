@@ -54,6 +54,6 @@ public static class InitializeDatabase
         }).ToArray();
 
         await sourceRepository.AddManyAsync(jobSources, app.Lifetime.ApplicationStopping);
-        app.Logger.LogInformation("Seeded {SourceCount} Workday sources from {SourcePath}", jobSources.Length, sourcePath);
+        app.Logger.LogInformation("Seeded {JobSourceCount} Workday sources from {SourcePath}", jobSources.Length, sourcePath);
     }
 }

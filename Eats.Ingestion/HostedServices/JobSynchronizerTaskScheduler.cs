@@ -21,11 +21,11 @@ public sealed class JobSynchronizerTaskScheduler(
         var isEnabled = await featureManager.IsEnabledAsync(FeatureConstants.JobSynchronizer);
         if (!isEnabled)
         {
-            logger.LogInformation("Feature disabled: JobSynchronizer");
+            logger.LogInformation("Feature disabled: {Feature}", FeatureConstants.JobSynchronizer);
             return;
         }
 
-        logger.LogInformation("Feature enabled: JobSynchronizer");
+        logger.LogInformation("Feature enabled: {Feature}", FeatureConstants.JobSynchronizer);
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -54,7 +54,7 @@ public sealed class JobSynchronizerTaskScheduler(
                         ["Pipeline"] = "JobSynchronizer"
                     });
 
-                logger.LogInformation("Created daily JobPost sync batch for {SourceCount} sources", sources.Count);
+                logger.LogInformation("Created daily JobPost sync batch for {JobSourceCount} sources", sources.Count);
 
                 var stopwatch = Stopwatch.StartNew();
                 var enqueuedCount = 0;
@@ -73,7 +73,7 @@ public sealed class JobSynchronizerTaskScheduler(
                 catch (Exception) when (enqueuedCount > 0 && !stoppingToken.IsCancellationRequested)
                 {
                     logger.LogWarning(
-                        "Partially enqueued daily JobPost sync: {EnqueuedCount} of {SourceCount} tasks before failure",
+                        "Partially enqueued daily JobPost sync: {EnqueuedCount} of {JobSourceCount} tasks before failure",
                         enqueuedCount,
                         sources.Count);
                     throw;

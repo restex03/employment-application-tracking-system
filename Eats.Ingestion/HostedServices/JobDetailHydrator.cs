@@ -31,11 +31,11 @@ public sealed class JobDetailHydrator(
         var isEnabled = await featureManager.IsEnabledAsync(FeatureConstants.JobDetailHydrator);
         if (!isEnabled)
         {
-            logger.LogInformation("Feature disabled: JobDetailHydrator");
+            logger.LogInformation("Feature disabled: {Feature}", FeatureConstants.JobDetailHydrator);
             return;
         }
 
-        logger.LogInformation("Feature enabled: JobDetailHydrator");
+        logger.LogInformation("Feature enabled: {Feature}", FeatureConstants.JobDetailHydrator);
 
         while (!stoppingToken.IsCancellationRequested)
         {

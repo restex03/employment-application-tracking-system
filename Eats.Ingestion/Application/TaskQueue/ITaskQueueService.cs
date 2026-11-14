@@ -24,7 +24,7 @@ public interface ITaskQueueService
 
         public async Task<QueueTaskDto> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            logger.LogDebug($"[ITaskQueueService.Imp.GetByIdOrThrowAsync] Getting queue task by id {id}", id);
+            logger.LogDebug("Getting queue task by id {QueueTaskId}", id);
             var qt = await taskQueue.GetTaskByIdOrThrowAsync(id, cancellationToken);
             var result = MapToViewModel(qt);
             return result;
@@ -32,21 +32,21 @@ public interface ITaskQueueService
 
         public async Task<IReadOnlyList<QueueTaskDto>> GetAllActiveAsync(CancellationToken cancellationToken = default)
         {
-            logger.LogDebug("[ITaskQueueService.Imp.GetAllActiveAsync] Getting all active queue tasks");
+            logger.LogDebug("Getting all active queue tasks");
             var result = await taskQueue.GetAllActive(cancellationToken);
             return result.Select(MapToViewModel).ToList();
         }
 
         public async Task<IReadOnlyList<QueueTaskDto>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            logger.LogDebug("[ITaskQueueService.Imp.GetAllAsync] Getting all queue tasks");
+            logger.LogDebug("Getting all queue tasks");
             var result = await taskQueue.GetAllAsync(cancellationToken);
             return result.Select(MapToViewModel).ToList();
         }
 
         public async Task<Guid> AddAsync(JobPostSyncTask task, CancellationToken cancellationToken = default)
         {
-            logger.LogDebug("[ITaskQueueService.Imp.AddAsync] Adding a new queue task with search text {SearchText} and source ids {SourceIds}", task.SearchText, task.SourceIds);
+            logger.LogDebug("Adding a new queue task with search text {SearchText} and source ids {JobSourceIds}", task.SearchText, task.SourceIds);
             var syncBatchId = Guid.NewGuid();
             var sourceIds = task.SourceIds.Any()
             ?  task.SourceIds
