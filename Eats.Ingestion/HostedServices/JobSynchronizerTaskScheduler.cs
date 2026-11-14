@@ -27,17 +27,29 @@ public sealed class JobSynchronizerTaskScheduler(
 
         logger.LogInformation("Feature enabled: {Feature}", FeatureConstants.JobSynchronizer);
 
+        // The schedule is Eastern by default, regardless of the Docker host timezone.
+        var timeZoneId = Environment.GetEnvironmentVariable("EATS_SCHEDULE_TIMEZONE")
+            ?? "America/New_York";
+        var timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+
         while (!stoppingToken.IsCancellationRequested)
         {
-            var now = DateTime.Now;
-            var nextRun = now.Date.AddHours(RunHour).AddMinutes(RunMinute);
-            if (nextRun <= now)
+            var nowUtc = DateTimeOffset.UtcNow;
+            var localNow = TimeZoneInfo.ConvertTime(nowUtc, timeZone);
+            var nextLocal = localNow.Date.AddHours(RunHour).AddMinutes(RunMinute);
+            if (nextLocal <= localNow.DateTime)
             {
-                nextRun = nextRun.AddDays(1);
+                nextLocal = nextLocal.AddDays(1);
             }
 
-            logger.LogInformation("Next daily JobPost sync scheduled for {NextRun}", nextRun);
-            await Task.Delay(nextRun - now, stoppingToken);
+            var nextRunUtc = TimeZoneInfo.ConvertTimeToUtc(
+                DateTime.SpecifyKind(nextLocal, DateTimeKind.Unspecified), timeZone);
+            var delay = nextRunUtc - DateTime.UtcNow;
+
+            logger.LogInformation(
+                "Next daily job-post sync scheduled for {NextRunUtc} UTC ({ScheduleTimeZone} local time)",
+                nextRunUtc, timeZoneId);
+            await Task.Delay(delay > TimeSpan.Zero ? delay : TimeSpan.Zero, stoppingToken);
 
             var syncBatchId = Guid.NewGuid();
             try
