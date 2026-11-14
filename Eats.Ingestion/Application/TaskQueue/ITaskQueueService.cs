@@ -11,9 +11,11 @@ namespace Eats.Ingestion.Application.JobPostSync;
 public interface ITaskQueueService
 {
     Task<QueueTaskDto> GetByIdOrThrowAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<Guid> AddAsync(JobPostSyncTask task, CancellationToken cancellationToken = default);
+    Task<JobPostSyncEnqueueResponse> AddAsync(JobPostSyncTask task, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<QueueTaskDto>> GetAllActiveAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<QueueTaskDto>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<QueueTaskDto>> GetByBatchIdAsync(Guid syncBatchId, CancellationToken cancellationToken = default);
+    Task<SyncBatchSummaryDto?> GetBatchSummaryAsync(Guid syncBatchId, CancellationToken cancellationToken = default);
 
     public sealed class Imp(
         ITaskQueue taskQueue,
@@ -44,10 +46,11 @@ public interface ITaskQueueService
             return result.Select(MapToViewModel).ToList();
         }
 
-        public async Task<Guid> AddAsync(JobPostSyncTask task, CancellationToken cancellationToken = default)
+        public async Task<JobPostSyncEnqueueResponse> AddAsync(JobPostSyncTask task, CancellationToken cancellationToken = default)
         {
             logger.LogDebug("Adding a new queue task with search text {SearchText} and source ids {JobSourceIds}", task.SearchText, task.SourceIds);
             var syncBatchId = Guid.NewGuid();
+            var queueTasks = new List<JobPostSyncQueueTask>();
             var sourceIds = task.SourceIds.Any()
             ?  task.SourceIds
             : (await sourceRepository.GetAllAsync(cancellationToken)).Select(s => s.Id);
@@ -58,8 +61,30 @@ public interface ITaskQueueService
                     sourceId,
                     task.SearchText,
                     cancellationToken);
+                queueTasks.Add(new JobPostSyncQueueTask { SourceId = sourceId, JobId = jobId });
             }
-            return syncBatchId;
+            logger.LogInformation("Enqueued {EnqueuedCount} job-post sync tasks in batch {SyncBatchId}", queueTasks.Count, syncBatchId);
+            return new JobPostSyncEnqueueResponse(syncBatchId, queueTasks);
+        }
+
+        public async Task<IReadOnlyList<QueueTaskDto>> GetByBatchIdAsync(
+            Guid syncBatchId, CancellationToken cancellationToken = default)
+        {
+            var tasks = await taskQueue.GetByBatchIdAsync(syncBatchId, cancellationToken);
+            return tasks.Select(MapToViewModel).ToArray();
+        }
+
+        public async Task<SyncBatchSummaryDto?> GetBatchSummaryAsync(
+            Guid syncBatchId, CancellationToken cancellationToken = default)
+        {
+            var summary = await taskQueue.GetBatchSummaryAsync(syncBatchId, cancellationToken);
+            return summary is null ? null : new SyncBatchSummaryDto(
+                summary.SyncBatchId,
+                summary.TotalCount,
+                summary.QueuedCount,
+                summary.InProgressCount,
+                summary.CompletedCount,
+                summary.FailedCount);
         }
 
         private static QueueTaskDto MapToViewModel(QueueTask task)
@@ -75,6 +100,8 @@ public interface ITaskQueueService
             return new QueueTaskDto
             {
                 Id = task.Id,
+                SyncBatchId = task.SyncBatchId,
+                JobSourceId = task.SourceId,
                 Status = status,
                 Error = task.Error,
                 CreatedAt = task.CreatedAt,
