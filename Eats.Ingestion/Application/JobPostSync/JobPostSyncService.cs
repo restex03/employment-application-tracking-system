@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Eats.Ingestion.Application.JobPostDiscovery;
 using Eats.Ingestion.Application.JobPostSync;
 using Eats.Ingestion.Application.JobPostSync.Screeners.JobPosts;
@@ -26,10 +27,18 @@ public interface IJobPostSyncService
         {
 
             var source = await jobSourceRepository.GetByIdOrThrowAsync(sourceId, ct);
-            
-            var jobsDiscovered = 0;
+
+            // Correlation (SyncBatchId, QueueTaskId, RunId) is inherited from the
+            // ambient scope created by JobSynchronizer; only source-level context is added here.
+            using var scope = logger.BeginScope(
+                new Dictionary<string, object>
+                {
+                    ["JobSourceId"] = sourceId,
+                    ["JobSource"] = source.CompanyName
+                });
 
             logger.LogInformation("Syncing job posts from source {CompanyName}", source.CompanyName);
+            var stopwatch = Stopwatch.StartNew();
             var discoveryService = discoveryServiceFactory.Create(source);
             var discoveredJobs = await discoveryService.FetchList(searchText, ct);
             var jobPosts = discoveredJobs
@@ -38,12 +47,14 @@ public interface IJobPostSyncService
                 .ToArray();
 
             await jobPostRepository.UpsertManyAsync(jobPosts, ct);
-            jobsDiscovered += jobPosts.Length;
+            stopwatch.Stop();
 
             logger.LogInformation(
-                "Discovered {JobsDiscovered} jobs from {CompanyName}",
-                jobsDiscovered,
-                source.CompanyName);
+                "Synchronized job posts from {CompanyName}: fetched {FetchedCount}, accepted {AcceptedCount} in {DurationMs}ms",
+                source.CompanyName,
+                discoveredJobs.Count,
+                jobPosts.Length,
+                stopwatch.ElapsedMilliseconds);
         }
 
 
