@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using Microsoft.FeatureManagement;
 using Eats.Ingestion.Infrastructure.Persistence.JobPostSyncQueue;
 using Eats.Ingestion.Infrastructure.Persistence.JobSources;
@@ -13,8 +14,7 @@ public sealed class JobSynchronizerTaskScheduler(
     IConfiguration configuration,
     ILogger<JobSynchronizerTaskScheduler> logger) : BackgroundService
 {
-    private const int RunHour = 5;
-    private const int RunMinute = 0;
+    private static readonly string[] IsoTimeFormats = ["HH:mm:ss", "HH:mm"];
     private const string SearchText = "software engineer";
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -28,28 +28,33 @@ public sealed class JobSynchronizerTaskScheduler(
 
         logger.LogInformation("Feature enabled: {Feature}", FeatureConstants.JobSynchronizer);
 
-        // The schedule is Eastern by default, regardless of the Docker host timezone.
+        // A recurring local wall-clock time needs both an ISO 8601 time and an IANA
+        // timezone. A fixed UTC offset alone would not account for daylight saving time.
+        var scheduleTimeText = configuration["Ingestion:ScheduleTime"]
+            ?? throw new InvalidOperationException("Ingestion:ScheduleTime is required (e.g. 05:00:00).");
+        if (!TimeOnly.TryParseExact(
+                scheduleTimeText,
+                IsoTimeFormats,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out var scheduleTime))
+        {
+            throw new InvalidOperationException(
+                $"Invalid Ingestion:ScheduleTime '{scheduleTimeText}'. Expected HH:mm:ss or HH:mm.");
+        }
+
         var timeZoneId = configuration["Ingestion:ScheduleTimeZone"]
-            ?? "America/New_York";
+            ?? throw new InvalidOperationException("Ingestion:ScheduleTimeZone is required.");
         var timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            var nowUtc = DateTimeOffset.UtcNow;
-            var localNow = TimeZoneInfo.ConvertTime(nowUtc, timeZone);
-            var nextLocal = localNow.Date.AddHours(RunHour).AddMinutes(RunMinute);
-            if (nextLocal <= localNow.DateTime)
-            {
-                nextLocal = nextLocal.AddDays(1);
-            }
-
-            var nextRunUtc = TimeZoneInfo.ConvertTimeToUtc(
-                DateTime.SpecifyKind(nextLocal, DateTimeKind.Unspecified), timeZone);
+            var nextRunUtc = GetNextRunUtc(DateTimeOffset.UtcNow, scheduleTime, timeZone);
             var delay = nextRunUtc - DateTime.UtcNow;
 
             logger.LogInformation(
-                "Next daily job-post sync scheduled for {NextRunUtc} UTC ({ScheduleTimeZone} local time)",
-                nextRunUtc, timeZoneId);
+                "Next daily job-post sync scheduled for {NextRunUtc} UTC ({ScheduleTime} in {ScheduleTimeZone})",
+                nextRunUtc, scheduleTime.ToString("HH:mm:ss", CultureInfo.InvariantCulture), timeZoneId);
             await Task.Delay(delay > TimeSpan.Zero ? delay : TimeSpan.Zero, stoppingToken);
 
             var syncBatchId = Guid.NewGuid();
@@ -108,4 +113,27 @@ public sealed class JobSynchronizerTaskScheduler(
             }
         }
     }
+    internal static DateTime GetNextRunUtc(
+        DateTimeOffset nowUtc, TimeOnly scheduleTime, TimeZoneInfo timeZone)
+    {
+        var localNow = TimeZoneInfo.ConvertTime(nowUtc, timeZone);
+        var nextLocal = localNow.Date.Add(scheduleTime.ToTimeSpan());
+
+        if (nextLocal <= localNow.DateTime)
+        {
+            nextLocal = nextLocal.AddDays(1);
+        }
+
+        // Some local wall-clock times are skipped during the spring DST transition.
+        // On those days, run at the earliest valid time after the skipped interval.
+        while (timeZone.IsInvalidTime(nextLocal))
+        {
+            nextLocal = nextLocal.AddMinutes(1);
+        }
+
+        // An ambiguous fall-back wall-clock time resolves to standard time, so
+        // only one run is scheduled for the local calendar day.
+        return TimeZoneInfo.ConvertTimeToUtc(nextLocal, timeZone);
+    }
+
 }
