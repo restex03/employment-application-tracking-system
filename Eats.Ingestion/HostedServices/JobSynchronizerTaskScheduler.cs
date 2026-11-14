@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.FeatureManagement;
 using Eats.Ingestion.Infrastructure.Persistence.JobPostSyncQueue;
 using Eats.Ingestion.Infrastructure.Persistence.JobSources;
@@ -38,23 +39,51 @@ public sealed class JobSynchronizerTaskScheduler(
             logger.LogInformation("Next daily JobPost sync scheduled for {NextRun}", nextRun);
             await Task.Delay(nextRun - now, stoppingToken);
 
+            var syncBatchId = Guid.NewGuid();
             try
             {
-                await using var scope = scopeFactory.CreateAsyncScope();
-                var sourceRepository = scope.ServiceProvider.GetRequiredService<IJobSourceRepository>();
-                var queue = scope.ServiceProvider.GetRequiredService<ITaskQueue>();
+                await using var serviceScope = scopeFactory.CreateAsyncScope();
+                var sourceRepository = serviceScope.ServiceProvider.GetRequiredService<IJobSourceRepository>();
+                var queue = serviceScope.ServiceProvider.GetRequiredService<ITaskQueue>();
                 var sources = await sourceRepository.GetAllAsync(stoppingToken);
-                var syncBatchId = Guid.NewGuid();
-                foreach (var source in sources)
+
+                using var scope = logger.BeginScope(
+                    new Dictionary<string, object>
+                    {
+                        ["SyncBatchId"] = syncBatchId,
+                        ["Pipeline"] = "JobSynchronizer"
+                    });
+
+                logger.LogInformation("Created daily JobPost sync batch for {SourceCount} sources", sources.Count);
+
+                var stopwatch = Stopwatch.StartNew();
+                var enqueuedCount = 0;
+                try
                 {
-                    await queue.Enqueue(
-                        syncBatchId: syncBatchId,
-                        source.Id,
-                        SearchText,
-                        stoppingToken);
+                    foreach (var source in sources)
+                    {
+                        await queue.Enqueue(
+                            syncBatchId: syncBatchId,
+                            source.Id,
+                            SearchText,
+                            stoppingToken);
+                        enqueuedCount++;
+                    }
                 }
-                
-                logger.LogInformation("Enqueued daily JobPost sync for {SourceCount} sources in batch {SyncBatchId}", sources.Count, syncBatchId);
+                catch (Exception) when (enqueuedCount > 0 && !stoppingToken.IsCancellationRequested)
+                {
+                    logger.LogWarning(
+                        "Partially enqueued daily JobPost sync: {EnqueuedCount} of {SourceCount} tasks before failure",
+                        enqueuedCount,
+                        sources.Count);
+                    throw;
+                }
+
+                stopwatch.Stop();
+                logger.LogInformation(
+                    "Enqueued {EnqueuedCount} daily JobPost sync tasks in {DurationMs}ms",
+                    enqueuedCount,
+                    stopwatch.ElapsedMilliseconds);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -62,7 +91,7 @@ public sealed class JobSynchronizerTaskScheduler(
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to enqueue the daily JobPost sync");
+                logger.LogError(exception, "Failed to enqueue the daily JobPost sync batch {SyncBatchId}", syncBatchId);
             }
         }
     }
