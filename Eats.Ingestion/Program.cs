@@ -1,58 +1,12 @@
 using Eats.Ingestion.Application.Routes;
 using Eats.Ingestion.HostedServices;
 using Eats.Ingestion.Infrastructure.Configuration;
-using Serilog;
-using Serilog.Sinks.OpenTelemetry;
-using Serilog.Events;
-using Eats.Ingestion.Infrastructure.Logging;
 
 
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Console presentation and OTLP export are independent Serilog sinks.
-builder.Services.AddSerilog((services, logger) =>
-{
-    var levelName = builder.Configuration["Serilog:MinimumLevel:Default"] ?? "Information";
-    if (!Enum.TryParse<LogEventLevel>(levelName, true, out var defaultLevel))
-    {
-        throw new InvalidOperationException($"Invalid Serilog minimum level: {levelName}");
-    }
-
-    logger.MinimumLevel.Is(defaultLevel);
-
-    foreach (var overrideSection in builder.Configuration
-        .GetSection("Serilog:MinimumLevel:Override").GetChildren())
-    {
-        if (!Enum.TryParse<LogEventLevel>(overrideSection.Value, true, out var overrideLevel))
-        {
-            throw new InvalidOperationException(
-                $"Invalid Serilog minimum level override for {overrideSection.Key}");
-        }
-
-        logger.MinimumLevel.Override(overrideSection.Key, overrideLevel);
-    }
-
-    logger
-        .Enrich.FromLogContext()
-        .WriteTo.Console(new SingleLineConsoleFormatter(
-            builder.Configuration.GetValue<bool>("Serilog:Console:IncludeExceptionDetails")));
-
-    var endpoint = builder.Configuration["Telemetry:OtlpEndpoint"];
-    if (!string.IsNullOrWhiteSpace(endpoint))
-    {
-        logger.WriteTo.OpenTelemetry(options =>
-        {
-            options.Endpoint = endpoint;
-            options.Protocol = OtlpProtocol.HttpProtobuf;
-            options.ResourceAttributes = new Dictionary<string, object>
-            {
-                ["service.name"] = "eats-ingestion",
-                ["deployment.environment.name"] = builder.Environment.EnvironmentName
-            };
-        });
-    }
-});
+builder.Services.AddLoggingServices(builder.Configuration, builder.Environment);
 
 // Application Services
 builder.Services.AddApplicationServices(builder.Configuration);
