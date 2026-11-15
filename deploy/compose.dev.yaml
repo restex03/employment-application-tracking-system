@@ -1,0 +1,25 @@
+# Development overrides for deploy/compose.yaml.
+# Requires Docker Compose 2.24.4+ for !override.
+name: eats-dev
+
+services:
+  postgres:
+    container_name: eats-postgres
+    environment:
+      POSTGRES_DB: eats
+    ports: !override
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
+
+  ingestion:
+    container_name: eats-dev-ingestion
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=eats;Username=eats;Password=${POSTGRES_PASSWORD:?Password required};GSS Encryption Mode=Disable"
+    ports: !override
+      - "127.0.0.1:${INGESTION_HOST_PORT:-8080}:8080"
+
+# Reuse the existing local development PostgreSQL volume, if present.
+# Never delete this volume when switching away from infrastart.sh.
+volumes:
+  postgres_data:
+    name: eats-postgres-data
