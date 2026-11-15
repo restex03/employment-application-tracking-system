@@ -18,7 +18,7 @@ Detail discovery returns a flat `JobPostDetailDiscovery` model in the ingestion 
 - `apps/ingestion/Eats.Ingestion.slnx` — ingestion solution for future modular-monolith projects.
 - `apps/ingestion/Dockerfile` — ingestion image definition (build context: repository root).
 - `devTools/` — local PostgreSQL bootstrap script.
-- `deploy/` — deployment notes; the server-managed Compose file is not changed by this PR.
+- `deploy/` — version-controlled production Compose file, environment template, and mini-PC deployment instructions.
 
 The .NET application is **not yet split into modules**. This PR only establishes the
 directory and solution structure for subsequent project extraction.
@@ -138,7 +138,7 @@ Use the repository root as the Docker build context:
 docker build -f apps/ingestion/Dockerfile -t eats-ingestion:local .
 ```
 
-This does not change the running mini-PC deployment or its Compose configuration.
+The version-controlled production Compose configuration is documented in [`deploy/README.md`](deploy/README.md). Building an image does not automatically deploy it to the mini PC.
 
 ## Migrating an existing local checkout
 
