@@ -56,12 +56,29 @@ set_env_value INGESTION_IMAGE_REPOSITORY "$new_repository"
 set_env_value INGESTION_IMAGE_TAG "$new_tag"
 
 docker compose --project-directory "$deployment_root" --file "$compose_file" --env-file "$env_file" config --quiet
-docker pull "$new_repository:$new_tag"
+
+# The host's Compose file is managed separately from this repository. A hardcoded
+# image would otherwise leave the old healthy container running and falsely pass.
+expected_image="$new_repository:$new_tag"
+resolved_images="$(docker compose --project-directory "$deployment_root" --file "$compose_file" --env-file "$env_file" config --images)"
+if ! grep -Fxq -- "$expected_image" <<< "$resolved_images"; then
+  echo "Compose does not resolve to expected ingestion image: $expected_image" >&2
+  echo "Check the ingestion image declaration in $compose_file" >&2
+  false
+fi
+
+docker pull "$expected_image"
 docker compose --project-directory "$deployment_root" --file "$compose_file" --env-file "$env_file" up -d --no-deps --no-build --pull never ingestion
 
 container_id="$(docker compose --project-directory "$deployment_root" --file "$compose_file" --env-file "$env_file" ps -q ingestion)"
 [[ -n "$container_id" ]] || { echo "Ingestion container missing" >&2; false; }
 for ((i=0; i<90; i++)); do
+  # Check the actual container, not just its health or the requested Compose tag.
+  running_image="$(docker inspect --format '{{.Config.Image}}' "$container_id")"
+  if [[ "$running_image" != "$expected_image" ]]; then
+    echo "Wrong running ingestion image: $running_image (expected $expected_image)" >&2
+    false
+  fi
   status="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}missing{{end}}' "$container_id")"
   if [[ "$status" == healthy ]]; then
     trap - ERR
