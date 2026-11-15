@@ -78,7 +78,7 @@ On every push to `main`, GitHub Actions first runs the existing .NET, NestJS, an
 
 The workflow uses the built-in `GITHUB_TOKEN` with `packages: write`; no separate registry publishing secret is required. The package may initially be private. Check package visibility and grant repository access to the package if needed.
 
-On fred, create a classic GitHub personal access token with **read:packages** and SSO authorization if applicable. Log in once without putting the token on the command line:
+If the GHCR package is private, create a classic GitHub personal access token with **read:packages** and SSO authorization if applicable. Public packages can be pulled anonymously. Log in once without putting the token on the command line:
 
 ```sh
 read -rsp 'GHCR token: ' GHCR_TOKEN; echo
@@ -88,7 +88,7 @@ unset GHCR_TOKEN
 
 Docker saves login credentials for the user running the command; use that same user for deployments and secure its Docker credential store. Do not commit or print the token.
 
-Set these values in fred's existing production environment file (for example `/opt/eats/.env`):
+For manual deployments, set these values in fred's existing production environment file (for example `/opt/eats/.env`). The CI deployment script sets them automatically:
 
 ```dotenv
 INGESTION_IMAGE_REPOSITORY=ghcr.io/restex03/eats-ingestion
@@ -135,11 +135,11 @@ PR checks run on GitHub-hosted runners, without production credentials. After me
 
 **Before merging this PR:**
 
-1. Install and enroll Tailscale on fred. Create a Tailscale OAuth client with the `auth_keys` scope and tag `tag:github-actions`, configure tailnet access policy to allow that tag to reach fred on TCP 22, and configure the GitHub Action's OIDC audience as documented by Tailscale. Do not grant this tag broad tailnet access.
+1. Install and enroll Tailscale on fred. Create a Tailscale OAuth client with the `auth_keys` scope and tag `tag:github-actions`, configure tailnet access policy to allow that tag to reach fred on TCP 22, and configure the GitHub Action with the OAuth client ID and secret. Do not grant this tag broad tailnet access.
 2. Create a dedicated SSH identity for deployments. Add its public key to fred's deployment user's `authorized_keys`; store the private key as a GitHub `production` environment secret. The user needs access to Docker (which effectively grants host-level privileges); protect this account accordingly.
 3. On fred, ensure `/opt/eats/compose.yaml` and `/opt/eats/.env` are the current production configuration and writable by the deployment user, and that `flock` is installed. The deployment user must be able to run Docker without an interactive sudo prompt. Back up `.env` and PostgreSQL before the first deployment.
 4. Authenticate Docker on fred to GHCR with a read-only `read:packages` token if the image is private; public packages may be pulled without credentials. The deployment user's Docker credentials must be configured for the same account used by SSH.
-5. In GitHub repository **Settings → Environments**, create `production` and restrict deployment branches to `main`. Set these **environment secrets**: `TS_OAUTH_CLIENT_ID`, `TS_AUDIENCE`, `DEPLOY_SSH_KEY`, and `DEPLOY_SSH_KNOWN_HOSTS`. Populate `DEPLOY_SSH_KNOWN_HOSTS` using fred's SSH host public key, verified out of band; do not use `StrictHostKeyChecking=no`. Set **environment variables** `DEPLOY_SSH_HOST` (fred's Tailscale address or MagicDNS hostname) and `DEPLOY_SSH_USER` (the deployment account).
+5. In GitHub repository **Settings → Environments**, create `production` and restrict deployment branches to `main`. Set these **environment secrets**: `TS_OAUTH_CLIENT_ID`, `TS_OAUTH_SECRET`, `DEPLOY_SSH_KEY`, and `DEPLOY_SSH_KNOWN_HOSTS`. Populate `DEPLOY_SSH_KNOWN_HOSTS` using fred's SSH host public key, verified out of band; do not use `StrictHostKeyChecking=no`. Set **environment variables** `DEPLOY_SSH_HOST` (fred's Tailscale address or MagicDNS hostname) and `DEPLOY_SSH_USER` (the deployment account).
 6. Test the connection and deployment in a controlled rollout. Do not merge until the required GitHub secrets, environment variables, tailnet policy, SSH authorization, and GHCR pull access are ready.
 
 **Security:** Do not run untrusted PR code on fred. Keep the production environment restricted to trusted `main` deployments. A deployment user with Docker access has host-level privileges; the SSH private key is a sensitive production credential. Use separate deploy credentials and limit access.
