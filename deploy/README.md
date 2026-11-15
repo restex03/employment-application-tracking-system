@@ -12,7 +12,7 @@ cp deploy/.env.example deploy/.env
 
 Set a strong `POSTGRES_PASSWORD` and `WORKDAY_SOURCES_HOST_PATH` to the **absolute path** of an existing Workday sources JSON file on the host. Never commit `.env` or personal source data.
 
-Ingestion publishes on **both** `127.0.0.1` and the specific LAN interface configured with `INGESTION_LAN_IP` (required). Set it to an address assigned to the deployment host; do not use `0.0.0.0`. PostgreSQL defaults to localhost via `POSTGRES_BIND_ADDRESS`. Published ports and the ingestion image tag are configurable. The ingestion container always listens on port 8080 internally.
+Both PostgreSQL and ingestion publish on **both** `127.0.0.1` and the specific LAN interface configured with `LAN_IP` (required). Set it to an IPv4 address assigned to the deployment host; do not use `0.0.0.0`. Published ports and the ingestion image tag are configurable. PostgreSQL listens on port 5432 and ingestion on port 8080 inside their containers. Publishing PostgreSQL on the LAN increases its exposure: use a strong password and restrict access to trusted client addresses with network/firewall controls.
 
 These bindings are not an internet-access guarantee. Restrict inbound traffic with appropriate host/network firewall rules, check router port-forwarding and UPnP settings, and verify the service cannot be reached from an external network. Docker-published ports can bypass some UFW rules; account for Docker forwarding rules when enforcing firewall policy.
 
@@ -20,7 +20,7 @@ These bindings are not an internet-access guarantee. Restrict inbound traffic wi
 
 The Compose project name remains `eats`, the volume remains `postgres_data`, and the container names remain unchanged. **Do not change the project name or use `docker compose down -v`** on an existing deployment: doing so risks losing access to persistent PostgreSQL data.
 
-Before adopting the template, copy the existing Compose file and environment configuration to a safe backup. Set the environment variables to reproduce the existing LAN address, ports, sources path, and image tag. The template preserves the dual ingestion bindings (localhost plus one LAN address).
+Before adopting the template, copy the existing Compose file and environment configuration to a safe backup. Set the environment variables to reproduce the existing LAN address, ports, sources path, and image tag. The template preserves dual bindings for both services (localhost plus one LAN address).
 
 ## Validate
 
