@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/Eats.Ingestion/Eats.Ingestion.csproj" />
+  <Project Path="tests/Eats.Ingestion.Tests/Eats.Ingestion.Tests.csproj" />
+</Solution>

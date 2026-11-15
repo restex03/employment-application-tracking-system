@@ -10,6 +10,19 @@ Workday postings are collected by the ingestion service and stored in PostgreSQL
 
 Detail discovery returns a flat `JobPostDetailDiscovery` model in the ingestion domain. `JobPost.HydrateDetail` creates the detail entity, assigns the owning post's ID, and applies discovered requisition and remote-type values. Detail entities generate their own IDs.
 
+## Repository layout
+
+- `apps/web/` — NestJS API, React client, Node tooling, and local application data.
+- `apps/ingestion/src/Eats.Ingestion/` — .NET ingestion application.
+- `apps/ingestion/tests/Eats.Ingestion.Tests/` — .NET ingestion tests.
+- `apps/ingestion/Eats.Ingestion.slnx` — ingestion solution for future modular-monolith projects.
+- `apps/ingestion/Dockerfile` — ingestion image definition (build context: repository root).
+- `devTools/` — local PostgreSQL bootstrap script.
+- `deploy/` — deployment notes; the server-managed Compose file is not changed by this PR.
+
+The .NET application is **not yet split into modules**. This PR only establishes the
+directory and solution structure for subsequent project extraction.
+
 ## Requirements
 
 Install:
@@ -26,52 +39,52 @@ From the repository root:
 1. Install dependencies:
 
    ```sh
-   npm ci
-   npm ci --prefix client
-   dotnet restore Eats.Ingestion/Eats.Ingestion.csproj
+   npm ci --prefix apps/web
+   npm ci --prefix apps/web/client
+   dotnet restore apps/ingestion/Eats.Ingestion.slnx
    ```
 
 2. Create local data files:
 
    ```sh
-   mkdir -p data/CandidateProfiles data/JobSources
-   cp src/Examples/candidateProfiles.example.json data/CandidateProfiles/candidateProfile.json
-   printf '[]\n' > data/JobSources/workdaySources.json
-   cp .envExample .env
+   mkdir -p apps/web/data/CandidateProfiles apps/web/data/JobSources
+   cp apps/web/src/Examples/candidateProfiles.example.json apps/web/data/CandidateProfiles/candidateProfile.json
+   printf '[]\n' > apps/web/data/JobSources/workdaySources.json
+   cp apps/web/.env.example apps/web/.env
    ```
 
-   Edit `.env` and set `MISTRAL_API_KEY`. The candidate profile is seeded into SQLite on first startup; customize the copied example first. The assessment UI currently uses a fixed candidate ID. Make the profile's `id` match the `CANDIDATE_PROFILE_ID` values in `client/src/pages/JobPostsPage.tsx` and `client/src/components/JobPostModal.tsx`, or update those values to match your profile.
+   Edit `apps/web/.env` and set `MISTRAL_API_KEY`. The candidate profile is seeded into SQLite on first startup; customize the copied example first. The assessment UI currently uses a fixed candidate ID. Make the profile's `id` match the `CANDIDATE_PROFILE_ID` values in `apps/web/client/src/pages/JobPostsPage.tsx` and `apps/web/client/src/components/JobPostModal.tsx`, or update those values to match your profile.
 
-   Add the Workday career sites you want to sync to `data/JobSources/workdaySources.json`. It must be a JSON array of objects with `companyName` and `baseUrl` fields. The empty array above allows the service to start, but you must configure at least one source to sync postings.
+   Add the Workday career sites you want to sync to `apps/web/data/JobSources/workdaySources.json`. It must be a JSON array of objects with `companyName` and `baseUrl` fields. The empty array above allows the service to start, but you must configure at least one source to sync postings.
 
-3. Set the ingestion service URL in `.env`:
+3. Set the ingestion service URL in `apps/web/.env`:
 
    ```dotenv
    INGESTION_SVC_BASE_URL=http://localhost:5223
    ```
 
-   `DB_PATH`, `CANDIDATE_PROFILE`, and `API_PORT` are already set in `.envExample`; adjust them only if needed.
+   `DB_PATH`, `CANDIDATE_PROFILE`, and `API_PORT` are already set in `apps/web/.env.example`; adjust them only if needed.
 
 4. Start the services in separate terminals:
 
    ```sh
    bash devTools/infrastart.sh
-   dotnet run --project Eats.Ingestion/Eats.Ingestion.csproj
+   (cd apps/ingestion/src/Eats.Ingestion && dotnet run)
    ```
 
    The script starts the local PostgreSQL container. The ingestion service applies its database migrations on startup and loads configured Workday sources if its database has none.
 
    ```sh
-   npm run dev
+   npm run dev --prefix apps/web
    ```
 
    This starts the API at `http://localhost:3000`.
 
    ```sh
-   npm run frontend:dev
+   npm run frontend:dev --prefix apps/web
    ```
 
-   Open `http://localhost:3001`. The frontend proxies API requests to port 3000. You can run the API and frontend together with `npm run dev:full` once the ingestion service is running.
+   Open `http://localhost:3001`. The frontend proxies API requests to port 3000. You can run the API and frontend together with `npm run dev:full --prefix apps/web` once the ingestion service is running.
 
 The API health check is at `http://localhost:3000/health`.
 
@@ -81,11 +94,11 @@ Choose **Sync** in the Job Posts page to collect postings from configured source
 
 ## Data and reset
 
-Local data is stored in the ignored `data/` directory. Do not commit candidate profiles, source configuration, database files, or other personal information.
+Local Node application data is stored in the ignored `apps/web/data/` directory. Do not commit candidate profiles, source configuration, database files, or other personal information.
 
 There are two databases:
 
-- `data/job-app.db` (SQLite) stores candidate profiles, assessments, application tracking, and the assessment queue. Uploaded attachment files are stored separately under `data/`.
+- `apps/web/data/job-app.db` (SQLite) stores candidate profiles, assessments, application tracking, and the assessment queue. Uploaded attachment files are stored separately under `data/`.
 - The `eats-postgres-data` Docker volume stores ingested job postings, Workday sources, and sync tasks.
 
 To clear the app's SQLite data through the UI, open **Tools → Reset Database**, then confirm. This clears profiles, assessments, application records, and assessment queue entries, then seeds the candidate profile from its configured JSON file. It does **not** remove job postings or sources in PostgreSQL, or uploaded attachment files.
@@ -93,8 +106,8 @@ To clear the app's SQLite data through the UI, open **Tools → Reset Database**
 With the default `DB_PATH`, reset SQLite manually by stopping the API and removing its database and any SQLite sidecar files, then restarting the API:
 
 ```sh
-rm -f data/job-app.db data/job-app.db-shm data/job-app.db-wal
-npm run dev
+rm -f apps/web/data/job-app.db apps/web/data/job-app.db-shm apps/web/data/job-app.db-wal
+npm run dev --prefix apps/web
 ```
 
 The API recreates the schema and seeds the candidate profile on startup. This does not affect PostgreSQL job data.
@@ -112,7 +125,31 @@ Then restart the ingestion service; it recreates the database and loads sources 
 ## Checks
 
 ```sh
-npm run verify
-npm run frontend:build
-dotnet test Eats.Ingestion.Tests/Eats.Ingestion.Tests.csproj
+npm run verify --prefix apps/web
+npm run frontend:build --prefix apps/web
+dotnet test apps/ingestion/Eats.Ingestion.slnx
 ```
+
+## Building the ingestion image
+
+Use the repository root as the Docker build context:
+
+```sh
+docker build -f apps/ingestion/Dockerfile -t eats-ingestion:local .
+```
+
+This does not change the running mini-PC deployment or its Compose configuration.
+
+## Migrating an existing local checkout
+
+Untracked files are not moved by Git. If you already have a local `.env`
+or `data/` directory at the old repository root, move them into the web
+workspace after checking out this PR:
+
+```sh
+mv .env apps/web/.env
+mv data apps/web/data
+```
+
+Only run those commands when the destination does not already exist.
+Do not commit personal data or credentials.

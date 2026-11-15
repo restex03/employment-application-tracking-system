@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Eats.Ingestion/Eats.Ingestion.csproj" />
+    <ProjectReference Include="../../src/Eats.Ingestion/Eats.Ingestion.csproj" />
   </ItemGroup>
 
 </Project>

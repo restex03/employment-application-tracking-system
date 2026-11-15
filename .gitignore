@@ -71,7 +71,7 @@ output.txt
 candidateProfile.json
 
 # Frontend client
-client/node_modules/
-client/dist/
-client/build/
+apps/web/client/node_modules/
+apps/web/client/dist/
+apps/web/client/build/
 
