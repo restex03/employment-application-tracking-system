@@ -98,7 +98,7 @@ Local Node application data is stored in the ignored `apps/web/data/` directory.
 
 There are two databases:
 
-- `apps/web/data/job-app.db` (SQLite) stores candidate profiles, assessments, application tracking, and the assessment queue. Uploaded attachment files are stored separately under `data/`.
+- `apps/web/data/job-app.db` (SQLite) stores candidate profiles, assessments, application tracking, and the assessment queue. Uploaded attachment files are stored separately under `apps/web/data/`.
 - The `eats-postgres-data` Docker volume stores ingested job postings, Workday sources, and sync tasks.
 
 To clear the app's SQLite data through the UI, open **Tools → Reset Database**, then confirm. This clears profiles, assessments, application records, and assessment queue entries, then seeds the candidate profile from its configured JSON file. It does **not** remove job postings or sources in PostgreSQL, or uploaded attachment files.
