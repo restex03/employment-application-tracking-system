@@ -30,7 +30,13 @@ Edit `WORKDAY_SOURCES_HOST_PATH` to the absolute path of `apps/web/data/JobSourc
 
 **One-time migration from `infrastart.sh`:** if the existing `eats-postgres` container is present, stop any running ingestion process, then run `docker rm -f eats-postgres`. This removes the old container but **preserves** `eats-postgres-data`. Do not run `docker volume rm` or `down -v`.
 
-To run only PostgreSQL while developing ingestion with `dotnet run`:
+To run only PostgreSQL while developing ingestion with `dotnet run`, use the convenience wrapper (which runs the shared Compose files):
+
+```sh
+bash devScripts/infrastart.sh
+```
+
+Equivalent direct Compose command:
 
 ```sh
 docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml --env-file deploy/.env up -d postgres
