@@ -17,8 +17,8 @@ Detail discovery returns a flat `JobPostDetailDiscovery` model in the ingestion 
 - `apps/ingestion/tests/Eats.Ingestion.Tests/` — .NET ingestion tests.
 - `apps/ingestion/Eats.Ingestion.slnx` — ingestion solution for future modular-monolith projects.
 - `apps/ingestion/Dockerfile` — ingestion image definition (build context: repository root).
-- `devScripts/` — local PostgreSQL bootstrap script.
-- `deploy/` — version-controlled production Compose file and environment template.
+- `devScripts/` — convenience wrapper to start development PostgreSQL with Compose.
+- `deploy/` — shared Compose configuration, development override, and environment templates.
 - `deployScripts/` — portable image build and deployment scripts.
 
 The .NET application is **not yet split into modules**. This PR only establishes the
@@ -69,11 +69,13 @@ From the repository root:
 4. Start the services in separate terminals:
 
    ```sh
+   cp deploy/.env.dev.example deploy/.env
+   # Edit deploy/.env: set WORKDAY_SOURCES_HOST_PATH to an absolute path.
    bash devScripts/infrastart.sh
    (cd apps/ingestion/src/Eats.Ingestion && dotnet run)
    ```
 
-   The script starts the local PostgreSQL container. The ingestion service applies its database migrations on startup and loads configured Workday sources if its database has none.
+   Compose starts local PostgreSQL on localhost:5432, using the existing `eats-postgres-data` volume. The ingestion service applies its database migrations on startup and loads configured Workday sources if its database has none. If the old `infrastart.sh` container still exists, stop and remove **only that container** before the first Compose startup: `docker rm -f eats-postgres`. Do not remove its data volume.
 
    ```sh
    npm run dev --prefix apps/web
@@ -113,15 +115,15 @@ npm run dev --prefix apps/web
 
 The API recreates the schema and seeds the candidate profile on startup. This does not affect PostgreSQL job data.
 
-For a completely fresh install of both databases, first reset SQLite using one of the methods above, then stop the ingestion service and remove its PostgreSQL container and data volume. This permanently deletes all ingested postings, sources, and sync tasks:
+For a completely fresh install of both databases, first reset SQLite using the method above, then stop the ingestion service and remove the **development** PostgreSQL container and volume. This permanently deletes all local ingested postings, sources, and sync tasks; never run these commands on the production Docker host:
 
 ```sh
-docker rm -f eats-postgres
+docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml --env-file deploy/.env down
 docker volume rm eats-postgres-data
 bash devScripts/infrastart.sh
 ```
 
-Then restart the ingestion service; it recreates the database and loads sources from the configured Workday JSON file.
+For a fully containerized local ingestion service, build an image, then run the same Compose files with `up -d`. Stop the host-run `.NET` ingestion process first to avoid two ingestion workers running against the same database. See [development Compose instructions](deploy/README.md#fedora-development).
 
 ## Checks
 
