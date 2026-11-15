@@ -155,7 +155,7 @@ jobs:
     needs: [publish-ingestion]
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # Configure production with a required reviewer before enabling deployment.
+    # Store deployment credentials in the production environment; optional approval rules.
     environment: production
     permissions:
       contents: none
