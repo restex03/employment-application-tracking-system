@@ -53,4 +53,4 @@ Check the ingestion health status and review startup migrations before deploying
 
 ## Next steps
 
-A follow-up PR can introduce host-independent build and deploy scripts using the script location or supplied paths, image tags, configuration validation, readiness checks, and documented rollback. The optional OTLP endpoint remains disabled until a telemetry receiver is available.
+Build and deploy scripts are available in [`deployScripts/`](../deployScripts/README.md), with image tags, configuration validation, readiness checks, and documented rollback. The optional OTLP endpoint remains disabled until a telemetry receiver is available.
