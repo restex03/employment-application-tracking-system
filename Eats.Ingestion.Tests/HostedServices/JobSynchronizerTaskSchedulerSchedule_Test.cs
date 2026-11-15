@@ -30,15 +30,50 @@ public sealed class JobSynchronizerTaskSchedulerSchedule_Test
     }
 
     [Fact]
-    public void NextRun_SkipsNonexistentSpringForwardLocalTime()
+    public void NextRun_DoesNotSkipSpringForwardIngestion()
     {
-        // At 02:00 on 2026-03-08, Eastern clocks jump forward to 03:00.
+        // At 02:00 on 2026-03-08, Eastern clocks jump to 03:00; run at 03:00 that day.
         var now = new DateTimeOffset(2026, 3, 8, 5, 0, 0, TimeSpan.Zero);
 
         var next = JobSynchronizerTaskScheduler.GetNextRunUtc(
             now, new TimeOnly(2, 30), Eastern);
 
         Assert.Equal(new DateTime(2026, 3, 8, 7, 0, 0, DateTimeKind.Utc), next);
+    }
+
+    [Fact]
+    public void NextRun_SpringForwardWithSecondsRunsAtFirstValidMinute()
+    {
+        var now = new DateTimeOffset(2026, 3, 8, 6, 59, 59, TimeSpan.Zero);
+
+        var next = JobSynchronizerTaskScheduler.GetNextRunUtc(
+            now, new TimeOnly(2, 30, 45), Eastern);
+
+        Assert.Equal(new DateTime(2026, 3, 8, 7, 0, 0, DateTimeKind.Utc), next);
+    }
+
+    [Fact]
+    public void NextRun_SpringForwardDoesNotRunTwiceOnSameDay()
+    {
+        // 03:00 EDT is the replacement for today's nonexistent 02:30 time.
+        // After that instant, schedule tomorrow rather than running twice.
+        var now = new DateTimeOffset(2026, 3, 8, 7, 0, 1, TimeSpan.Zero);
+
+        var next = JobSynchronizerTaskScheduler.GetNextRunUtc(
+            now, new TimeOnly(2, 30), Eastern);
+
+        Assert.Equal(new DateTime(2026, 3, 9, 6, 30, 0, DateTimeKind.Utc), next);
+    }
+
+    [Fact]
+    public void NextRun_SpringForwardDoesNotShiftValidLocalTime()
+    {
+        var now = new DateTimeOffset(2026, 3, 8, 5, 0, 0, TimeSpan.Zero);
+
+        var next = JobSynchronizerTaskScheduler.GetNextRunUtc(
+            now, new TimeOnly(3, 30), Eastern);
+
+        Assert.Equal(new DateTime(2026, 3, 8, 7, 30, 0, DateTimeKind.Utc), next);
     }
 
     [Fact]
