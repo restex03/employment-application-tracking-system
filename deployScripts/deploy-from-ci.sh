@@ -23,6 +23,8 @@ flock -x 9
 # Preserve production configuration, changing only the image selector.
 previous_repository="$(grep -m1 '^INGESTION_IMAGE_REPOSITORY=' "$env_file" | cut -d= -f2- || true)"
 previous_tag="$(grep -m1 '^INGESTION_IMAGE_TAG=' "$env_file" | cut -d= -f2- || true)"
+previous_repository="${previous_repository:-eats-ingestion}"
+previous_tag="${previous_tag:-0.1.21}"
 new_repository="ghcr.io/restex03/eats-ingestion"
 new_tag="sha-$commit_sha"
 
@@ -37,19 +39,16 @@ set_env_value() {
     END { if (!found) print key "=" value }
   ' "$env_file" > "$temp"
   chmod --reference="$env_file" "$temp"
-  chown --reference="$env_file" "$temp"
+  # /opt/eats is setgid to the shared eats group; no root-only chown.
   mv "$temp" "$env_file"
 }
 
 rollback() {
   echo "Deployment failed. Restoring previous image selector..." >&2
-  if [[ -n "$previous_repository" && -n "$previous_tag" ]]; then
-    set_env_value INGESTION_IMAGE_REPOSITORY "$previous_repository"
-    set_env_value INGESTION_IMAGE_TAG "$previous_tag"
-    docker compose --project-directory "$deployment_root" --file "$compose_file" --env-file "$env_file" up -d --no-deps --no-build ingestion || true
-  else
-    echo "No previous image selector found; manual recovery may be required." >&2
-  fi
+  trap - ERR
+  set_env_value INGESTION_IMAGE_REPOSITORY "$previous_repository" || true
+  set_env_value INGESTION_IMAGE_TAG "$previous_tag" || true
+  docker compose --project-directory "$deployment_root" --file "$compose_file" --env-file "$env_file" up -d --no-deps --no-build --pull never ingestion || echo "Rollback failed; manual recovery required" >&2
 }
 trap rollback ERR
 
