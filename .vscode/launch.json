@@ -17,6 +17,36 @@
             ],
             "cwd": "${workspaceFolder}/apps/web",
             "console": "integratedTerminal"
+        },
+        {
+            "type": "coreclr",
+            "request": "launch",
+            "name": "Debug Eats.Ingestion.Tests",
+            "program": "dotnet",
+            "args": [
+                "test",
+                "${workspaceFolder}/apps/ingestion/tests/Eats.Ingestion.Tests/Eats.Ingestion.Tests.csproj",
+                "--nologo"
+            ],
+            "cwd": "${workspaceFolder}/apps/ingestion",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "type": "coreclr",
+            "request": "launch",
+            "name": "Debug Ingestion API (http)",
+            "program": "dotnet",
+            "args": [
+                "run",
+                "--project",
+                "${workspaceFolder}/apps/ingestion/src/Eats.Ingestion/Eats.Ingestion.csproj",
+                "--launch-profile",
+                "http"
+            ],
+            "cwd": "${workspaceFolder}/apps/ingestion",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "openOnSessionStart"
         }
     ]
 }

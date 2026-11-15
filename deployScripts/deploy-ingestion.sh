@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Deploy an existing ingestion image without recreating PostgreSQL.
+# Deploy an ingestion image from GHCR (or a local image) without recreating PostgreSQL.
 # The image tag and network settings come from the deployment .env file.
 
 show_usage() {
@@ -64,7 +64,7 @@ echo "Validating Docker Compose configuration..."
 # Compose may list other images (such as postgres:18).
 ingestion_image=""
 while IFS= read -r image; do
-    if [[ "$image" == eats-ingestion:* ]]; then
+    if [[ "$image" == eats-ingestion:* || "$image" == ghcr.io/*/eats-ingestion:* ]]; then
         ingestion_image="$image"
         break
     fi
@@ -74,8 +74,12 @@ if [[ -z "$ingestion_image" ]]; then
     fail "Could not determine the ingestion image from Compose."
 fi
 
-if ! docker image inspect "$ingestion_image" >/dev/null 2>&1; then
-    fail "Image $ingestion_image is not available locally. Build or load it first."
+# GHCR images are pulled explicitly. Local images must already be built.
+if [[ "$ingestion_image" == ghcr.io/* ]]; then
+    echo "Pulling $ingestion_image..."
+    docker pull "$ingestion_image"
+elif ! docker image inspect "$ingestion_image" >/dev/null 2>&1; then
+    fail "Image $ingestion_image is not available locally. Build it first."
 fi
 
 # --no-deps prevents Compose from starting or recreating PostgreSQL.

@@ -69,6 +69,43 @@ docker compose -f deploy/compose.yaml --env-file deploy/.env config --quiet
 
 For a copied deployment directory, run `docker compose --env-file .env config --quiet` there. `docker compose config` without `--quiet` prints expanded environment values, including secrets; do not share its output.
 
+## GitHub Container Registry (GHCR)
+
+On every push to `main`, GitHub Actions first runs the existing .NET, NestJS, and Compose checks. After they pass, it builds the ingestion Docker image and publishes:
+
+- `ghcr.io/restex03/eats-ingestion:sha-<full-git-commit-sha>` (preferred for production)
+- `ghcr.io/restex03/eats-ingestion:main` (moving tag; not recommended for production pinning)
+
+The workflow uses the built-in `GITHUB_TOKEN` with `packages: write`; no separate registry publishing secret is required. The package may initially be private. Check package visibility and grant repository access to the package if needed.
+
+On fred, create a classic GitHub personal access token with **read:packages** and SSO authorization if applicable. Log in once without putting the token on the command line:
+
+```sh
+read -rsp 'GHCR token: ' GHCR_TOKEN; echo
+printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
+unset GHCR_TOKEN
+```
+
+Docker saves login credentials for the user running the command; use that same user for deployments and secure its Docker credential store. Do not commit or print the token.
+
+Set these values in fred's existing production environment file (for example `/opt/eats/.env`):
+
+```dotenv
+INGESTION_IMAGE_REPOSITORY=ghcr.io/restex03/eats-ingestion
+INGESTION_IMAGE_TAG=sha-REPLACE_WITH_PUBLISHED_COMMIT_SHA
+```
+
+Pull and deploy after the image has been published:
+
+```sh
+git pull --ff-only origin main
+bash deployScripts/deploy-ingestion.sh --env-file /opt/eats/.env
+```
+
+The deployment script pulls GHCR images and recreates **ingestion only**; it does not start or recreate PostgreSQL. PostgreSQL must already be running. To roll back, restore the previous `INGESTION_IMAGE_TAG` and run the same deployment command. GitHub Actions publishes images but does **not** automatically deploy to fred.
+
+Local image builds remain supported by setting `INGESTION_IMAGE_REPOSITORY=eats-ingestion` and building the desired local tag first.
+
 ## Build and deploy
 
 Build the ingestion image from the repository root:
