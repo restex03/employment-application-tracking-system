@@ -81,4 +81,6 @@ jobs:
           POSTGRES_PASSWORD: ci-placeholder-not-a-real-secret
           LAN_IP: 192.0.2.10
           WORKDAY_SOURCES_HOST_PATH: /tmp/ci-workdaySources.json
-        run: docker compose -f deploy/compose.yaml config --quiet
+        run: |
+          docker compose -f deploy/compose.yaml config --quiet
+          docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml config --quiet
