@@ -64,3 +64,21 @@ jobs:
         env:
           RUN_LLM_REGRESSION: '0'
         run: npm run test:run
+
+  compose:
+    name: Docker Compose validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate shell syntax
+        run: bash -n deployScripts/build-ingestion.sh deployScripts/deploy-ingestion.sh
+
+      - name: Validate Docker Compose configuration
+        env:
+          POSTGRES_PASSWORD: ci-placeholder-not-a-real-secret
+          LAN_IP: 192.0.2.10
+          WORKDAY_SOURCES_HOST_PATH: /tmp/ci-workdaySources.json
+        run: docker compose -f deploy/compose.yaml config --quiet
