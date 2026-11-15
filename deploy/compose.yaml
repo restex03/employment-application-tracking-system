@@ -43,7 +43,8 @@ services:
     volumes:
       - "${WORKDAY_SOURCES_HOST_PATH:?Set absolute path to workdaySources.json}:/app/config/workdaySources.json:ro"
     ports:
-      - "${INGESTION_BIND_ADDRESS:-127.0.0.1}:${INGESTION_HOST_PORT:-8080}:8080"
+      - "127.0.0.1:${INGESTION_HOST_PORT:-8080}:8080"
+      - "${INGESTION_LAN_IP:?Set LAN interface address}:${INGESTION_HOST_PORT:-8080}:8080"
     stop_grace_period: 60s
     logging:
       driver: local
