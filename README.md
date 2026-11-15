@@ -17,6 +17,7 @@ Detail discovery returns a flat `JobPostDetailDiscovery` model in the ingestion 
 - `apps/ingestion/tests/Eats.Ingestion.Tests/` — .NET ingestion tests.
 - `apps/ingestion/Eats.Ingestion.slnx` — ingestion solution for future modular-monolith projects.
 - `apps/ingestion/Dockerfile` — ingestion image definition (build context: repository root).
+- `devScripts/` — convenience wrapper to start development PostgreSQL with Compose.
 - `deploy/` — shared Compose configuration, development override, and environment templates.
 - `deployScripts/` — portable image build and deployment scripts.
 
@@ -70,7 +71,7 @@ From the repository root:
    ```sh
    cp deploy/.env.dev.example deploy/.env
    # Edit deploy/.env: set WORKDAY_SOURCES_HOST_PATH to an absolute path.
-   docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml --env-file deploy/.env up -d postgres
+   bash devScripts/infrastart.sh
    (cd apps/ingestion/src/Eats.Ingestion && dotnet run)
    ```
 
@@ -119,7 +120,7 @@ For a completely fresh install of both databases, first reset SQLite using the m
 ```sh
 docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml --env-file deploy/.env down
 docker volume rm eats-postgres-data
-docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml --env-file deploy/.env up -d postgres
+bash devScripts/infrastart.sh
 ```
 
 For a fully containerized local ingestion service, build an image, then run the same Compose files with `up -d`. Stop the host-run `.NET` ingestion process first to avoid two ingestion workers running against the same database. See [development Compose instructions](deploy/README.md#fedora-development).
