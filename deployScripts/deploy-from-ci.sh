@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Executed over SSH by the trusted main-branch deployment job.
-commit_sha="${1:?Usage: bash deploy-from-ci.sh <40-character-commit-sha>}"
+commit_sha="${1:?Usage: bash deploy-from-ci.sh <40-character-commit-sha> [image-tag]}"
 if [[ ! "$commit_sha" =~ ^[0-9a-f]{40}$ ]]; then
   echo "Invalid commit SHA" >&2
   exit 2
@@ -26,7 +26,13 @@ previous_tag="$(grep -m1 '^INGESTION_IMAGE_TAG=' "$env_file" | cut -d= -f2- || t
 previous_repository="${previous_repository:-eats-ingestion}"
 previous_tag="${previous_tag:-0.1.21}"
 new_repository="ghcr.io/restex03/eats-ingestion"
-new_tag="sha-$commit_sha"
+new_tag="${2:-sha-$commit_sha}"
+# Permit only a tag tied to the supplied commit, optionally suffixed with the
+# unique GitHub Actions run ID for scheduled security refreshes.
+if [[ ! "$new_tag" =~ ^sha-${commit_sha}(-run-[0-9]+)?$ ]]; then
+  echo "Image tag does not match commit SHA: $new_tag" >&2
+  exit 2
+fi
 
 set_env_value() {
   local key="$1" value="$2"

@@ -71,10 +71,13 @@ For a copied deployment directory, run `docker compose --env-file .env config --
 
 ## GitHub Container Registry (GHCR)
 
-On every push to `main`, GitHub Actions first runs the existing .NET, NestJS, and Compose checks. After they pass, it builds the ingestion Docker image and publishes:
+On every push to `main` and on a weekly Sunday schedule (09:17 UTC), GitHub Actions first runs the existing .NET, NestJS, and Compose checks. After they pass, it builds the ingestion Docker image with `pull: true` to check for updated .NET 10 base images and publishes:
 
-- `ghcr.io/restex03/eats-ingestion:sha-<full-git-commit-sha>` (preferred for production)
+- `ghcr.io/restex03/eats-ingestion:sha-<full-git-commit-sha>` (normal main-branch releases)
+- `ghcr.io/restex03/eats-ingestion:sha-<full-git-commit-sha>-run-<actions-run-id>` (weekly refreshes, unique even if source code is unchanged)
 - `ghcr.io/restex03/eats-ingestion:main` (moving tag; not recommended for production pinning)
+
+The weekly refresh rebuilds and deploys ingestion without a source-code change. Run-specific tags avoid overwriting an existing SHA-tagged release and preserve rollback references. A refreshed image can include .NET and base-image security patches, but a rebuild does not guarantee all OS packages are patched; review upstream image advisories and rebuild results. PostgreSQL is not redeployed by this workflow.
 
 The workflow uses the built-in `GITHUB_TOKEN` with `packages: write`; no separate registry publishing secret is required. The package may initially be private. Check package visibility and grant repository access to the package if needed.
 

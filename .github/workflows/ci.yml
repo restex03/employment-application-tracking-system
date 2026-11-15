@@ -5,6 +5,9 @@ on:
     branches: [main]
   push:
     branches: [main]
+  schedule:
+    # Rebuild the current main commit weekly to pick up .NET base-image patches.
+    - cron: '17 9 * * 0'
 
 permissions:
   contents: read
@@ -102,11 +105,12 @@ jobs:
           context: .
           file: apps/ingestion/Dockerfile
           push: false
+          pull: true
           cache-from: type=gha
 
   publish-ingestion:
     name: Publish ingestion image to GHCR
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' || github.event_name == 'schedule') && github.ref == 'refs/heads/main'
     needs: [dotnet, nestjs, compose, docker-build]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -133,8 +137,9 @@ jobs:
           context: .
           file: apps/ingestion/Dockerfile
           push: true
+          pull: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/eats-ingestion:sha-${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/eats-ingestion:${{ github.event_name == 'schedule' && format('sha-{0}-run-{1}', github.sha, github.run_id) || format('sha-{0}', github.sha) }}
             ghcr.io/${{ github.repository_owner }}/eats-ingestion:main
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
@@ -144,7 +149,7 @@ jobs:
 
   deploy-ingestion:
     name: Deploy ingestion to fred
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' || github.event_name == 'schedule') && github.ref == 'refs/heads/main'
     needs: [publish-ingestion]
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -181,6 +186,11 @@ jobs:
         run: |
           : "${DEPLOY_SSH_HOST:?Set DEPLOY_SSH_HOST in the production environment}"
           : "${DEPLOY_SSH_USER:?Set DEPLOY_SSH_USER in the production environment}"
+          if [[ "$GITHUB_EVENT_NAME" == schedule ]]; then
+            image_tag="sha-$GITHUB_SHA-run-$GITHUB_RUN_ID"
+          else
+            image_tag="sha-$GITHUB_SHA"
+          fi
           ssh -o BatchMode=yes -o StrictHostKeyChecking=yes \
             "$DEPLOY_SSH_USER@$DEPLOY_SSH_HOST" \
-            "bash -s -- '$GITHUB_SHA'" < deployScripts/deploy-from-ci.sh
+            "bash -s -- '$GITHUB_SHA' '$image_tag'" < deployScripts/deploy-from-ci.sh
