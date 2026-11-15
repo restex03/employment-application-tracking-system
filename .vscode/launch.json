@@ -8,14 +8,14 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/src/main.ts",
+            "program": "${workspaceFolder}/apps/web/src/main.ts",
             "sourceMaps": true,
             "smartStep": true,
             "runtimeArgs": [
                 "--import",
                 "tsx"
             ],
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/apps/web",
             "console": "integratedTerminal"
         }
     ]

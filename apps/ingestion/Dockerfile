@@ -6,7 +6,7 @@ WORKDIR /src
 COPY . .
 
 RUN dotnet publish \
-    Eats.Ingestion/Eats.Ingestion.csproj \
+    apps/ingestion/src/Eats.Ingestion/Eats.Ingestion.csproj \
     -c Release \
     -o /app/publish \
     /p:UseAppHost=false

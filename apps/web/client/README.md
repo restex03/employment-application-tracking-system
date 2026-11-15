@@ -9,7 +9,7 @@ A Vite + React frontend for the Employment Application Tracking and Scoring Syst
 1. Navigate to the client directory:
 
     ```bash
-    cd client
+    cd apps/web/client
     ```
 
 2. Install dependencies:
@@ -31,7 +31,7 @@ This will start the Vite development server on port 3001 with a proxy to the bac
 
 To run both the backend and frontend simultaneously:
 
-From the root directory:
+From the `apps/web` directory:
 
 ```bash
 npm run dev:full
@@ -41,7 +41,7 @@ This requires the `concurrently` package to be installed in the root project.
 
 Alternatively, you can run them separately:
 
-- Backend: `npm run dev` (from root)
+- Backend: `npm run dev` (from `apps/web`)
 - Frontend: `npm run dev` (from client directory)
 
 ### Build
