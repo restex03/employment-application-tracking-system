@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Executed over SSH by the trusted main-branch deployment job.
+commit_sha="${1:?Usage: bash deploy-from-ci.sh <40-character-commit-sha>}"
+if [[ ! "$commit_sha" =~ ^[0-9a-f]{40}$ ]]; then
+  echo "Invalid commit SHA" >&2
+  exit 2
+fi
+
+deployment_root="/opt/eats"
+env_file="$deployment_root/.env"
+compose_file="$deployment_root/compose.yaml"
+[[ -f "$env_file" && -f "$compose_file" ]] || {
+  echo "Expected $env_file and $compose_file on fred" >&2
+  exit 1
+}
+
+# A single deployment at a time, including manual deployments using this entrypoint.
+exec 9>"$deployment_root/.deployment.lock"
+flock -x 9
+
+# Preserve production configuration, changing only the image selector.
+previous_repository="$(grep -m1 '^INGESTION_IMAGE_REPOSITORY=' "$env_file" | cut -d= -f2- || true)"
+previous_tag="$(grep -m1 '^INGESTION_IMAGE_TAG=' "$env_file" | cut -d= -f2- || true)"
+new_repository="ghcr.io/restex03/eats-ingestion"
+new_tag="sha-$commit_sha"
+
+set_env_value() {
+  local key="$1" value="$2"
+  local temp
+  temp="$(mktemp "$deployment_root/.env.XXXXXXXX")"
+  awk -v key="$key" -v value="$value" '
+    BEGIN { found=0 }
+    index($0, key "=")==1 { if (!found) print key "=" value; found=1; next }
+    { print }
+    END { if (!found) print key "=" value }
+  ' "$env_file" > "$temp"
+  chmod --reference="$env_file" "$temp"
+  chown --reference="$env_file" "$temp"
+  mv "$temp" "$env_file"
+}
+
+rollback() {
+  echo "Deployment failed. Restoring previous image selector..." >&2
+  if [[ -n "$previous_repository" && -n "$previous_tag" ]]; then
+    set_env_value INGESTION_IMAGE_REPOSITORY "$previous_repository"
+    set_env_value INGESTION_IMAGE_TAG "$previous_tag"
+    docker compose --project-directory "$deployment_root" --file "$compose_file" --env-file "$env_file" up -d --no-deps --no-build ingestion || true
+  else
+    echo "No previous image selector found; manual recovery may be required." >&2
+  fi
+}
+trap rollback ERR
+
+set_env_value INGESTION_IMAGE_REPOSITORY "$new_repository"
+set_env_value INGESTION_IMAGE_TAG "$new_tag"
+
+docker compose --project-directory "$deployment_root" --file "$compose_file" --env-file "$env_file" config --quiet
+docker pull "$new_repository:$new_tag"
+docker compose --project-directory "$deployment_root" --file "$compose_file" --env-file "$env_file" up -d --no-deps --no-build --pull never ingestion
+
+container_id="$(docker compose --project-directory "$deployment_root" --file "$compose_file" --env-file "$env_file" ps -q ingestion)"
+[[ -n "$container_id" ]] || { echo "Ingestion container missing" >&2; false; }
+for ((i=0; i<90; i++)); do
+  status="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}missing{{end}}' "$container_id")"
+  if [[ "$status" == healthy ]]; then
+    trap - ERR
+    echo "Deployed $new_repository:$new_tag"
+    exit 0
+  fi
+  [[ "$status" == starting || "$status" == unhealthy ]] || { echo "Unexpected health: $status" >&2; false; }
+  sleep 2
+done
+echo "Health check timed out" >&2
+false
