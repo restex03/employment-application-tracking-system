@@ -27,7 +27,7 @@ public sealed class SingleLineConsoleFormatter_Test
         var output = writer.ToString();
 
         Assert.StartsWith("2026-11-14T20:30:00.000Z [ERR] [JobSynchronizer]", output);
-        Assert.Contains("Sync failed for Example", output);
+        Assert.Contains("Sync failed for \"Example\"", output);
         Assert.Contains("batch=batch-123", output);
         Assert.Contains(@"InvalidOperationException: failure\nwith details", output);
         Assert.Single(output.Split('\n', StringSplitOptions.RemoveEmptyEntries));
