@@ -1,59 +1,54 @@
-# EATS deployment (fred)
+# EATS Docker Compose deployment
 
-This directory versions the existing Docker Compose deployment running at `/opt/eats` on the Ubuntu mini PC. This initial change **does not** introduce Aspire, change the running deployment, or build a new image.
+This directory contains a portable deployment configuration for the EATS ingestion service and PostgreSQL. It does not include a dashboard or deployment automation yet.
 
-## Files
+## Configure
 
-- `compose.yaml`: current production services and settings (PostgreSQL 18 and ingestion image `eats-ingestion:0.1.21`).
-- `.env.example`: template for the untracked Compose environment file.
+On any Linux host with Docker Engine and Docker Compose, place `compose.yaml` and a populated `.env` in the chosen deployment directory. Start with `.env.example`:
 
-## First-time setup
+```sh
+cp deploy/.env.example deploy/.env
+```
 
-On fred, keep the deployment directory at `/opt/eats` and the Workday sources file at `/opt/eats/config/workdaySources.json`. Create a local `/opt/eats/.env` with a strong `POSTGRES_PASSWORD` value; never commit that file.
+Set a strong `POSTGRES_PASSWORD` and `WORKDAY_SOURCES_HOST_PATH` to the **absolute path** of an existing Workday sources JSON file on the host. Never commit `.env` or personal source data.
 
-The Compose file deliberately retains the existing project name `eats`, named volume `postgres_data`, container names, host address `192.168.1.128`, and image tag to avoid unintended deployment changes. **Do not change the project name or run `docker compose down -v`**: the named PostgreSQL volume contains persistent job data.
+Configure `INGESTION_BIND_ADDRESS` and `POSTGRES_BIND_ADDRESS` for the desired network interfaces. Both default to loopback for safer new installations; use a specific LAN address only when necessary and protect exposed ports with firewall rules. The host ports and ingestion image tag are configurable. The ingestion container always listens on port 8080 internally.
 
-## Validate before deploying
+## Existing deployments
 
-From the repository root, with a populated local `deploy/.env`:
+The Compose project name remains `eats`, the volume remains `postgres_data`, and the container names remain unchanged. **Do not change the project name or use `docker compose down -v`** on an existing deployment: doing so risks losing access to persistent PostgreSQL data.
+
+Before adopting the template, copy the existing Compose file and environment configuration to a safe backup. Set the environment variables to reproduce the existing bind addresses, ports, sources path, and image tag. A previous deployment with multiple published ingestion host addresses may need an explicit additional `ports` entry; this template exposes one configurable address by default.
+
+## Validate
+
+From the repository root:
 
 ```sh
 docker compose -f deploy/compose.yaml --env-file deploy/.env config --quiet
 ```
 
-On fred, back up the existing Compose file, then copy the reviewed `deploy/compose.yaml` to `/opt/eats/compose.yaml`. Run:
+For a copied deployment directory, run `docker compose --env-file .env config --quiet` there. `docker compose config` without `--quiet` prints expanded environment values, including secrets; do not share its output.
+
+## Build and deploy
+
+Build the ingestion image from the repository root:
 
 ```sh
-cd /opt/eats
+docker build -f apps/ingestion/Dockerfile -t eats-ingestion:0.1.22 .
+```
+
+Choose a new image tag rather than overwriting a running release. Set `INGESTION_IMAGE_TAG` in the deployment `.env` to the new tag. From the deployment directory:
+
+```sh
 docker compose --env-file .env config --quiet
-docker compose ps
-```
-
-Review `docker compose config` carefully: it expands secrets, so **do not paste or publish its output**. Avoid running `docker compose up -d` merely to adopt this documentation-only change; no runtime change is required.
-
-## Building an ingestion image
-
-Build from the **repository root** because the Dockerfile uses the repository as its build context:
-
-```sh
-docker build -f apps/ingestion/Dockerfile -t eats-ingestion:0.1.21 .
-```
-
-The version tag shown here matches the current Compose file; don't overwrite an existing production tag casually. When deploying new application code, choose a new tag, update Compose, validate, and intentionally recreate only the ingestion service:
-
-```sh
-cd /opt/eats
 docker compose --env-file .env up -d --no-deps ingestion
 docker compose ps
 docker compose logs --tail=100 ingestion
 ```
 
-The service's readiness probe is `/health/ready`. Confirm its status after deployment. Before deploying a new ingestion image, review any startup database migrations and ensure you have a database backup.
+Check the ingestion health status and review startup migrations before deploying. Back up PostgreSQL before changes that may alter the schema. Avoid recreating PostgreSQL merely to deploy ingestion code.
 
-## Notes
+## Next steps
 
-- `/opt/eats/config/workdaySources.json` is a host-specific bind mount; it is not stored in Git.
-- `192.168.1.128` is the current host's LAN address, not a portable default.
-- PostgreSQL is published on the LAN; restrict access with firewall rules. Consider removing that published port if external database access is unnecessary.
-- The optional OTLP endpoint is intentionally commented out until an observability receiver is deployed.
-- A future PR can add an explicit build/deploy script with validation, tagging, and rollback instructions.
+A follow-up PR can introduce host-independent build and deploy scripts using the script location or supplied paths, image tags, configuration validation, readiness checks, and documented rollback. The optional OTLP endpoint remains disabled until a telemetry receiver is available.
