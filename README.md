@@ -17,8 +17,9 @@ Detail discovery returns a flat `JobPostDetailDiscovery` model in the ingestion 
 - `apps/ingestion/tests/Eats.Ingestion.Tests/` — .NET ingestion tests.
 - `apps/ingestion/Eats.Ingestion.slnx` — ingestion solution for future modular-monolith projects.
 - `apps/ingestion/Dockerfile` — ingestion image definition (build context: repository root).
-- `devTools/` — local PostgreSQL bootstrap script.
-- `deploy/` — version-controlled production Compose file, environment template, and mini-PC deployment instructions.
+- `devScripts/` — local PostgreSQL bootstrap script.
+- `deploy/` — version-controlled production Compose file and environment template.
+- `deployScripts/` — portable image build and deployment scripts.
 
 The .NET application is **not yet split into modules**. This PR only establishes the
 directory and solution structure for subsequent project extraction.
@@ -68,7 +69,7 @@ From the repository root:
 4. Start the services in separate terminals:
 
    ```sh
-   bash devTools/infrastart.sh
+   bash devScripts/infrastart.sh
    (cd apps/ingestion/src/Eats.Ingestion && dotnet run)
    ```
 
@@ -117,7 +118,7 @@ For a completely fresh install of both databases, first reset SQLite using one o
 ```sh
 docker rm -f eats-postgres
 docker volume rm eats-postgres-data
-bash devTools/infrastart.sh
+bash devScripts/infrastart.sh
 ```
 
 Then restart the ingestion service; it recreates the database and loads sources from the configured Workday JSON file.
