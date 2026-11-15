@@ -122,18 +122,7 @@ public sealed class JobSynchronizerTaskScheduler(
         while (true)
         {
             var candidateLocal = candidateDate.Add(scheduleTime.ToTimeSpan());
-
-            // A spring-forward gap has no corresponding UTC instant.
-            // Run at the earliest valid minute after the gap on that day.
-            while (timeZone.IsInvalidTime(candidateLocal))
-            {
-                candidateLocal = candidateLocal.AddMinutes(1);
-            }
-
-            // Ambiguous fall-back times resolve to standard time (the later
-            // occurrence). Compare actual UTC instants, not local wall-clock
-            // values, so the second occurrence is not accidentally skipped.
-            var candidateUtc = TimeZoneInfo.ConvertTimeToUtc(candidateLocal, timeZone);
+            var candidateUtc = ResolveScheduledLocalTimeUtc(candidateLocal, timeZone);
             if (candidateUtc > nowUtc.UtcDateTime)
             {
                 return candidateUtc;
@@ -141,6 +130,33 @@ public sealed class JobSynchronizerTaskScheduler(
 
             candidateDate = candidateDate.AddDays(1);
         }
+    }
+
+    private static DateTime ResolveScheduledLocalTimeUtc(
+        DateTime scheduledLocal, TimeZoneInfo timeZone)
+    {
+        if (timeZone.IsInvalidTime(scheduledLocal))
+        {
+            // Spring forward: the requested wall-clock time does not exist.
+            // Execute at the first valid local minute on that SAME calendar day
+            // rather than silently skipping that day's ingestion. Start at the
+            // next whole minute so seconds do not delay the catch-up run.
+            scheduledLocal = new DateTime(
+                scheduledLocal.Year, scheduledLocal.Month, scheduledLocal.Day,
+                scheduledLocal.Hour, scheduledLocal.Minute, 0,
+                DateTimeKind.Unspecified);
+
+            do
+            {
+                scheduledLocal = scheduledLocal.AddMinutes(1);
+            }
+            while (timeZone.IsInvalidTime(scheduledLocal));
+        }
+
+        // Fall back: ConvertTimeToUtc resolves an ambiguous local time using
+        // standard time (the later occurrence). GetNextRunUtc compares UTC
+        // instants, so it does not skip the later occurrence.
+        return TimeZoneInfo.ConvertTimeToUtc(scheduledLocal, timeZone);
     }
 
 }
