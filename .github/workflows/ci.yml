@@ -141,3 +141,45 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy-ingestion:
+    name: Deploy ingestion to fred
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [publish-ingestion]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Connect to private Tailscale network
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          audience: ${{ secrets.TS_AUDIENCE }}
+          tags: tag:github-actions
+
+      - name: Configure SSH authentication
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\\n' "$DEPLOY_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy published commit to fred
+        env:
+          DEPLOY_SSH_HOST: ${{ vars.DEPLOY_SSH_HOST }}
+          DEPLOY_SSH_USER: ${{ vars.DEPLOY_SSH_USER }}
+        run: |
+          : "${DEPLOY_SSH_HOST:?Set DEPLOY_SSH_HOST in the production environment}"
+          : "${DEPLOY_SSH_USER:?Set DEPLOY_SSH_USER in the production environment}"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes \\
+            "$DEPLOY_SSH_USER@$DEPLOY_SSH_HOST" \\
+            "bash -s -- '$GITHUB_SHA'" < deployScripts/deploy-from-ci.sh
