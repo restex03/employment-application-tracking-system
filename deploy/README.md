@@ -16,6 +16,37 @@ Both PostgreSQL and ingestion publish on **both** `127.0.0.1` and the specific L
 
 These bindings are not an internet-access guarantee. Restrict inbound traffic with appropriate host/network firewall rules, check router port-forwarding and UPnP settings, and verify the service cannot be reached from an external network. Docker-published ports can bypass some UFW rules; account for Docker forwarding rules when enforcing firewall policy.
 
+## Fedora development
+
+The shared `compose.yaml` is the production baseline. `compose.dev.yaml` changes the project to `eats-dev`, uses the existing development database (`eats`) and named volume (`eats-postgres-data`), sets ASP.NET Core to Development, and publishes **localhost-only** ports. It requires Docker Compose 2.24.4+ for `!override`.
+
+Create a development environment file:
+
+```sh
+cp deploy/.env.dev.example deploy/.env
+```
+
+Edit `WORKDAY_SOURCES_HOST_PATH` to the absolute path of `apps/web/data/JobSources/workdaySources.json` on Fedora. The development example retains the old local PostgreSQL password. `LAN_IP` is an interpolation placeholder only; the development override removes LAN port publishing.
+
+**One-time migration from `infrastart.sh`:** if the existing `eats-postgres` container is present, stop any running ingestion process, then run `docker rm -f eats-postgres`. This removes the old container but **preserves** `eats-postgres-data`. Do not run `docker volume rm` or `down -v`.
+
+To run only PostgreSQL while developing ingestion with `dotnet run`:
+
+```sh
+docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml --env-file deploy/.env up -d postgres
+```
+
+To run ingestion **inside Docker** instead, build the image matching `INGESTION_IMAGE_TAG` and run:
+
+```sh
+bash deployScripts/build-ingestion.sh 0.1.21
+docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml --env-file deploy/.env up -d
+```
+
+Do not run the host `.NET` ingestion process and containerized ingestion against the same development database at the same time. To stop the development stack without deleting data, use `docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml --env-file deploy/.env down` (without `-v`).
+
+**Important:** `deployScripts/deploy-ingestion.sh` currently uses the production Compose file only. For local development, use the two-file Compose command above. The development override also changes the database name to `eats`; it does not migrate or alter production data. If you changed your old development password or database, adjust your local environment before starting.
+
 ## Existing deployments
 
 The Compose project name remains `eats`, the volume remains `postgres_data`, and the container names remain unchanged. **Do not change the project name or use `docker compose down -v`** on an existing deployment: doing so risks losing access to persistent PostgreSQL data.
