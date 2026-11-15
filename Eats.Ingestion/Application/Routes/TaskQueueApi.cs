@@ -7,22 +7,24 @@ public static class TaskQueueApi
 {
     public static RouteGroupBuilder MapTaskQueueApi(this RouteGroupBuilder group)
     {
-        group.MapGet("/{id}", GetById);
+        group.MapGet("/{id:guid}", GetById);
+        group.MapGet("/batches/{syncBatchId:guid}/tasks", GetBatchTasks);
+        group.MapGet("/batches/{syncBatchId:guid}/summary", GetBatchSummary);
         group.MapGet("/", List);
         group.MapPost("/", Add);
 
         return group;
     }
 
-    public static async Task<Ok<Guid>> Add(JobPostSyncRequest req, ITaskQueueService service, CancellationToken ct)
+    public static async Task<Ok<JobPostSyncEnqueueResponse>> Add(JobPostSyncRequest req, ITaskQueueService service, CancellationToken ct)
     {
-        var jobIds = await service.AddAsync(new JobPostSyncTask
+        var batch = await service.AddAsync(new JobPostSyncTask
         {
             SourceIds = req.SourceIds ?? [],
             SearchText = req.SearchText ?? ""
         }, ct);
 
-        return TypedResults.Ok(jobIds);
+        return TypedResults.Ok(batch);
     }
 
     public static async Task<Ok<IReadOnlyList<QueueTaskDto>>> List(ITaskQueueService svc, bool active = false)
@@ -35,6 +37,20 @@ public static class TaskQueueApi
     {
         var result = await svc.GetByIdOrThrowAsync(id);
         return TypedResults.Ok(result);
+    }
+
+    public static async Task<Ok<IReadOnlyList<QueueTaskDto>>> GetBatchTasks(
+        ITaskQueueService service, Guid syncBatchId, CancellationToken ct)
+    {
+        var tasks = await service.GetByBatchIdAsync(syncBatchId, ct);
+        return TypedResults.Ok(tasks);
+    }
+
+    public static async Task<Results<Ok<SyncBatchSummaryDto>, NotFound>> GetBatchSummary(
+        ITaskQueueService service, Guid syncBatchId, CancellationToken ct)
+    {
+        var summary = await service.GetBatchSummaryAsync(syncBatchId, ct);
+        return summary is null ? TypedResults.NotFound() : TypedResults.Ok(summary);
     }
 
     public interface ITaskQueueRequest
