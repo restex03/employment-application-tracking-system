@@ -1,6 +1,6 @@
 # EATS Docker Compose deployment
 
-This directory contains a portable deployment configuration for the EATS ingestion service and PostgreSQL. It does not include a dashboard or deployment automation yet.
+This directory contains a portable deployment configuration for the EATS ingestion service and PostgreSQL. It includes a main-branch deployment workflow; automatic deployment requires the one-time setup below.
 
 ## Configure
 
@@ -78,7 +78,7 @@ On every push to `main`, GitHub Actions first runs the existing .NET, NestJS, an
 
 The workflow uses the built-in `GITHUB_TOKEN` with `packages: write`; no separate registry publishing secret is required. The package may initially be private. Check package visibility and grant repository access to the package if needed.
 
-On fred, create a classic GitHub personal access token with **read:packages** and SSO authorization if applicable. Log in once without putting the token on the command line:
+If the GHCR package is private, create a classic GitHub personal access token with **read:packages** and SSO authorization if applicable. Public packages can be pulled anonymously. Log in once without putting the token on the command line:
 
 ```sh
 read -rsp 'GHCR token: ' GHCR_TOKEN; echo
@@ -88,7 +88,7 @@ unset GHCR_TOKEN
 
 Docker saves login credentials for the user running the command; use that same user for deployments and secure its Docker credential store. Do not commit or print the token.
 
-Set these values in fred's existing production environment file (for example `/opt/eats/.env`):
+For manual deployments, set these values in fred's existing production environment file (for example `/opt/eats/.env`). The CI deployment script sets them automatically:
 
 ```dotenv
 INGESTION_IMAGE_REPOSITORY=ghcr.io/restex03/eats-ingestion
@@ -102,7 +102,7 @@ git pull --ff-only origin main
 bash deployScripts/deploy-ingestion.sh --env-file /opt/eats/.env
 ```
 
-The deployment script pulls GHCR images and recreates **ingestion only**; it does not start or recreate PostgreSQL. PostgreSQL must already be running. To roll back, restore the previous `INGESTION_IMAGE_TAG` and run the same deployment command. GitHub Actions publishes images but does **not** automatically deploy to fred.
+The deployment script pulls GHCR images and recreates **ingestion only**; it does not start or recreate PostgreSQL. PostgreSQL must already be running. To roll back, restore the previous `INGESTION_IMAGE_TAG` and run the same deployment command. Once the production environment and Tailscale/SSH prerequisites below are configured, GitHub Actions automatically deploys after a successful main-branch publish. The commands above remain useful for manual recovery.
 
 Local image builds remain supported by setting `INGESTION_IMAGE_REPOSITORY=eats-ingestion` and building the desired local tag first.
 
@@ -128,3 +128,20 @@ Check the ingestion health status and review startup migrations before deploying
 ## Next steps
 
 Build and deploy scripts are available in [`deployScripts/`](../deployScripts/README.md), with image tags, configuration validation, readiness checks, and documented rollback. The optional OTLP endpoint remains disabled until a telemetry receiver is available.
+
+## Automatic deployment to fred (one-time setup)
+
+PR checks run on GitHub-hosted runners, without production credentials. After merging into `main`, the publishing job builds and pushes the SHA-tagged image; the `deploy-ingestion` job then joins Tailscale, connects to fred over SSH, and runs `deployScripts/deploy-from-ci.sh` remotely. This script changes only the image selector in `/opt/eats/.env`, pulls the published SHA, recreates ingestion without touching PostgreSQL, checks health, and attempts to restore the previous image if deployment fails. A failed deployment is reported as a failed Actions job.
+
+**Before merging this PR:**
+
+1. Install and enroll Tailscale on fred. Create a Tailscale OAuth client with the `auth_keys` scope and tag `tag:github-actions`, configure tailnet access policy to allow that tag to reach fred on TCP 22, and configure the GitHub Action with the OAuth client ID and secret. Do not grant this tag broad tailnet access.
+2. Create a dedicated SSH identity for deployments. Add its public key to fred's deployment user's `authorized_keys`; store the private key as a GitHub `production` environment secret. The user needs access to Docker (which effectively grants host-level privileges); protect this account accordingly.
+3. On fred, ensure `/opt/eats/compose.yaml` and `/opt/eats/.env` are the current production configuration and writable by the deployment user, and that `flock` is installed. The deployment user must be able to run Docker without an interactive sudo prompt. Back up `.env` and PostgreSQL before the first deployment.
+4. Authenticate Docker on fred to GHCR with a read-only `read:packages` token if the image is private; public packages may be pulled without credentials. The deployment user's Docker credentials must be configured for the same account used by SSH.
+5. In GitHub repository **Settings → Environments**, create `production` and restrict deployment branches to `main`. Set these **environment secrets**: `TS_OAUTH_CLIENT_ID`, `TS_OAUTH_SECRET`, `DEPLOY_SSH_KEY`, and `DEPLOY_SSH_KNOWN_HOSTS`. Populate `DEPLOY_SSH_KNOWN_HOSTS` using fred's SSH host public key, verified out of band; do not use `StrictHostKeyChecking=no`. Set **environment variables** `DEPLOY_SSH_HOST` (fred's Tailscale address or MagicDNS hostname) and `DEPLOY_SSH_USER` (the deployment account).
+6. Test the connection and deployment in a controlled rollout. Do not merge until the required GitHub secrets, environment variables, tailnet policy, SSH authorization, and GHCR pull access are ready.
+
+**Security:** Do not run untrusted PR code on fred. Keep the production environment restricted to trusted `main` deployments. A deployment user with Docker access has host-level privileges; the SSH private key is a sensitive production credential. Use separate deploy credentials and limit access.
+
+**Rollback limitation:** The script attempts to restore the previous image selector and recreate the old ingestion container on failure. This does **not** reverse database schema migrations or other persistent side effects. Database backups and backward-compatible migrations remain essential.
