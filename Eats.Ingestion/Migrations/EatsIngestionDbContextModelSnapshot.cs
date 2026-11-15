@@ -48,7 +48,13 @@ namespace Eats.Ingestion.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
+                    b.Property<Guid>("SyncBatchId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("SyncBatchId")
+                        .HasDatabaseName("IX_QueueTasks_SyncBatchId");
 
                     b.HasIndex("Status", "CreatedAt")
                         .HasDatabaseName("IX_QueueTasks_Status_CreatedAt");
