@@ -8,5 +8,5 @@ Type=oneshot
 User=eats-deploy
 Group=eats-deploy
 WorkingDirectory=/opt/eats
-ExecStart=/usr/bin/bash /opt/eats/poll-and-deploy-ingestion.sh
+ExecStart=/usr/bin/python3 /opt/eats/deploy.py
 TimeoutStartSec=7min
