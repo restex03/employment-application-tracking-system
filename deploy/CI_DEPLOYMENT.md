@@ -16,5 +16,5 @@ GitHub Actions runs .NET, NestJS and Compose checks, then publishes the ingestio
 - `:main` is a **mutable image tag**, and is only updated by the successful publish job. Protect `main` with required CI checks and PR reviews. GitHub administrators or anyone able to publish/overwrite the GHCR tag are still in the deployment trust boundary.
 - Fred pulls the image and compares its image ID to the running container. It recreates **only ingestion** and waits for Docker's health check. On failure, it restores the previous locally cached image. It does not undo database migrations or external side effects.
 - The script never copies Compose or secrets from GitHub. Configuration changes must be installed on Fred separately. Do not run `docker compose down -v`.
-- Deployments occur on successful `main` pushes and on weekly Sunday scheduled refreshes after checks pass, subject to the polling interval.
+- Deployments occur after successful `main` pushes, subject to the polling interval. There are no scheduled GitHub Actions rebuilds.
 - No script or timer is installed on Fred by this PR. The first deployment and validation are manual.
