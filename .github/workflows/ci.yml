@@ -5,9 +5,6 @@ on:
     branches: [main]
   push:
     branches: [main]
-  schedule:
-    # Rebuild the current main commit weekly to pick up .NET base-image patches.
-    - cron: '17 9 * * 0'
 
 permissions:
   contents: read
@@ -24,6 +21,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
 
       - name: Set up .NET 10
         uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
@@ -88,6 +87,18 @@ jobs:
           docker compose -f deploy/compose.yaml config --quiet
           docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml config --quiet
 
+  python-deploy:
+    name: Python deployment unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - name: Test deployment controller
+        run: python3 -m unittest discover -s deployScripts -p 'test_deploy.py' -v
+
   docker-build:
     name: Docker ingestion image build
     runs-on: ubuntu-latest
@@ -110,8 +121,8 @@ jobs:
 
   publish-ingestion:
     name: Publish ingestion image to GHCR
-    if: (github.event_name == 'push' || github.event_name == 'schedule') && github.ref == 'refs/heads/main'
-    needs: [dotnet, nestjs, compose, docker-build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [dotnet, nestjs, compose, docker-build, python-deploy]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -139,7 +150,7 @@ jobs:
           push: true
           pull: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/eats-ingestion:${{ github.event_name == 'schedule' && format('sha-{0}-run-{1}', github.sha, github.run_id) || format('sha-{0}', github.sha) }}
+            ghcr.io/${{ github.repository_owner }}/eats-ingestion:${{ format('sha-{0}', github.sha) }}
             ghcr.io/${{ github.repository_owner }}/eats-ingestion:main
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
