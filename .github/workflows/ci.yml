@@ -5,9 +5,6 @@ on:
     branches: [main]
   push:
     branches: [main]
-  schedule:
-    # Rebuild Sundays at 02:00 EST (03:00 EDT) to pick up .NET base-image patches.
-    - cron: '0 7 * * 0'
 
 permissions:
   contents: read
@@ -112,7 +109,7 @@ jobs:
 
   publish-ingestion:
     name: Publish ingestion image to GHCR
-    if: (github.event_name == 'push' || github.event_name == 'schedule') && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [dotnet, nestjs, compose, docker-build]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -141,7 +138,7 @@ jobs:
           push: true
           pull: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/eats-ingestion:${{ github.event_name == 'schedule' && format('sha-{0}-run-{1}', github.sha, github.run_id) || format('sha-{0}', github.sha) }}
+            ghcr.io/${{ github.repository_owner }}/eats-ingestion:${{ format('sha-{0}', github.sha) }}
             ghcr.io/${{ github.repository_owner }}/eats-ingestion:main
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
