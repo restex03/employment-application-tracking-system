@@ -87,8 +87,8 @@ jobs:
           docker compose -f deploy/compose.yaml config --quiet
           docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml config --quiet
 
-  python-deploy:
-    name: Python deployment unit tests
+  nushell-deploy:
+    name: Nushell deployment unit tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -96,8 +96,20 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
+
+      - name: Install pinned Nushell
+        run: |
+          archive=nu-0.117.0-x86_64-unknown-linux-gnu
+          curl --fail --silent --show-error --location --retry 3 \
+            "https://github.com/nushell/nushell/releases/download/0.117.0/$archive.tar.gz" \
+            --output "$RUNNER_TEMP/$archive.tar.gz"
+          echo "33b907da92b0e80bd10fea9fa0e8a1624cabfebd89ee2568e365da3c492ffc68  $RUNNER_TEMP/$archive.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/$archive.tar.gz" -C "$RUNNER_TEMP"
+          install -m 755 "$RUNNER_TEMP/$archive/nu" "$RUNNER_TEMP/nu"
+          "$RUNNER_TEMP/nu" --version
+
       - name: Test deployment controller
-        run: python3 -m unittest discover -s deployScripts -p 'test_deploy.py' -v
+        run: '"$RUNNER_TEMP/nu" --no-config-file deployScripts/test_deploy.nu'
 
   docker-build:
     name: Docker ingestion image build
@@ -122,7 +134,7 @@ jobs:
   publish-ingestion:
     name: Publish ingestion image to GHCR
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [dotnet, nestjs, compose, docker-build, python-deploy]
+    needs: [dotnet, nestjs, compose, docker-build, nushell-deploy]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:

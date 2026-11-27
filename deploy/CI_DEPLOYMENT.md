@@ -4,19 +4,36 @@ GitHub Actions runs .NET, NestJS, Compose, Docker build and deployment-controlle
 
 ## Responsibilities
 
-- **systemd:** scheduling, serialization of the oneshot service, startup after reboot and overall execution timeout. Use the service for both scheduled and manual deployments; do not run the Python script directly or concurrently modify ingestion or its image tags.
+- **systemd:** scheduling, serialization of the oneshot service, startup after reboot and overall execution timeout. Use the service for both scheduled and manual deployments; do not run the Nushell script directly or concurrently modify ingestion or its image tags.
 - **Docker Compose:** configuration validation, ingestion container lifecycle and health waiting (including timeout). PostgreSQL is not recreated.
 - **Docker:** running image identity and local rollback image tag.
 - **journald:** deployment outcomes, errors and rollback history.
-- **Python:** decide whether to deploy, orchestrate rollback and persist the most recently failed image ID. No custom polling, locking or JSON deployment-state ledger.
+- **Nushell:** decide whether to deploy, orchestrate rollback and persist the most recently failed image ID. No custom polling, locking or JSON deployment-state ledger.
 
 ## Install on Fred (one-time, manual)
 
 1. Verify /opt/eats/compose.yaml, /opt/eats/.env and the healthy eats-ingestion container. Confirm Docker Compose supports up --wait, --wait-timeout and --pull never, and config --format json. The controller refuses to deploy if the current container is absent or unhealthy.
-2. Copy deployScripts/deploy.py to /opt/eats/deploy.py. Install deploy/systemd/eats-ingestion-deploy.service and deploy/systemd/eats-ingestion-deploy.timer into /etc/systemd/system/. Ensure eats-deploy can execute Docker, read the deployment directory and write /opt/eats/deploy-state/. Docker group membership is effectively root-level privilege. No additional Python packages are required.
+2. Copy deployScripts/deploy.nu to /opt/eats/deploy.nu. Install deploy/systemd/eats-ingestion-deploy.service and deploy/systemd/eats-ingestion-deploy.timer into /etc/systemd/system/. Ensure eats-deploy can execute Docker, read the deployment directory and write /opt/eats/deploy-state/. Docker group membership is effectively root-level privilege. Install the pinned Nushell binary as described below; no plugins or packages are required.
 3. Set INGESTION_IMAGE_REPOSITORY=ghcr.io/restex03/eats-ingestion and INGESTION_IMAGE_TAG=main in Fred's **local** /opt/eats/.env. Do not commit this file. Keep the Compose project, PostgreSQL service and named volume unchanged.
 4. With the timer disabled, run sudo systemctl daemon-reload and sudo systemctl start eats-ingestion-deploy.service. Verify readiness and inspect sudo journalctl -u eats-ingestion-deploy.service -n 100 --no-pager. Validate a successful deployment and a deliberate health-check failure in an isolated test environment before enabling unattended deployment.
 5. Enable the timer with sudo systemctl enable --now eats-ingestion-deploy.timer. Inspect systemctl list-timers eats-ingestion-deploy.timer.
+
+## Install pinned Nushell (Linux x86_64)
+
+CI and Fred must use Nushell 0.117.0. Use the official GNU/Linux x86_64 release archive and verify its pinned SHA-256 before installation. For other architectures, select the corresponding official asset and verify its published digest.
+
+```bash
+archive=nu-0.117.0-x86_64-unknown-linux-gnu
+curl -fSL "https://github.com/nushell/nushell/releases/download/0.117.0/$archive.tar.gz" -o "$archive.tar.gz"
+echo "33b907da92b0e80bd10fea9fa0e8a1624cabfebd89ee2568e365da3c492ffc68  $archive.tar.gz" | sha256sum --check && \
+  tar -xzf "$archive.tar.gz" && \
+  sudo install -o root -g root -m 755 "$archive/nu" /usr/local/bin/nu
+/usr/local/bin/nu --version
+```
+
+The systemd unit uses an absolute executable path and disables personal Nushell configuration. Upgrade the pinned version and digest together with CI validation.
+
+Run the deployment decision tests locally with `nu --no-config-file deployScripts/test_deploy.nu`. No Docker daemon is required. If branch protection previously required the Python deployment check, update it to require the Nushell deployment unit tests check instead.
 
 ## Security and operational boundaries
 
