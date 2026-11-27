@@ -76,7 +76,7 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Validate shell syntax
-        run: bash -n deployScripts/build-ingestion.sh deployScripts/deploy-ingestion.sh deployScripts/deploy-from-ci.sh
+        run: bash -n deployScripts/build-ingestion.sh
 
       - name: Validate Docker Compose configuration
         env:
@@ -86,30 +86,6 @@ jobs:
         run: |
           docker compose -f deploy/compose.yaml config --quiet
           docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml config --quiet
-
-  bun-deploy:
-    name: Bun deployment unit tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          persist-credentials: false
-
-      - name: Install pinned Bun
-        run: |
-          archive=bun-linux-x64
-          curl --fail --silent --show-error --location --retry 3 \
-            "https://github.com/oven-sh/bun/releases/download/bun-v1.4.5/$archive.zip" \
-            --output "$RUNNER_TEMP/$archive.zip"
-          echo "94559b3b528995a49452f9f2404cec74f2efd7d06e0a000a8cd214b02c3666eb  $RUNNER_TEMP/$archive.zip" | sha256sum --check
-          unzip -q "$RUNNER_TEMP/$archive.zip" -d "$RUNNER_TEMP"
-          install -m 755 "$RUNNER_TEMP/$archive/bun" "$RUNNER_TEMP/eats-bun"
-          test "$("$RUNNER_TEMP/eats-bun" --version)" = "1.4.5"
-
-      - name: Test deployment controller
-        run: '"$RUNNER_TEMP/eats-bun" test --no-env-file deployScripts/deploy.test.ts'
 
   docker-build:
     name: Docker ingestion image build
@@ -134,7 +110,7 @@ jobs:
   publish-ingestion:
     name: Publish ingestion image to GHCR
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [dotnet, nestjs, compose, docker-build, bun-deploy]
+    needs: [dotnet, nestjs, compose, docker-build]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:

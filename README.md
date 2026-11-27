@@ -19,7 +19,7 @@ Detail discovery returns a flat `JobPostDetailDiscovery` model in the ingestion 
 - `apps/ingestion/Dockerfile` — ingestion image definition (build context: repository root).
 - `devScripts/` — convenience wrapper to start development PostgreSQL with Compose.
 - `deploy/` — shared Compose configuration, development override, and environment templates.
-- `deployScripts/` — portable image build and deployment scripts.
+- `deployScripts/` — local ingestion image build helper. Fred deployment automation lives in [eats-deploy](https://github.com/restex03/eats-deploy).
 
 The .NET application is **not yet split into modules**. This PR only establishes the
 directory and solution structure for subsequent project extraction.
@@ -141,7 +141,7 @@ Use the repository root as the Docker build context:
 docker build -f apps/ingestion/Dockerfile -t eats-ingestion:local .
 ```
 
-The version-controlled production Compose configuration is documented in [`deploy/README.md`](deploy/README.md). Building an image does not automatically deploy it to the mini PC.
+The version-controlled production Compose configuration is documented in [`deploy/README.md`](deploy/README.md). GitHub Actions publishes images from `main`; Fred-side automated deployment is managed independently in [eats-deploy](https://github.com/restex03/eats-deploy). Local builds do not publish or deploy.
 
 ## Migrating an existing local checkout
 
