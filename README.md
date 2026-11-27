@@ -17,9 +17,9 @@ Detail discovery returns a flat `JobPostDetailDiscovery` model in the ingestion 
 - `apps/ingestion/tests/Eats.Ingestion.Tests/` — .NET ingestion tests.
 - `apps/ingestion/Eats.Ingestion.slnx` — ingestion solution for future modular-monolith projects.
 - `apps/ingestion/Dockerfile` — ingestion image definition (build context: repository root).
-- `devScripts/` — convenience wrapper to start development PostgreSQL with Compose.
-- `deploy/` — shared Compose configuration, development override, and environment templates.
-- `deployScripts/` — local ingestion image build helper. Fred deployment automation lives in [eats-deploy](https://github.com/restex03/eats-deploy).
+- `deployScripts/` — local ingestion image build helper.
+
+Docker Compose infrastructure (development and production), environment templates and deployment automation live in [eats-deploy](https://github.com/restex03/eats-deploy).
 
 The .NET application is **not yet split into modules**. This PR only establishes the
 directory and solution structure for subsequent project extraction.
@@ -66,12 +66,19 @@ From the repository root:
 
    `DB_PATH`, `CANDIDATE_PROFILE`, and `API_PORT` are already set in `apps/web/.env.example`; adjust them only if needed.
 
-4. Start the services in separate terminals:
+4. Clone [eats-deploy](https://github.com/restex03/eats-deploy) alongside this repository and start development PostgreSQL:
 
    ```sh
-   cp deploy/.env.dev.example deploy/.env
-   # Edit deploy/.env: set WORKDAY_SOURCES_HOST_PATH to an absolute path.
-   bash devScripts/infrastart.sh
+   git clone https://github.com/restex03/eats-deploy.git ../eats-deploy
+   (cd ../eats-deploy && cp -n .env.dev.example .env)
+   # Edit ../eats-deploy/.env: set WORKDAY_SOURCES_HOST_PATH to an absolute path.
+   # If you already have a local deploy/.env, copy it instead of creating a new one.
+   bash ../eats-deploy/infrastart.sh
+   ```
+
+   Start ingestion in a separate terminal from the EATS root:
+
+   ```sh
    (cd apps/ingestion/src/Eats.Ingestion && dotnet run)
    ```
 
@@ -118,12 +125,12 @@ The API recreates the schema and seeds the candidate profile on startup. This do
 For a completely fresh install of both databases, first reset SQLite using the method above, then stop the ingestion service and remove the **development** PostgreSQL container and volume. This permanently deletes all local ingested postings, sources, and sync tasks; never run these commands on the production Docker host:
 
 ```sh
-docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml --env-file deploy/.env down
+(cd ../eats-deploy && docker compose -f compose.yaml -f compose.dev.yaml --env-file .env down)
 docker volume rm eats-postgres-data
-bash devScripts/infrastart.sh
+bash ../eats-deploy/infrastart.sh
 ```
 
-For a fully containerized local ingestion service, build an image, then run the same Compose files with `up -d`. Stop the host-run `.NET` ingestion process first to avoid two ingestion workers running against the same database. See [development Compose instructions](deploy/README.md#fedora-development).
+For a fully containerized local ingestion service, build an image, then run the same Compose files with `up -d`. Stop the host-run `.NET` ingestion process first to avoid two ingestion workers running against the same database. See [development Compose instructions](https://github.com/restex03/eats-deploy#local-development).
 
 ## Checks
 
@@ -141,9 +148,11 @@ Use the repository root as the Docker build context:
 docker build -f apps/ingestion/Dockerfile -t eats-ingestion:local .
 ```
 
-The version-controlled production Compose configuration is documented in [`deploy/README.md`](deploy/README.md). GitHub Actions publishes images from `main`; Fred-side automated deployment is managed independently in [eats-deploy](https://github.com/restex03/eats-deploy). Local builds do not publish or deploy.
+GitHub Actions publishes images from `main`; both Compose configurations and Fred-side automated deployment are maintained in [eats-deploy](https://github.com/restex03/eats-deploy). Local builds do not publish or deploy.
 
 ## Migrating an existing local checkout
+
+If `deploy/.env` still exists in your EATS checkout, copy it to the sibling `eats-deploy/.env` without overwriting an existing file. Verify the absolute Workday sources path and keep the current database credentials. Existing Docker project and volume names are unchanged. Do not delete volumes during this move.
 
 Untracked files are not moved by Git. If you already have a local `.env`
 or `data/` directory at the old repository root, move them into the web
