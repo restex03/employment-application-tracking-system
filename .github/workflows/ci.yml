@@ -76,7 +76,7 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Validate shell syntax
-        run: bash -n deployScripts/build-ingestion.sh deployScripts/deploy-ingestion.sh deployScripts/deploy-from-ci.sh
+        run: bash -n deployScripts/build-ingestion.sh
 
       - name: Validate Docker Compose configuration
         env:

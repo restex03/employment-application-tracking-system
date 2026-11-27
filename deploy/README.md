@@ -51,7 +51,7 @@ docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml --env-file depl
 
 Do not run the host `.NET` ingestion process and containerized ingestion against the same development database at the same time. To stop the development stack without deleting data, use `docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml --env-file deploy/.env down` (without `-v`).
 
-**Important:** `deployScripts/deploy-ingestion.sh` currently uses the production Compose file only. For local development, use the two-file Compose command above. The development override also changes the database name to `eats`; it does not migrate or alter production data. If you changed your old development password or database, adjust your local environment before starting.
+The development override also changes the database name to `eats`; it does not migrate or alter production data. If you changed your old development password or database, adjust your local environment before starting.
 
 ## Existing deployments
 
@@ -78,8 +78,8 @@ GitHub Actions continues to build and publish the ingestion image after all appl
 
 The workflow uses the built-in `GITHUB_TOKEN` with `packages: write`. It does not connect to Fred. The Bun controller, its tests, systemd units, and installation/monitoring runbook are maintained in [eats-deploy](https://github.com/restex03/eats-deploy). Fred polls GHCR independently.
 
-## Local build and legacy manual deployment
+## Local builds and production maintenance
 
-See [build and deploy scripts](../deployScripts/README.md). These older Bash scripts are not the active Fred deployment controller. Stop the controller's timer and let any in-flight deployment finish before manually modifying ingestion or its image tags.
+See the [local image build helper](../deployScripts/README.md). Follow the [eats-deploy runbook](https://github.com/restex03/eats-deploy) before manually modifying production ingestion or its image tags.
 
 Keep production `.env` and the existing Compose project and data volume on Fred. Never commit secrets or run `docker compose down -v` against production. Back up PostgreSQL before schema changes; rolling back an image does not undo migrations.
