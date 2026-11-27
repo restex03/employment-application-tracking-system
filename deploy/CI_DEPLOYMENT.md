@@ -1,26 +1,17 @@
-# Fred-initiated continuous deployment
+# Deploy and monitor EATS on Fred
 
-GitHub Actions runs .NET, NestJS, Compose, Docker build and deployment-controller tests, then publishes the ingestion image to GHCR **only after all checks pass on main**. Fred checks for new images using a native systemd timer, five minutes after each completed check. No GitHub-hosted deployment job, Tailscale OAuth credentials, SSH keys or inbound connection to Fred are required.
+Fred checks GHCR for a new ingestion image every five minutes after each completed check. Failed deployments trigger rollback; the most recently failed image is skipped on subsequent checks.
 
-## Responsibilities
+## 1. Install Bun (once)
 
-- **systemd:** scheduling, serialization of the oneshot service, startup after reboot and overall execution timeout. Use the service for both scheduled and manual deployments; do not run the TypeScript script directly or concurrently modify ingestion or its image tags.
-- **Docker Compose:** configuration validation, ingestion container lifecycle and health waiting (including timeout). PostgreSQL is not recreated.
-- **Docker:** running image identity and local rollback image tag.
-- **journald:** deployment outcomes, errors and rollback history.
-- **TypeScript + Bun:** decide whether to deploy, orchestrate rollback and persist the most recently failed image ID. No custom polling, locking or JSON deployment-state ledger.
+On Fred, verify x86_64 and AVX2 support:
 
-## Install on Fred (one-time, manual)
+```bash
+uname -m
+grep -qw avx2 /proc/cpuinfo && echo "AVX2 supported"
+```
 
-1. Verify /opt/eats/compose.yaml, /opt/eats/.env and the healthy eats-ingestion container. Confirm Docker Compose supports up --wait, --wait-timeout and --pull never, and config --format json. The controller refuses to deploy if the current container is absent or unhealthy.
-2. Copy deployScripts/deploy.ts to /opt/eats/deploy.ts. Install deploy/systemd/eats-ingestion-deploy.service and deploy/systemd/eats-ingestion-deploy.timer into /etc/systemd/system/. Ensure eats-deploy can execute Docker, read the deployment directory and write /opt/eats/deploy-state/. Docker group membership is effectively root-level privilege. Install the pinned Bun binary as described below; no npm packages are required.
-3. Set INGESTION_IMAGE_REPOSITORY=ghcr.io/restex03/eats-ingestion and INGESTION_IMAGE_TAG=main in Fred's **local** /opt/eats/.env. Do not commit this file. Keep the Compose project, PostgreSQL service and named volume unchanged.
-4. With the timer disabled, run sudo systemctl daemon-reload and sudo systemctl start eats-ingestion-deploy.service. Verify readiness and inspect sudo journalctl -u eats-ingestion-deploy.service -n 100 --no-pager. Validate a successful deployment and a deliberate health-check failure in an isolated test environment before enabling unattended deployment.
-5. Enable the timer with sudo systemctl enable --now eats-ingestion-deploy.timer. Inspect systemctl list-timers eats-ingestion-deploy.timer.
-
-## Install pinned Bun (Linux x86_64)
-
-Use Bun 1.4.5 in CI and on Fred. The following official Linux x64 archive requires AVX2 support; for a CPU without AVX2 use the official baseline archive and its corresponding checksum. For ARM64 use the corresponding official asset. The x64 digest is published in Oven's Homebrew formula (https://github.com/oven-sh/homebrew-bun/blob/main/Formula/bun.rb).
+For x86_64 with AVX2, install the same pinned Bun version used by CI:
 
 ```bash
 (
@@ -36,17 +27,89 @@ Use Bun 1.4.5 in CI and on Fred. The following official Linux x64 archive requir
 )
 ```
 
-Bun runs TypeScript directly; no npm install, package manifest, transpilation step or third-party test library is needed. The service uses an absolute executable path and disables automatic dotenv loading. Docker Compose explicitly reads .env. Install the runtime and controller from trusted sources, not a mutable remote script. Upgrade the pinned version and digest together with CI validation.
+Without AVX2, use the baseline x64 archive; for ARM64, use the aarch64 archive. Verify the corresponding published checksum before installing.
 
-Run the deployment decision tests locally with `bun test --no-env-file deployScripts/deploy.test.ts`. No Docker daemon is required. Bun transpiles TypeScript but does not perform static type checking; these are runtime tests, not a tsc check. If branch protection requires a previous Python or Nushell deployment check, replace it with the Bun deployment unit tests check before merging.
+## 2. Install the deployment script
 
-## Security and operational boundaries
+Run these commands from a checkout of the merged repository on Fred. For updates, stop the existing timer first and wait for any active deployment service to finish.
 
-- GitHub Actions dependencies are pinned to full commit SHAs. No deployment secrets are exposed to GitHub.
-- GHCR :main is mutable. Protect main with required CI checks and PR reviews. Anyone who can publish or overwrite this tag remains in the deployment trust boundary.
-- The controller never copies Compose configuration or secrets from GitHub. Install configuration changes on Fred separately. Do not run docker compose down -v.
-- The controller validates the expected Compose image and container name, pulls the candidate, compares immutable image IDs and preserves the previous image as eats-ingestion:rollback-local before recreating ingestion only. Compose waits for health; the controller confirms the running image ID and healthy status before declaring success.
-- A failed candidate is quarantined in /opt/eats/deploy-state/failed-image-id using atomic replacement. Subsequent polls skip that ID. A different image can deploy if the current container is healthy. Only the most recent failed ID is retained, not a history of all failed images.
-- On failure the controller attempts rollback even if writing the quarantine file fails. A successful rollback still returns a nonzero exit status so the failure is visible in journald. If the quarantine file cannot be written, disable the timer and repair storage to prevent repeated attempts.
-- A failed rollback is logged as CRITICAL; investigate immediately. An unhealthy or absent current container blocks unattended deployments. A process termination, host outage or systemd timeout during deployment is not automatically reconciled: inspect Docker and the journal, then manually restore the preserved rollback image if necessary. Do not prune the rollback tag before recovery. Container rollback cannot undo database migrations or external effects.
-- No script or timer is installed on Fred by this PR; initial verification is manual.
+```bash
+sudo install -m 644 deployScripts/deploy.ts /opt/eats/deploy.ts
+sudo install -m 644 deploy/systemd/eats-ingestion-deploy.{service,timer} /etc/systemd/system/
+sudo install -d -o eats-deploy -g eats-deploy -m 700 /opt/eats/deploy-state
+sudo systemctl daemon-reload
+```
+
+Edit the existing /opt/eats/.env (leave all other settings intact):
+
+```dotenv
+INGESTION_IMAGE_REPOSITORY=ghcr.io/restex03/eats-ingestion
+INGESTION_IMAGE_TAG=main
+```
+
+Prerequisites: eats-deploy can read the local Compose configuration and .env, access Docker, and write the state directory. Ingestion must already be healthy; Docker Compose must support --wait and --wait-timeout. Docker group access is effectively root access.
+
+```bash
+sudo -u eats-deploy docker inspect --format '{{.State.Health.Status}}' eats-ingestion
+docker compose version
+```
+
+## 3. Start automated deployments
+
+Run one check manually through systemd:
+
+```bash
+sudo systemctl start eats-ingestion-deploy.service
+sudo journalctl -u eats-ingestion-deploy.service -n 50 --no-pager
+```
+
+Verify successful deployment and rollback in an isolated Docker environment before enabling the timer:
+
+```bash
+sudo systemctl enable --now eats-ingestion-deploy.timer
+systemctl list-timers eats-ingestion-deploy.timer
+```
+
+The timer resumes after reboot. Always use systemctl for manual deployment checks; never run the script concurrently or directly.
+
+## 4. Monitor deployments
+
+```bash
+# Latest deployment status
+systemctl status eats-ingestion-deploy.service
+
+# Recent deployment logs (including previous failures)
+sudo journalctl -u eats-ingestion-deploy.service --since today
+
+# Watch live
+sudo journalctl -fu eats-ingestion-deploy.service
+
+# Inspect ingestion health
+sudo docker inspect --format '{{.State.Health.Status}}' eats-ingestion
+```
+
+A successful oneshot service normally becomes inactive after completion.
+
+| Log message | Meaning |
+|---|---|
+| Image unchanged | No deployment needed |
+| Deployment verified healthy | Success |
+| Rollback verified healthy | Deployment failed; previous image restored |
+| Skipping quarantined image | Known failed image skipped |
+| CRITICAL: Rollback failed | Manual recovery required |
+| Could not persist quarantine | Stop timer and investigate |
+
+A failed deployment returns a nonzero exit status even when rollback succeeds. Logs are not proactive alerts.
+
+## 5. Pause deployments if recovery is needed
+
+```bash
+sudo systemctl disable --now eats-ingestion-deploy.timer
+sudo journalctl -u eats-ingestion-deploy.service -n 100 --no-pager
+sudo docker ps -a --filter name=eats-ingestion
+sudo docker image inspect eats-ingestion:rollback-local
+```
+
+Let any active deployment finish before modifying containers or image tags. Investigate and restore ingestion if necessary, then restart the timer. Do not delete the quarantine file or rollback tag until recovery is complete. Rollback does not undo database migrations; never use docker compose down -v.
+
+GHCR's main tag is mutable: protect publishing permissions and require CI checks on main.
