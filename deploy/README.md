@@ -1,6 +1,6 @@
 # EATS Docker Compose deployment
 
-This directory contains a portable deployment configuration for the EATS ingestion service and PostgreSQL. GitHub Actions builds and publishes ingestion images; deployment to a host is a manual operation.
+This directory contains a portable deployment configuration for the EATS ingestion service and PostgreSQL. GitHub Actions builds and publishes ingestion images; Fred-side deployment automation is maintained in [eats-deploy](https://github.com/restex03/eats-deploy).
 
 ## Configure
 
@@ -51,7 +51,7 @@ docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml --env-file depl
 
 Do not run the host `.NET` ingestion process and containerized ingestion against the same development database at the same time. To stop the development stack without deleting data, use `docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml --env-file deploy/.env down` (without `-v`).
 
-**Important:** `deployScripts/deploy-ingestion.sh` currently uses the production Compose file only. For local development, use the two-file Compose command above. The development override also changes the database name to `eats`; it does not migrate or alter production data. If you changed your old development password or database, adjust your local environment before starting.
+**Important:** For local development, use the two-file Compose command above. The development override also changes the database name to `eats`; it does not migrate or alter production data. If you changed your old development password or database, adjust your local environment before starting.
 
 ## Existing deployments
 
@@ -69,77 +69,8 @@ docker compose -f deploy/compose.yaml --env-file deploy/.env config --quiet
 
 For a copied deployment directory, run `docker compose --env-file .env config --quiet` there. `docker compose config` without `--quiet` prints expanded environment values, including secrets; do not share its output.
 
-## GitHub Container Registry (GHCR)
+## Production deployment
 
-On every push to `main` and on a weekly Sunday schedule (09:17 UTC), GitHub Actions first runs the existing .NET, NestJS, and Compose checks. After they pass, it builds the ingestion Docker image with `pull: true` to check for updated .NET 10 base images and publishes:
+GitHub Actions publishes `ghcr.io/restex03/eats-ingestion:main` and a commit-SHA tag after successful application CI on pushes to main. No SSH deployment job or scheduled rebuild is configured. Fred's deployment controller, installation instructions, monitoring and recovery runbook are maintained in [eats-deploy](https://github.com/restex03/eats-deploy).
 
-- `ghcr.io/restex03/eats-ingestion:sha-<full-git-commit-sha>` (normal main-branch releases)
-- `ghcr.io/restex03/eats-ingestion:sha-<full-git-commit-sha>-run-<actions-run-id>` (weekly refreshes, unique even if source code is unchanged)
-- `ghcr.io/restex03/eats-ingestion:main` (moving tag; not recommended for production pinning)
-
-The weekly refresh rebuilds and publishes ingestion without a source-code change; it does not deploy to fred. Run-specific tags avoid overwriting an existing SHA-tagged release and preserve rollback references. A refreshed image can include .NET and base-image security patches, but a rebuild does not guarantee all OS packages are patched; review upstream image advisories and rebuild results. PostgreSQL is not redeployed by this workflow.
-
-The workflow uses the built-in `GITHUB_TOKEN` with `packages: write`; no separate registry publishing secret is required. The package may initially be private. Check package visibility and grant repository access to the package if needed.
-
-If the GHCR package is private, create a classic GitHub personal access token with **read:packages** and SSO authorization if applicable. Public packages can be pulled anonymously. Log in once without putting the token on the command line:
-
-```sh
-read -rsp 'GHCR token: ' GHCR_TOKEN; echo
-printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
-unset GHCR_TOKEN
-```
-
-Docker saves login credentials for the user running the command; use that same user for deployments and secure its Docker credential store. Do not commit or print the token.
-
-For manual deployments, set these values in fred's existing production environment file (for example `/opt/eats/.env`):
-
-```dotenv
-INGESTION_IMAGE_REPOSITORY=ghcr.io/restex03/eats-ingestion
-INGESTION_IMAGE_TAG=sha-REPLACE_WITH_PUBLISHED_COMMIT_SHA
-```
-
-After the image has been published, update `INGESTION_IMAGE_TAG` to the exact published tag, then pull and recreate **ingestion only** from `/opt/eats` on fred:
-
-```sh
-cd /opt/eats
-docker compose --env-file .env config --quiet
-docker compose --env-file .env pull ingestion
-docker compose --env-file .env up -d --no-deps ingestion
-docker compose --env-file .env ps ingestion
-docker compose --env-file .env logs --tail=100 ingestion
-```
-
-For scheduled refreshes, select the `sha-<commit>-run-<run-id>` tag from the successful publishing run. Use the exact tag rather than `main` for a reproducible deployment. Check the ingestion health status after restarting. Keep the previous image tag for rollback.
-
-These commands pull GHCR images and recreate **ingestion only**; they do not start or recreate PostgreSQL. PostgreSQL must already be running. To roll back, restore the previous `INGESTION_IMAGE_TAG` and repeat the pull/up commands. GitHub Actions does not connect to fred or deploy automatically.
-
-Local image builds remain supported by setting `INGESTION_IMAGE_REPOSITORY=eats-ingestion` and building the desired local tag first.
-
-## Build and deploy
-
-Build the ingestion image from the repository root:
-
-```sh
-docker build -f apps/ingestion/Dockerfile -t eats-ingestion:0.1.22 .
-```
-
-Choose a new image tag rather than overwriting a running release. Set `INGESTION_IMAGE_TAG` in the deployment `.env` to the new tag. From the deployment directory:
-
-```sh
-docker compose --env-file .env config --quiet
-docker compose --env-file .env up -d --no-deps ingestion
-docker compose ps
-docker compose logs --tail=100 ingestion
-```
-
-Check the ingestion health status and review startup migrations before deploying. Back up PostgreSQL before changes that may alter the schema. Avoid recreating PostgreSQL merely to deploy ingestion code.
-
-## Next steps
-
-Build and deploy scripts are available in [`deployScripts/`](../deployScripts/README.md), with image tags, configuration validation, readiness checks, and documented rollback. The optional OTLP endpoint remains disabled until a telemetry receiver is available.
-
-## Deployment credentials
-
-GitHub Actions publishes images to GHCR using the job-scoped `GITHUB_TOKEN` (`packages: write`), but does not connect to fred. Tailscale OAuth secrets, deployment SSH keys, and the GitHub `production` environment are not required for CI or image publishing. Remove the old GitHub deployment secrets and variables after this change is merged; retain Tailscale on your own devices if you use it for personal SSH access.
-
-Keep `/opt/eats/.env` on fred and never include it in a container image or commit it to Git. The manual deployment operator is responsible for selecting the image tag, checking readiness, and rolling back if necessary. Database migrations and other persistent effects are not reversed by switching images.
+Keep production `.env` and the existing Compose project and data volume on Fred. Never commit secrets or run `docker compose down -v` against production. Back up PostgreSQL before schema changes; rolling back an image does not undo migrations. Do not modify ingestion or its image tags concurrently with the deployment controller.
