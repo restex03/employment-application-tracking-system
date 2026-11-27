@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
-"""Fred-side pull deployment. Python standard library only."""
-import fcntl
+"""Fred-side deployment orchestration. Run through the systemd service."""
 import json
 import logging
-import os
 from pathlib import Path
 import subprocess
-import sys
-import tempfile
-import time
 
 IMAGE = "ghcr.io/restex03/eats-ingestion:main"
 CONTAINER = "eats-ingestion"
+ROLLBACK = "eats-ingestion:rollback-local"
+FAILED_IMAGE = Path("deploy-state/failed-image-id")
 LOG = logging.getLogger("eats.deploy")
 
 
@@ -19,143 +16,105 @@ class DeploymentError(RuntimeError):
     pass
 
 
-class Docker:
-    def __init__(self, directory):
-        self.directory = directory
-
-    def run(self, *args):
-        result = subprocess.run(args, cwd=self.directory, text=True, capture_output=True)
-        if result.returncode:
-            raise DeploymentError(f"{args[:3]} exited {result.returncode}: {result.stderr[:400]}")
-        return result.stdout.strip()
-
-    def compose(self, *args):
-        return self.run("docker", "compose", "--env-file", ".env", *args)
-
-    def inspect(self):
-        info = json.loads(self.run("docker", "inspect", CONTAINER))[0]
-        return (info["Image"], info["State"]["Running"],
-                (info["State"].get("Health") or {}).get("Status", "missing"))
-
-    def image_id(self, name):
-        return self.run("docker", "image", "inspect", "--format", "{{.Id}}", name)
-
-    def tag(self, source, destination):
-        self.run("docker", "image", "tag", source, destination)
-
-    def deploy(self):
-        self.compose("up", "-d", "--no-deps", "--pull", "never", "--force-recreate", "ingestion")
-
-    def validate(self):
-        self.compose("config", "--quiet")
-        config = json.loads(self.compose("config", "--format", "json"))
-        if config["services"]["ingestion"]["image"] != IMAGE:
-            raise DeploymentError("Compose ingestion image must be " + IMAGE)
+def docker(*args):
+    result = subprocess.run(
+        ["docker", *args], capture_output=True, text=True,
+    )
+    if result.returncode:
+        raise DeploymentError(
+            f"docker {args[0]} exited {result.returncode}: {result.stderr.strip()}"
+        )
+    return result.stdout.strip()
 
 
-def save(path, state):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fd, temporary = tempfile.mkstemp(dir=path.parent, prefix=".deploy-")
+def compose(*args):
+    return docker("compose", "--env-file", ".env", *args)
+
+
+def healthy_image():
+    result = docker(
+        "inspect", "--format",
+        "{{.Image}} {{.State.Running}} {{if .State.Health}}{{.State.Health.Status}}{{else}}missing{{end}}",
+        CONTAINER,
+    )
+    image, _, status = result.partition(" ")
+    if not image or status != "true healthy":
+        raise DeploymentError("Ingestion is not healthy; operator intervention required")
+    return image
+
+
+def deploy(expected):
+    compose(
+        "up", "-d", "--no-deps", "--pull", "never", "--force-recreate",
+        "--wait", "--wait-timeout", "180", "ingestion",
+    )
+    if healthy_image() != expected:
+        raise DeploymentError("Unexpected running image")
+
+
+def quarantine(path, image):
+    # systemd serializes invocations. Replace the file atomically.
+    temporary = path.with_suffix(".tmp")
+    temporary.write_text(image + "\n")
+    temporary.replace(path)
+
+
+def deploy_once(failed_file=FAILED_IMAGE):
+    # Compose validates configuration. Do not log its resolved contents (secrets).
+    config = json.loads(compose("config", "--format", "json"))
+    ingestion = config["services"]["ingestion"]
+    if ingestion["image"] != IMAGE or ingestion.get("container_name") != CONTAINER:
+        raise DeploymentError("Unexpected Compose ingestion image or container name")
+
+    previous = healthy_image()
+    failed_file.parent.mkdir(parents=True, exist_ok=True)
     try:
-        with os.fdopen(fd, "w") as out:
-            json.dump(state, out, indent=2, sort_keys=True)
-            out.write("\n")
-            out.flush()
-            os.fsync(out.fileno())
-        os.replace(temporary, path)
-    finally:
-        if os.path.exists(temporary):
-            os.unlink(temporary)
+        failed = failed_file.read_text().strip()
+    except FileNotFoundError:
+        failed = None
 
-
-def healthy(docker, expected, timeout=180):
-    deadline = time.monotonic() + timeout
-    while True:
-        image, running, status = docker.inspect()
-        if image == expected and running and status == "healthy":
-            return
-        if status in ("unhealthy", "missing"):
-            raise DeploymentError("Health check failed: " + status)
-        if time.monotonic() >= deadline:
-            raise DeploymentError("Health check timed out")
-        time.sleep(5)
-
-
-def deploy_once(docker, path):
-    docker.validate()
-    state = json.loads(path.read_text()) if path.exists() else {}
-    previous, running, health = docker.inspect()
-    if not running or health != "healthy":
-        raise DeploymentError("Current ingestion is not healthy; operator intervention required")
-    state["current_image"] = previous  # Docker, not JSON, is authoritative.
-    state["last_known_good_image"] = previous
-    save(path, state)
-
-    docker.run("docker", "pull", IMAGE)
-    candidate = docker.image_id(IMAGE)
+    docker("pull", IMAGE)
+    candidate = docker("image", "inspect", "--format", "{{.Id}}", IMAGE)
     if candidate == previous:
-        LOG.info("Image unchanged")
+        LOG.info("Image unchanged: %s", candidate)
         return "unchanged"
-    if candidate == state.get("last_failed_image"):
-        LOG.warning("Skipping quarantined image %s", candidate)
+    if candidate == failed:
+        LOG.warning("Skipping quarantined image: %s", candidate)
         return "quarantined"
 
-    rollback_tag = "eats-ingestion:rollback-local"
-    docker.tag(previous, rollback_tag)
-    state.update(previous_image=previous, pending_image=candidate)
-    save(path, state)
-
+    docker("image", "tag", previous, ROLLBACK)
+    LOG.info("Deploying %s (previous: %s)", candidate, previous)
     try:
-        docker.deploy()
-        healthy(docker, candidate)
-    except Exception as error:
-        state.update(last_failed_image=candidate, last_error=str(error),
-                     rollback_status="in_progress")
-        save(path, state)
+        deploy(candidate)
+    except (DeploymentError, OSError) as error:
+        LOG.error("Deployment failed: %s", error)
         try:
-            docker.tag(rollback_tag, IMAGE)
-            docker.deploy()
-            healthy(docker, previous)
-        except Exception as rollback_error:
-            state["rollback_status"] = "failed"
-            state["last_error"] = f"Deploy: {error}; rollback: {rollback_error}"
-            save(path, state)
+            quarantine(failed_file, candidate)
+        except OSError as persistence_error:
+            LOG.error("Could not persist quarantine: %s", persistence_error)
+        # Quarantine failures must not prevent a rollback attempt.
+        try:
+            docker("image", "tag", ROLLBACK, IMAGE)
+            deploy(previous)
+        except (DeploymentError, OSError) as rollback_error:
             LOG.critical("Rollback failed: %s", rollback_error)
-            raise DeploymentError(state["last_error"]) from rollback_error
-        state.update(rollback_status="succeeded", current_image=previous)
-        state.pop("pending_image", None)
-        save(path, state)
-        raise DeploymentError(f"Deployment failed; rollback verified healthy: {error}") from error
+            raise DeploymentError("Deployment and rollback failed") from rollback_error
+        LOG.info("Rollback verified healthy: %s", previous)
+        raise DeploymentError("Deployment failed; rollback succeeded") from error
 
-    state.update(current_image=candidate, last_known_good_image=candidate,
-                 rollback_status="not_required", last_error=None)
-    state.pop("pending_image", None)
-    state.pop("last_failed_image", None)
-    save(path, state)
-    LOG.info("Deployment healthy: %s", candidate)
+    LOG.info("Deployment verified healthy: %s", candidate)
     return "deployed"
 
 
 def main():
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
-    directory = Path(os.environ.get("EATS_DEPLOY_DIR", "/opt/eats"))
-    state_dir = directory / "deploy-state"
     try:
-        if not (directory / ".env").is_file() or not (directory / "compose.yaml").is_file():
-            raise DeploymentError("Missing Compose configuration")
-        state_dir.mkdir(parents=True, exist_ok=True)
-        with (state_dir / "deploy.lock").open("a+") as lock:
-            try:
-                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except BlockingIOError:
-                LOG.info("Deployment already running")
-                return 0
-            deploy_once(Docker(directory), state_dir / "state.json")
+        deploy_once()
         return 0
-    except (DeploymentError, OSError, ValueError, KeyError, IndexError) as error:
+    except (DeploymentError, OSError, ValueError, KeyError, TypeError) as error:
         LOG.error("%s", error)
         return 1
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

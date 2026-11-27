@@ -9,4 +9,4 @@ User=eats-deploy
 Group=eats-deploy
 WorkingDirectory=/opt/eats
 ExecStart=/usr/bin/python3 /opt/eats/deploy.py
-TimeoutStartSec=7min
+TimeoutStartSec=12min

@@ -1,24 +1,30 @@
 # Fred-initiated continuous deployment
 
-GitHub Actions runs .NET, NestJS and Compose checks, then publishes the ingestion image to GHCR **only after all checks pass**. Fred polls `ghcr.io/restex03/eats-ingestion:main` every five minutes using a native systemd timer. No GitHub-hosted deployment job, Tailscale OAuth credentials, SSH keys or inbound connection to Fred are required.
+GitHub Actions runs .NET, NestJS, Compose, Docker build and deployment-controller tests, then publishes the ingestion image to GHCR **only after all checks pass on main**. Fred checks for new images using a native systemd timer, five minutes after each completed check. No GitHub-hosted deployment job, Tailscale OAuth credentials, SSH keys or inbound connection to Fred are required.
+
+## Responsibilities
+
+- **systemd:** scheduling, serialization of the oneshot service, startup after reboot and overall execution timeout. Use the service for both scheduled and manual deployments; do not run the Python script directly or concurrently modify ingestion or its image tags.
+- **Docker Compose:** configuration validation, ingestion container lifecycle and health waiting (including timeout). PostgreSQL is not recreated.
+- **Docker:** running image identity and local rollback image tag.
+- **journald:** deployment outcomes, errors and rollback history.
+- **Python:** decide whether to deploy, orchestrate rollback and persist the most recently failed image ID. No custom polling, locking or JSON deployment-state ledger.
 
 ## Install on Fred (one-time, manual)
 
-1. Verify `/opt/eats/compose.yaml`, `/opt/eats/.env` and the running `eats-ingestion` container. The polling script intentionally refuses a first deployment if ingestion is not already running.
-2. Copy `deployScripts/deploy.py` to `/opt/eats/deploy.py`. Install `deploy/systemd/eats-ingestion-deploy.service` and `deploy/systemd/eats-ingestion-deploy.timer` into `/etc/systemd/system/`. Review the files before installation. Ensure `eats-deploy` can execute Docker and read the deployment directory; Docker group membership is effectively root-level privilege. The controller uses Python 3 standard library only; executable mode is not required.
-3. Set `INGESTION_IMAGE_REPOSITORY=ghcr.io/restex03/eats-ingestion` and `INGESTION_IMAGE_TAG=main` in Fred's **local** `/opt/eats/.env`. Do not commit this file. The Compose project, PostgreSQL service and named volume must remain unchanged.
-4. Confirm `eats-deploy` can `docker pull ghcr.io/restex03/eats-ingestion:main` (public package needs no registry secret). Run `python3 /opt/eats/deploy.py` once manually and verify readiness.
-5. Enable the timer with `sudo systemctl daemon-reload && sudo systemctl enable --now eats-ingestion-deploy.timer`. Inspect `systemctl list-timers eats-ingestion-deploy.timer` and `journalctl -u eats-ingestion-deploy.service -n 100 --no-pager`.
+1. Verify /opt/eats/compose.yaml, /opt/eats/.env and the healthy eats-ingestion container. Confirm Docker Compose supports up --wait, --wait-timeout and --pull never, and config --format json. The controller refuses to deploy if the current container is absent or unhealthy.
+2. Copy deployScripts/deploy.py to /opt/eats/deploy.py. Install deploy/systemd/eats-ingestion-deploy.service and deploy/systemd/eats-ingestion-deploy.timer into /etc/systemd/system/. Ensure eats-deploy can execute Docker, read the deployment directory and write /opt/eats/deploy-state/. Docker group membership is effectively root-level privilege. No additional Python packages are required.
+3. Set INGESTION_IMAGE_REPOSITORY=ghcr.io/restex03/eats-ingestion and INGESTION_IMAGE_TAG=main in Fred's **local** /opt/eats/.env. Do not commit this file. Keep the Compose project, PostgreSQL service and named volume unchanged.
+4. With the timer disabled, run sudo systemctl daemon-reload and sudo systemctl start eats-ingestion-deploy.service. Verify readiness and inspect sudo journalctl -u eats-ingestion-deploy.service -n 100 --no-pager. Validate a successful deployment and a deliberate health-check failure in an isolated test environment before enabling unattended deployment.
+5. Enable the timer with sudo systemctl enable --now eats-ingestion-deploy.timer. Inspect systemctl list-timers eats-ingestion-deploy.timer.
 
 ## Security and operational boundaries
 
-- All GitHub Actions used by CI are pinned to full commit SHAs. No deployment secrets are exposed to GitHub.
-- `:main` is a **mutable image tag**, and is only updated by the successful publish job. Protect `main` with required CI checks and PR reviews. GitHub administrators or anyone able to publish/overwrite the GHCR tag are still in the deployment trust boundary.
-- Fred pulls the image and compares its image ID to the running container. It recreates **only ingestion** and waits for Docker's health check. On failure, it records the failed image ID under `/opt/eats/deploy-state/state.json`, restores the exact previous image, and waits for the restored container to become healthy. Subsequent polls skip that failed image until GHCR publishes a different image. It does not undo database migrations or external side effects.
-- The script never copies Compose or secrets from GitHub. Configuration changes must be installed on Fred separately. Do not run `docker compose down -v`.
-- Deployments occur after successful `main` pushes, subject to the polling interval. There are no scheduled GitHub Actions rebuilds.
-- Keep `/opt/eats/deploy-state/` writable by `eats-deploy` and persistent across restarts. A failed rollback is logged as `CRITICAL` and the systemd job exits nonzero; investigate immediately. An unhealthy current container blocks further unattended deployments. Image-ID quarantine is not a substitute for image signing or provenance verification.\n- No script or timer is installed on Fred by this PR. The first deployment and validation are manual.
-
-## Failed deployments and recovery
-
-The Python controller records the last-known-good image ID and the failed image ID in `/opt/eats/deploy-state/`. The deployment service returns a failure when a candidate fails, even if rollback succeeds, so `journalctl -u eats-ingestion-deploy.service` shows the incident. If rollback fails, inspect the service logs and repair the container manually; a Bash script cannot guarantee recovery from host, Docker, storage, or application failures. The image quarantine persists across timer runs, and a different published image can be deployed without clearing it manually. The script requires a functioning Docker HEALTHCHECK for ingestion. Do not delete the state directory or run image pruning against the last-known-good image without understanding the consequences.
+- GitHub Actions dependencies are pinned to full commit SHAs. No deployment secrets are exposed to GitHub.
+- GHCR :main is mutable. Protect main with required CI checks and PR reviews. Anyone who can publish or overwrite this tag remains in the deployment trust boundary.
+- The controller never copies Compose configuration or secrets from GitHub. Install configuration changes on Fred separately. Do not run docker compose down -v.
+- The controller validates the expected Compose image and container name, pulls the candidate, compares immutable image IDs and preserves the previous image as eats-ingestion:rollback-local before recreating ingestion only. Compose waits for health; the controller confirms the running image ID and healthy status before declaring success.
+- A failed candidate is quarantined in /opt/eats/deploy-state/failed-image-id using atomic replacement. Subsequent polls skip that ID. A different image can deploy if the current container is healthy. Only the most recent failed ID is retained, not a history of all failed images.
+- On failure the controller attempts rollback even if writing the quarantine file fails. A successful rollback still returns a nonzero exit status so the failure is visible in journald. If the quarantine file cannot be written, disable the timer and repair storage to prevent repeated attempts.
+- A failed rollback is logged as CRITICAL; investigate immediately. An unhealthy or absent current container blocks unattended deployments. A process termination, host outage or systemd timeout during deployment is not automatically reconciled: inspect Docker and the journal, then manually restore the preserved rollback image if necessary. Do not prune the rollback tag before recovery. Container rollback cannot undo database migrations or external effects.
+- No script or timer is installed on Fred by this PR; initial verification is manual.

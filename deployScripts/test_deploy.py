@@ -1,85 +1,128 @@
-"""Unit tests for the Fred deployment state machine (no Docker required)."""
-import importlib.util
+"""Verify deployment decisions without a Docker daemon or real delays."""
 import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import call, patch
 
-spec = importlib.util.spec_from_file_location("deploy", Path(__file__).with_name("deploy.py"))
-deploy = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(deploy)
+import deploy
 
 
-class FakeDocker:
-    def __init__(self, candidate="new", fail_candidate=False, fail_rollback=False):
-        self.current = "old"
-        self.candidate = candidate
-        self.fail_candidate = fail_candidate
-        self.fail_rollback = fail_rollback
-        self.tags = {}
-        self.deployments = 0
-
-    def validate(self):
-        pass
-
-    def inspect(self):
-        if self.current == "new" and self.fail_candidate:
-            return (self.current, True, "unhealthy")
-        if self.current == "old" and self.deployments > 1 and self.fail_rollback:
-            return (self.current, True, "unhealthy")
-        return (self.current, True, "healthy")
-
-    def run(self, *args):
-        return ""
-
-    def image_id(self, name):
-        return self.candidate
-
-    def tag(self, source, destination):
-        self.tags[destination] = source
-
-    def deploy(self):
-        self.deployments += 1
-        self.current = self.tags.get(deploy.IMAGE, self.candidate)
+CONFIG = json.dumps({"services": {"ingestion": {
+    "image": deploy.IMAGE, "container_name": deploy.CONTAINER,
+}}})
+CONFIG_CALL = call("compose", "--env-file", ".env", "config", "--format", "json")
+INSPECT = call(
+    "inspect", "--format",
+    "{{.Image}} {{.State.Running}} {{if .State.Health}}{{.State.Health.Status}}{{else}}missing{{end}}",
+    deploy.CONTAINER,
+)
+PULL = call("pull", deploy.IMAGE)
+CANDIDATE = call("image", "inspect", "--format", "{{.Id}}", deploy.IMAGE)
+PRESERVE = call("image", "tag", "old", deploy.ROLLBACK)
+RESTORE = call("image", "tag", deploy.ROLLBACK, deploy.IMAGE)
+UP = call(
+    "compose", "--env-file", ".env", "up", "-d", "--no-deps",
+    "--pull", "never", "--force-recreate", "--wait", "--wait-timeout",
+    "180", "ingestion",
+)
+CHECK = [CONFIG_CALL, INSPECT, PULL, CANDIDATE]
 
 
 class DeploymentTests(unittest.TestCase):
     def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory()
-        self.path = Path(self.tmp.name) / "state.json"
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.failed = Path(directory.name) / "deploy-state" / "failed-image-id"
+        self.docker = self.enterContext(patch.object(deploy, "docker"))
 
-    def tearDown(self):
-        self.tmp.cleanup()
-
-    def state(self):
-        return json.loads(self.path.read_text())
+    def run_deploy(self):
+        return deploy.deploy_once(self.failed)
 
     def test_success(self):
-        docker = FakeDocker()
-        self.assertEqual(deploy.deploy_once(docker, self.path), "deployed")
-        self.assertEqual(self.state()["current_image"], "new")
-        self.assertEqual(docker.deployments, 1)
+        self.docker.side_effect = [CONFIG, "old true healthy", "", "new",
+                                   "", "", "new true healthy"]
+        self.assertEqual(self.run_deploy(), "deployed")
+        self.assertEqual(self.docker.call_args_list, CHECK + [PRESERVE, UP, INSPECT])
+        self.assertFalse(self.failed.exists())
 
     def test_unchanged(self):
-        docker = FakeDocker(candidate="old")
-        self.assertEqual(deploy.deploy_once(docker, self.path), "unchanged")
-        self.assertEqual(docker.deployments, 0)
+        self.docker.side_effect = [CONFIG, "old true healthy", "", "old"]
+        self.assertEqual(self.run_deploy(), "unchanged")
+        self.assertEqual(self.docker.call_args_list, CHECK)
 
     def test_failed_candidate_is_rolled_back_and_quarantined(self):
-        docker = FakeDocker(fail_candidate=True)
-        with self.assertRaises(deploy.DeploymentError):
-            deploy.deploy_once(docker, self.path)
-        self.assertEqual(self.state()["rollback_status"], "succeeded")
-        self.assertEqual(self.state()["last_failed_image"], "new")
-        self.assertEqual(docker.current, "old")
-        self.assertEqual(deploy.deploy_once(docker, self.path), "quarantined")
-        self.assertEqual(docker.deployments, 2)
+        self.docker.side_effect = [CONFIG, "old true healthy", "", "new", "",
+                                   deploy.DeploymentError("unhealthy"),
+                                   "", "", "old true healthy"]
+        with self.assertRaisesRegex(deploy.DeploymentError, "rollback succeeded"):
+            self.run_deploy()
+        self.assertEqual(self.failed.read_text().strip(), "new")
+        self.assertEqual(self.docker.call_args_list,
+                         CHECK + [PRESERVE, UP, RESTORE, UP, INSPECT])
+        self.docker.reset_mock()
+        self.docker.side_effect = [CONFIG, "old true healthy", "", "new"]
+        self.assertEqual(self.run_deploy(), "quarantined")
+        self.assertEqual(self.docker.call_args_list, CHECK)
 
-    def test_failed_rollback_is_recorded(self):
-        docker = FakeDocker(fail_candidate=True, fail_rollback=True)
-        with self.assertRaises(deploy.DeploymentError):
-            deploy.deploy_once(docker, self.path)
-        self.assertEqual(self.state()["rollback_status"], "failed")
+    def test_different_candidate_can_deploy_after_failure(self):
+        self.failed.parent.mkdir()
+        self.failed.write_text("bad\n")
+        self.docker.side_effect = [CONFIG, "old true healthy", "", "new",
+                                   "", "", "new true healthy"]
+        self.assertEqual(self.run_deploy(), "deployed")
+        self.assertEqual(self.docker.call_args_list, CHECK + [PRESERVE, UP, INSPECT])
+
+    def test_failed_rollback_is_reported(self):
+        self.docker.side_effect = [CONFIG, "old true healthy", "", "new", "",
+                                   deploy.DeploymentError("unhealthy"), "", "",
+                                   "old true unhealthy"]
+        with self.assertLogs(deploy.LOG, level="CRITICAL"):
+            with self.assertRaisesRegex(deploy.DeploymentError, "rollback failed"):
+                self.run_deploy()
+        self.assertEqual(self.failed.read_text().strip(), "new")
+        self.assertEqual(self.docker.call_args_list,
+                         CHECK + [PRESERVE, UP, RESTORE, UP, INSPECT])
+
+    def test_quarantine_write_failure_does_not_prevent_rollback(self):
+        self.docker.side_effect = [CONFIG, "old true healthy", "", "new", "",
+                                   deploy.DeploymentError("unhealthy"),
+                                   "", "", "old true healthy"]
+        with patch.object(deploy, "quarantine", side_effect=OSError("disk full")):
+            with self.assertRaisesRegex(deploy.DeploymentError, "rollback succeeded"):
+                self.run_deploy()
+        self.assertEqual(self.docker.call_args_list,
+                         CHECK + [PRESERVE, UP, RESTORE, UP, INSPECT])
+
+    def test_unhealthy_existing_container_blocks_deployment(self):
+        self.docker.side_effect = [CONFIG, "old true unhealthy"]
+        with self.assertRaisesRegex(deploy.DeploymentError, "not healthy"):
+            self.run_deploy()
+        self.assertEqual(self.docker.call_args_list, [CONFIG_CALL, INSPECT])
+
+    def test_wrong_compose_image_blocks_deployment(self):
+        self.docker.return_value = json.dumps({"services": {"ingestion": {
+            "image": "wrong", "container_name": deploy.CONTAINER,
+        }}})
+        with self.assertRaisesRegex(deploy.DeploymentError, "Unexpected Compose"):
+            self.run_deploy()
+        self.assertEqual(self.docker.call_args_list, [CONFIG_CALL])
+
+    def test_pull_failure_does_not_recreate_container(self):
+        self.docker.side_effect = [CONFIG, "old true healthy",
+                                   deploy.DeploymentError("pull failed")]
+        with self.assertRaisesRegex(deploy.DeploymentError, "pull failed"):
+            self.run_deploy()
+        self.assertEqual(self.docker.call_args_list, CHECK[:3])
+
+    def test_unexpected_running_image_triggers_rollback(self):
+        self.docker.side_effect = [CONFIG, "old true healthy", "", "new",
+                                   "", "", "unexpected true healthy", "", "",
+                                   "old true healthy"]
+        with self.assertRaisesRegex(deploy.DeploymentError, "rollback succeeded"):
+            self.run_deploy()
+        self.assertEqual(self.docker.call_args_list,
+                         CHECK + [PRESERVE, UP, INSPECT, RESTORE, UP, INSPECT])
 
 
 if __name__ == "__main__":
