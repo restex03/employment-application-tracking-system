@@ -1,6 +1,6 @@
 # EATS Docker Compose deployment
 
-This directory contains a portable deployment configuration for the EATS ingestion service and PostgreSQL. GitHub Actions builds and publishes ingestion images; Fred-side deployment automation is maintained in [eats-deploy](https://github.com/restex03/eats-deploy).
+This directory contains a portable deployment configuration for the EATS ingestion service and PostgreSQL. GitHub Actions builds and publishes ingestion images; Fred's Bun deployment controller is maintained in [eats-deploy](https://github.com/restex03/eats-deploy).
 
 ## Configure
 
@@ -51,7 +51,7 @@ docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml --env-file depl
 
 Do not run the host `.NET` ingestion process and containerized ingestion against the same development database at the same time. To stop the development stack without deleting data, use `docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml --env-file deploy/.env down` (without `-v`).
 
-**Important:** For local development, use the two-file Compose command above. The development override also changes the database name to `eats`; it does not migrate or alter production data. If you changed your old development password or database, adjust your local environment before starting.
+**Important:** `deployScripts/deploy-ingestion.sh` currently uses the production Compose file only. For local development, use the two-file Compose command above. The development override also changes the database name to `eats`; it does not migrate or alter production data. If you changed your old development password or database, adjust your local environment before starting.
 
 ## Existing deployments
 
@@ -69,8 +69,17 @@ docker compose -f deploy/compose.yaml --env-file deploy/.env config --quiet
 
 For a copied deployment directory, run `docker compose --env-file .env config --quiet` there. `docker compose config` without `--quiet` prints expanded environment values, including secrets; do not share its output.
 
-## Production deployment
+## GitHub Container Registry (GHCR)
 
-GitHub Actions publishes `ghcr.io/restex03/eats-ingestion:main` and a commit-SHA tag after successful application CI on pushes to main. No SSH deployment job or scheduled rebuild is configured. Fred's deployment controller, installation instructions, monitoring and recovery runbook are maintained in [eats-deploy](https://github.com/restex03/eats-deploy).
+GitHub Actions continues to build and publish the ingestion image after all application CI checks pass on pushes to `main`:
 
-Keep production `.env` and the existing Compose project and data volume on Fred. Never commit secrets or run `docker compose down -v` against production. Back up PostgreSQL before schema changes; rolling back an image does not undo migrations. Do not modify ingestion or its image tags concurrently with the deployment controller.
+- `ghcr.io/restex03/eats-ingestion:sha-<full-git-commit-sha>`
+- `ghcr.io/restex03/eats-ingestion:main`
+
+The workflow uses the built-in `GITHUB_TOKEN` with `packages: write`. It does not connect to Fred. The Bun controller, its tests, systemd units, and installation/monitoring runbook are maintained in [eats-deploy](https://github.com/restex03/eats-deploy). Fred polls GHCR independently.
+
+## Local build and legacy manual deployment
+
+See [build and deploy scripts](../deployScripts/README.md). These older Bash scripts are not the active Fred deployment controller. Stop the controller's timer and let any in-flight deployment finish before manually modifying ingestion or its image tags.
+
+Keep production `.env` and the existing Compose project and data volume on Fred. Never commit secrets or run `docker compose down -v` against production. Back up PostgreSQL before schema changes; rolling back an image does not undo migrations.
