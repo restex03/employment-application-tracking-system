@@ -87,8 +87,8 @@ jobs:
           docker compose -f deploy/compose.yaml config --quiet
           docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml config --quiet
 
-  nushell-deploy:
-    name: Nushell deployment unit tests
+  bun-deploy:
+    name: Bun deployment unit tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -97,19 +97,19 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install pinned Nushell
+      - name: Install pinned Bun
         run: |
-          archive=nu-0.117.0-x86_64-unknown-linux-gnu
+          archive=bun-linux-x64
           curl --fail --silent --show-error --location --retry 3 \
-            "https://github.com/nushell/nushell/releases/download/0.117.0/$archive.tar.gz" \
-            --output "$RUNNER_TEMP/$archive.tar.gz"
-          echo "33b907da92b0e80bd10fea9fa0e8a1624cabfebd89ee2568e365da3c492ffc68  $RUNNER_TEMP/$archive.tar.gz" | sha256sum --check
-          tar -xzf "$RUNNER_TEMP/$archive.tar.gz" -C "$RUNNER_TEMP"
-          install -m 755 "$RUNNER_TEMP/$archive/nu" "$RUNNER_TEMP/nu"
-          "$RUNNER_TEMP/nu" --version
+            "https://github.com/oven-sh/bun/releases/download/bun-v1.4.5/$archive.zip" \
+            --output "$RUNNER_TEMP/$archive.zip"
+          echo "94559b3b528995a49452f9f2404cec74f2efd7d06e0a000a8cd214b02c3666eb  $RUNNER_TEMP/$archive.zip" | sha256sum --check
+          unzip -q "$RUNNER_TEMP/$archive.zip" -d "$RUNNER_TEMP"
+          install -m 755 "$RUNNER_TEMP/$archive/bun" "$RUNNER_TEMP/eats-bun"
+          test "$("$RUNNER_TEMP/eats-bun" --version)" = "1.4.5"
 
       - name: Test deployment controller
-        run: '"$RUNNER_TEMP/nu" --no-config-file deployScripts/test_deploy.nu'
+        run: '"$RUNNER_TEMP/eats-bun" test --no-env-file deployScripts/deploy.test.ts'
 
   docker-build:
     name: Docker ingestion image build
@@ -134,7 +134,7 @@ jobs:
   publish-ingestion:
     name: Publish ingestion image to GHCR
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [dotnet, nestjs, compose, docker-build, nushell-deploy]
+    needs: [dotnet, nestjs, compose, docker-build, bun-deploy]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:

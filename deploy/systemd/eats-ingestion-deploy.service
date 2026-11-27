@@ -8,5 +8,5 @@ Type=oneshot
 User=eats-deploy
 Group=eats-deploy
 WorkingDirectory=/opt/eats
-ExecStart=/usr/local/bin/nu --no-config-file /opt/eats/deploy.nu
+ExecStart=/usr/local/bin/bun run --no-env-file /opt/eats/deploy.ts
 TimeoutStartSec=12min
