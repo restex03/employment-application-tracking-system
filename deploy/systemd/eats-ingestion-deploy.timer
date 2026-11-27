@@ -1,0 +1,11 @@
+[Unit]
+Description=Check for new EATS ingestion images every five minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitInactiveSec=5min
+Persistent=true
+Unit=eats-ingestion-deploy.service
+
+[Install]
+WantedBy=timers.target
